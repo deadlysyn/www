@@ -4,9 +4,7 @@ deadlysyn.com static content
 
 ## how to use
 
-blog.py is now in the root of the zip. It needs only Python 3.8 or newer, with no packages to install.
-
-How it works. Each post's own file is the source of truth, and you edit only three things in it:
+Each post's own file is the source of truth, and you edit only three things in it:
 
 - the date, keywords (your tags), and description meta tags in the `<head>`
 - the title inside `<h1 class="name">`
