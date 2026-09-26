@@ -1,3 +1,313 @@
+/* deadlysyn(1) — man page theme */
+
+:root {
+  --bg: #15130f;
+  --fg: #e9e3d5;
+  --fg-soft: #cfc8b8;
+  --muted: #a39c8c;
+  --rule: #3a352c;
+  --accent: #e0a650;
+  --accent-hover: #f2c27a;
+
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+
+  --label-col: 13.75rem;
+  --gap: 3rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-    font-family: 'Source Code Pro', monospace;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.3125rem; /* 21px */
+  line-height: 1.7;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: #6d6555;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration-color: var(--accent-hover);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.page {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 3.5rem clamp(1.25rem, 6vw, 7.5rem) 4rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 4.5rem;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+/* Running head and foot, like a printed man page */
+
+.running-head,
+.running-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.running-head {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.running-foot {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.running-head__title {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+/* Sections */
+
+.entry {
+  display: grid;
+  grid-template-columns: var(--label-col) minmax(0, 1fr);
+  gap: var(--gap);
+  align-items: baseline;
+}
+
+.entry__label {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.entry__body {
+  margin: 0;
+  max-width: 51.25rem;
+}
+
+.cmd {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.name {
+  font-size: 2.125rem;
+  line-height: 1.35;
+}
+
+.name .cmd {
+  font-size: 0.94em;
+}
+
+.synopsis {
+  font-family: var(--mono);
+  font-size: 1.1875rem;
+  line-height: 1.9;
+  color: var(--fg-soft);
+}
+
+.synopsis .opt {
+  white-space: nowrap;
+}
+
+.flag,
+.options dt {
+  color: var(--accent);
+}
+
+.prose {
+  max-width: 47.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.prose p {
+  margin: 0;
+}
+
+.epigraph {
+  margin: 0 0 0.75rem;
+  padding-left: 2.5rem;
+  font-style: italic;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  color: #d8d1c1;
+}
+
+.epigraph p {
+  margin: 0;
+}
+
+.epigraph footer {
+  margin-top: 0.5rem;
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  column-gap: 2rem;
+  row-gap: 1.125rem;
+  line-height: 1.5;
+}
+
+.options dt {
+  font-family: var(--mono);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.options dd {
+  margin: 0;
+}
+
+.see-also {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2.5rem;
+  font-family: var(--mono);
+  font-size: 1.25rem;
+}
+
+.see-also a {
+  display: inline-block;
+  padding: 0.625rem 0; /* comfortable tap target */
+}
+
+/* Tablet: narrower label column */
+
+@media (max-width: 960px) {
+  :root {
+    --label-col: 10rem;
+    --gap: 2rem;
+  }
+
+  .options {
+    grid-template-columns: 12rem minmax(0, 1fr);
+  }
+}
+
+/* Phone: stack like a terminal man page — heading flush left, body indented */
+
+@media (max-width: 680px) {
+  body {
+    font-size: 1.125rem;
+  }
+
+  .page {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    gap: 3rem;
+  }
+
+  main {
+    gap: 2.75rem;
+  }
+
+  .running-head,
+  .running-foot {
+    font-size: 0.8125rem;
+  }
+
+  .running-head__center,
+  .running-foot__center {
+    display: none;
+  }
+
+  .entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .entry__body {
+    padding-left: 1.25rem;
+  }
+
+  .name {
+    font-size: 1.5rem;
+  }
+
+  .synopsis {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .epigraph {
+    padding-left: 0;
+    font-size: 1.25rem;
+  }
+
+  .prose {
+    gap: 1.25rem;
+  }
+
+  .options {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .options dt {
+    font-size: 1rem;
+  }
+
+  .options dd {
+    margin: 0.125rem 0 1rem 1.25rem;
+  }
+
+  .see-also {
+    font-size: 1.0625rem;
+    gap: 0 1.75rem;
+  }
 }

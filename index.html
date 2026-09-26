@@ -1,76 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"/>
-    <title>Hello World</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css" integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <meta name="description" content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS">
+    <meta name="theme-color" content="#15130f">
+    <title>deadlysyn(1)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="./site.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="./site.css" rel="stylesheet">
   </head>
   <body>
-    <section class="section">
-      <div class="container has-text-centered">
-        <span class="icon">
-          <a class="button is-medium is-white" href="https://deadlysyn.com/blog">
-            <i class="fa-solid fa-book-open fa-lg fa-fw"></i>
-          </a>
-          <a class="button is-medium is-white" href="https://github.com/deadlysyn">
-            <i class="fa-brands fa-github fa-lg fa-fw"></i>
-          </a>
-          <a class="button is-medium is-white" href="https://linkedin.com/in/deadlysyn">
-            <i class="fa-brands fa-linkedin fa-lg fa-fw"></i>
-          </a>
-        </span>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container is-max-desktop has-text-centered">
-        <div class="box is-radiusless">
-          <div class="block is-italic">Vision without action is a daydream, action without vision is a nightmare.</div>
-          <div class="block">&#8212;Japanese Proverb</div>
-        </div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container is-max-desktop">
-        <div class="block">I am a humbly opinionated and collaborative engineer with a growth mindset. Designing, delivering and maintaining development tooling and infrastructure services at scale for three decades has equipped me with a wide range of expertise as an individual contributor, technical lead, architect, consultant and hands-on manager.</div>
-        <div class="block">While engineering is a technical discipline, I believe nurturing creativity is essential to meaningful progress. Building a culture of trust and autonomy while guiding intuitive insights through experimentation supported by the scientific method is paramount both to success and quality of life.</div>
-        <div class="block">Breadth of knowledge is no excuse for lack of depth. There is a time to move fast, and a time to slow down. Flow and deep work are not buzzwords. Our craft needs more thoughtful reflection, more consideration of context, more awareness of impact, less being <span class="is-italic">so preoccupied with whether or not we can, we forget to ask if we should</span>.</div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container is-max-desktop">
-      <table class="table is-fullwidth is-striped">
-        <tbody>
-          <tr>
-            <td class="has-text-centered">Lean Thinker</td>
-          </tr>
-          <tr>
-            <td class="has-text-centered">DevOps and SRE Practitioner</td>
-          </tr>
-          <tr>
-            <td class="has-text-centered">Full Stack Developer</td>
-          </tr>
-          <tr>
-              <td class="has-text-centered">
-                Cloud Native<br/>
-                (GitOps, IaC, 12F)
-              </td>
-          </tr>
-          <tr>
-            <td class="has-text-centered">CI/CD Evangelist</td>
-          </tr>
-          <tr>
-            <td class="has-text-centered">Experience on Every IaaS</td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-    </section>
+    <div class="page">
+      <header class="running-head">
+        <h1 class="running-head__title">DEADLYSYN(1)</h1>
+        <span class="running-head__center">Engineer's Manual</span>
+        <span class="running-head__end" aria-hidden="true">DEADLYSYN(1)</span>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <p class="entry__body name">
+            <span class="cmd">deadlysyn</span> — a humbly opinionated and collaborative engineer with a growth mindset
+          </p>
+        </section>
+
+        <section class="entry" aria-labelledby="synopsis">
+          <h2 id="synopsis" class="entry__label">SYNOPSIS</h2>
+          <p class="entry__body synopsis">
+            <span class="cmd">deadlysyn</span>
+            <span class="opt">[<span class="flag">--lean</span>]</span>
+            <span class="opt">[<span class="flag">--devops</span>]</span>
+            <span class="opt">[<span class="flag">--sre</span>]</span>
+            <span class="opt">[<span class="flag">--full-stack</span>]</span>
+            <span class="opt">[<span class="flag">--cloud-native</span>]</span>
+            <span class="opt">[<span class="flag">--ci-cd</span>]</span>
+            <span class="opt">[<span class="flag">--iaas</span>=<i>any</i>]</span>
+          </p>
+        </section>
+
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose">
+            <blockquote class="epigraph">
+              <p>Vision without action is a daydream, action without vision is a nightmare.</p>
+              <footer>— Japanese proverb</footer>
+            </blockquote>
+            <p>Designing, delivering and maintaining development tooling and infrastructure services at scale for three decades has equipped me with a wide range of expertise as an individual contributor, technical lead, architect, consultant and hands-on manager.</p>
+            <p>While engineering is a technical discipline, I believe nurturing creativity is essential to meaningful progress. Building a culture of trust and autonomy while guiding intuitive insights through experimentation supported by the scientific method is paramount both to success and quality of life.</p>
+            <p>Breadth of knowledge is no excuse for lack of depth. There is a time to move fast, and a time to slow down. Flow and deep work are not buzzwords. Our craft needs more thoughtful reflection, more consideration of context, more awareness of impact, less being <i>so preoccupied with whether or not we can, we forget to ask if we should</i>.</p>
+          </div>
+        </section>
+
+        <section class="entry" aria-labelledby="options">
+          <h2 id="options" class="entry__label">OPTIONS</h2>
+          <dl class="entry__body options">
+            <dt>--lean</dt>
+            <dd>Lean thinker.</dd>
+            <dt>--devops, --sre</dt>
+            <dd>DevOps and SRE practitioner.</dd>
+            <dt>--full-stack</dt>
+            <dd>Full stack developer.</dd>
+            <dt>--cloud-native</dt>
+            <dd>Cloud native: GitOps, infrastructure as code, twelve-factor.</dd>
+            <dt>--ci-cd</dt>
+            <dd>CI/CD evangelist.</dd>
+            <dt>--iaas=<i>any</i></dt>
+            <dd>Experience on every IaaS.</dd>
+          </dl>
+        </section>
+
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also" aria-labelledby="see-also">
+            <a href="https://deadlysyn.com/blog">blog(7)</a>
+            <a href="https://github.com/deadlysyn">github(1)</a>
+            <a href="https://linkedin.com/in/deadlysyn">linkedin(1)</a>
+          </nav>
+        </section>
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">September 2026</span>
+        <span>DEADLYSYN(1)</span>
+      </footer>
+    </div>
   </body>
 </html>
