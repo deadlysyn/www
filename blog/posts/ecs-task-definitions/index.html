@@ -1,124 +1,181 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>ECS Task Definitions</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">ECS Task Definitions</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/containers>containers</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://github.com/deadlysyn/node-aws-ecs>Clone the project repo to follow along&mldr;</a></p><p>In the first two parts of our multi-part series on shipping containerized
-Node.js apps using the AWS <a href=https://aws.amazon.com/ecs>Elastic Container Service</a>,
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the project repo to follow along…">
+    <meta name="date" content="2020-04-04">
+    <meta name="keywords" content="aws, containers">
+    <meta name="theme-color" content="#15130f">
+    <title>ECS Task Definitions — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/ecs-task-definitions/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">ECS Task Definitions</h1>
+            <p class="meta"><time datetime="2020-04-04">April 4, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://github.com/deadlysyn/node-aws-ecs">Clone the project repo to follow along…</a></p>
+<p>In the first two parts of our multi-part series on shipping containerized
+Node.js apps using the AWS <a href="https://aws.amazon.com/ecs">Elastic Container Service</a>,
 we looked at how to Dockerize our app and get it
-ready to ship by using the <a href=https://aws.amazon.com/ecr>Elastic Container Registry</a>.
-This time we&rsquo;re going to dive into an essential
-piece of ECS-specific configuration known as <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html>Task Definitions</a>.
-Like anything new, this may seem daunting at first&mldr; but with a little
-exploration we&rsquo;ll gain enough knowledge to start feeling comfortable.</p><h2 id=introduction>Introduction</h2><p>Task Definitions are <a href=https://en.wikipedia.org/wiki/JSON>JSON</a> documents which
+ready to ship by using the <a href="https://aws.amazon.com/ecr">Elastic Container Registry</a>.
+This time we’re going to dive into an essential
+piece of ECS-specific configuration known as <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">Task Definitions</a>.
+Like anything new, this may seem daunting at first… but with a little
+exploration we’ll gain enough knowledge to start feeling comfortable.</p>
+<h3 id="introduction">Introduction</h3>
+<p>Task Definitions are <a href="https://en.wikipedia.org/wiki/JSON">JSON</a> documents which
 act like blueprints for our container instances. They define things such as the
 role our tasks will use (ensuring they can make requests to required APIs),
 image details (a pointer to ECR in our case), resource controls (CPU, memory,
-volumes), health check details, logging configuration and more.</p><p>When you first look at examples in the documentation, they can seem
-overwhelming. The <a href=https://console.aws.amazon.com/ecs/home#/firstRun>First Run Wizard</a>
+volumes), health check details, logging configuration and more.</p>
+<p>When you first look at examples in the documentation, they can seem
+overwhelming. The <a href="https://console.aws.amazon.com/ecs/home#/firstRun">First Run Wizard</a>
 is a good place to start when learning ECS. However, when walking through the wizard or using an existing
 definition for reference, if you just copy/paste the Task Definition and try to
-create a new one from scratch you will often get errors:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>Should only contain &#34;family&#34;, &#34;containerDefinitions&#34;, &#34;volumes&#34;, &#34;taskRoleArn&#34;, &#34;networkMode&#34;, &#34;requiresCompatibilities&#34;, &#34;cpu&#34;, &#34;memory&#34;, &#34;inferenceAccelerators&#34;, &#34;executionRoleArn&#34;, &#34;pidMode&#34;, &#34;ipcMode&#34;, &#34;proxyConfiguration&#34;, &#34;tags&#34;, &#34;placementConstraints&#34;
-</span></span></code></pre></div><p>For more information on all Task Definition parameters, refer to <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html>the documentation</a>&mldr;
+create a new one from scratch you will often get errors:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">Should only contain "family", "containerDefinitions", "volumes", "taskRoleArn", "networkMode", "requiresCompatibilities", "cpu", "memory", "inferenceAccelerators", "executionRoleArn", "pidMode", "ipcMode", "proxyConfiguration", "tags", "placementConstraints"</span></code></pre>
+<p>For more information on all Task Definition parameters, refer to <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html">the documentation</a>…
 but this is actually a friendly error message – at least now we know what
-parameters are required!</p><p>Aside from the web console, you can also generate a starting template using <code>aws ecs register-task-definition --generate-cli-sekelton</code>. This will give you a
-starting point similar to the <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-task-definition.html#task-definition-template>documentation template</a>.
+parameters are required!</p>
+<p>Aside from the web console, you can also generate a starting template using <code>aws ecs register-task-definition --generate-cli-sekelton</code>. This will give you a
+starting point similar to the <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-task-definition.html#task-definition-template">documentation template</a>.
 Just be aware that you may not need all of the template items. For example,
-the templates present an expanded volumes section, but if your app isn&rsquo;t using
-volumes that will collapse to an empty list.</p><p>Starting with a template and working through the parameter documentation is the
-best way to gain familiarity, but I want to discuss a few things in detail&mldr;</p><p>First, let&rsquo;s talk IAM. Your tasks are going to need associated roles that let
+the templates present an expanded volumes section, but if your app isn’t using
+volumes that will collapse to an empty list.</p>
+<p>Starting with a template and working through the parameter documentation is the
+best way to gain familiarity, but I want to discuss a few things in detail…</p>
+<p>First, let’s talk IAM. Your tasks are going to need associated roles that let
 them talk to required APIs. One example is reaching out to ECR to download the
-<a href=/blog/posts/contain-yourself>image we previously pushed</a>. When walking
+<a href="/blog/posts/contain-yourself/">image we previously pushed</a>. When walking
 through the wizard or creating new services in the web console, a default
 <code>ecsTaskExecutionRole</code> will be created for you. This works fine to get started,
 but if you plan to run a lot of services and desire more segregation or want to
-fine-tune permissions you can create your own custom <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html>task execution roles</a>.
-These get referenced in two places:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;executionRoleArn&#34;</span>: <span style=color:#e6db74>&#34;arn:aws:iam::012345678901:role/ecsTaskExecutionRole&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;taskRoleArn&#34;</span>: <span style=color:#e6db74>&#34;arn:aws:iam::012345678901:role/ecsTaskExecutionRole&#34;</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>The second thing we obviously need is a way to get our
-image from ECR&mldr; Assuming the roles allow the required access, this is done
-with one line in our container definition:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;containerDefinitions&#34;</span>: [
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;image&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> <span style=color:#e6db74>&#34;012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest&#34;</span>,
-</span></span><span style=display:flex><span>  ]
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Next I want to discuss <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_healthcheck>container health checks</a>.
-When I setup my first ECS task, my health checks weren&rsquo;t working. I went on a
-wild goose chase which included refactoring my app&rsquo;s <code>/healthcheck</code> endpoint (in
+fine-tune permissions you can create your own custom <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html">task execution roles</a>.
+These get referenced in two places:</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-p">{</span>
+  <span class="tok-nt">"executionRoleArn"</span><span class="tok-p">:</span> <span class="tok-s2">"arn:aws:iam::012345678901:role/ecsTaskExecutionRole"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"taskRoleArn"</span><span class="tok-p">:</span> <span class="tok-s2">"arn:aws:iam::012345678901:role/ecsTaskExecutionRole"</span>
+<span class="tok-p">}</span></code></pre>
+<p>The second thing we obviously need is a way to get our
+image from ECR… Assuming the roles allow the required access, this is done
+with one line in our container definition:</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-p">{</span>
+  <span class="tok-nt">"containerDefinitions"</span><span class="tok-p">:</span> <span class="tok-p">[</span>
+    <span class="tok-nt">"image"</span><span class="tok-p">:</span> <span class="tok-s2">"012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest"</span><span class="tok-p">,</span>
+  <span class="tok-p">]</span>
+<span class="tok-p">}</span></code></pre>
+<p>Next I want to discuss <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_healthcheck">container health checks</a>.
+When I setup my first ECS task, my health checks weren’t working. I went on a
+wild goose chase which included refactoring my app’s <code>/healthcheck</code> endpoint (in
 the end that resulted in much better application health checking!) and trying to
-use <a href=https://hub.docker.com/_/amazonlinux>amazonlinux</a> instead of Alpine.</p><p>The amazonlinux images (which you can pull from <a href=https://docs.aws.amazon.com/AmazonECR/latest/userguide/amazon_linux_container_image.html>ECR</a>
-or <a href=https://hub.docker.com/_/amazonlinux>Docker Hub</a> are a fine starting point
+use <a href="https://hub.docker.com/_/amazonlinux">amazonlinux</a> instead of Alpine.</p>
+<p>The amazonlinux images (which you can pull from <a href="https://docs.aws.amazon.com/AmazonECR/latest/userguide/amazon_linux_container_image.html">ECR</a>
+or <a href="https://hub.docker.com/_/amazonlinux">Docker Hub</a> are a fine starting point
 if you have dependencies on many things from standard Amazon Linux EC2 AMIs.
-However, they are a lot heavier than Alpine. Here&rsquo;s a real-world example of a
-Node.js app + dependencies using Alpine vs Amazon Linux:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>012345678901.dkr.ecr.us-east-2.amazonaws.com/app  3f5fd5e1fb2f  145MB
-</span></span><span style=display:flex><span>012345678901.dkr.ecr.us-east-2.amazonaws.com/app  75ece8e07700  648MB
-</span></span></code></pre></div><p>After refactoring my app and rebuilding my
-container using Amazon Linux, it was still busted&mldr; Stepping back a bit, I
+However, they are a lot heavier than Alpine. Here’s a real-world example of a
+Node.js app + dependencies using Alpine vs Amazon Linux:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">012345678901.dkr.ecr.us-east-2.amazonaws.com/app  3f5fd5e1fb2f  145MB</span>
+<span class="tok-go">012345678901.dkr.ecr.us-east-2.amazonaws.com/app  75ece8e07700  648MB</span></code></pre>
+<p>After refactoring my app and rebuilding my
+container using Amazon Linux, it was still busted… Stepping back a bit, I
 realized it was an issue with my container health check. I had copied my
 <code>healthcheck.command</code> from the docs. By default that used <code>CMD</code> but I needed
 <code>CMD-SHELL</code>. Make sure you understand the difference between these by consulting
-<a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_healthcheck>the docs</a>!
+<a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_healthcheck">the docs</a>!
 It also helps to have curl installed in your container image (a default with
-amazonlinux, just <code>apk add curl</code> for Alpine).</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span><span style=color:#e6db74>&#34;healthCheck&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> {
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;retries&#34;</span>: <span style=color:#ae81ff>3</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;command&#34;</span>: [<span style=color:#e6db74>&#34;CMD-SHELL&#34;</span>, <span style=color:#e6db74>&#34;curl -f http://localhost:8080/ || exit 1&#34;</span>],
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;timeout&#34;</span>: <span style=color:#ae81ff>10</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;interval&#34;</span>: <span style=color:#ae81ff>20</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;startPeriod&#34;</span>: <span style=color:#ae81ff>20</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>In case it saves anyone else confusion&mldr; My
+amazonlinux, just <code>apk add curl</code> for Alpine).</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-nt">"healthCheck"</span><span class="tok-p">:</span> <span class="tok-p">{</span>
+  <span class="tok-nt">"retries"</span><span class="tok-p">:</span> <span class="tok-mi">3</span><span class="tok-p">,</span>
+  <span class="tok-nt">"command"</span><span class="tok-p">:</span> <span class="tok-p">[</span><span class="tok-s2">"CMD-SHELL"</span><span class="tok-p">,</span> <span class="tok-s2">"curl -f http://localhost:8080/ || exit 1"</span><span class="tok-p">],</span>
+  <span class="tok-nt">"timeout"</span><span class="tok-p">:</span> <span class="tok-mi">10</span><span class="tok-p">,</span>
+  <span class="tok-nt">"interval"</span><span class="tok-p">:</span> <span class="tok-mi">20</span><span class="tok-p">,</span>
+  <span class="tok-nt">"startPeriod"</span><span class="tok-p">:</span> <span class="tok-mi">20</span>
+<span class="tok-p">}</span></code></pre>
+<p>In case it saves anyone else confusion… My
 decision to try going with amazonlinux (despite not needing or wanting the
-bloat) was a mis-understanding of the documentation around the <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_agent.html>ECS Container Agent</a>.
+bloat) was a mis-understanding of the documentation around the <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_agent.html">ECS Container Agent</a>.
 While absorbing the massive ECS-related material, I initially thought
 non-amazonlinux container images needed to have the agent added for health
-checks to work.</p><p>In reality, the agent is a host vs container thing. You can bring any container
-image you want to ECR/ECS and it should work fine&mldr; The container agent only
-becomes a concern if you are hosting your own EC2 instances using the <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_run_task_ec2.html>EC2 Launch Type</a>.
-In our case, we let Amazon manage as much as possible. Using the <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_run_task_fargate.html>Fargate Launch Type</a>
-means we don&rsquo;t need to worry about the container agent.</p><p>Last but certainly not least, let&rsquo;s talk about logs&mldr; As you&rsquo;re already aware
-if coming from something like <a href=https://kubernetes.io>Kubernetes</a> or <a href=https://www.openshift.com>OpenShift</a>
-(or living with <a href=https://12factor.net>Twelve-Factor Apps</a> in any shape or form),
+checks to work.</p>
+<p>In reality, the agent is a host vs container thing. You can bring any container
+image you want to ECR/ECS and it should work fine… The container agent only
+becomes a concern if you are hosting your own EC2 instances using the <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_run_task_ec2.html">EC2 Launch Type</a>.
+In our case, we let Amazon manage as much as possible. Using the <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_run_task_fargate.html">Fargate Launch Type</a>
+means we don’t need to worry about the container agent.</p>
+<p>Last but certainly not least, let’s talk about logs… As you’re already aware
+if coming from something like <a href="https://kubernetes.io">Kubernetes</a> or <a href="https://www.openshift.com">OpenShift</a>
+(or living with <a href="https://12factor.net">Twelve-Factor Apps</a> in any shape or form),
 logs move from luxury to essential status the moment you decide to containerize.
-The need goes to eleven when you chose a managed blackbox container orchestration platform.</p><p>In your ECS Task Definitions, the relevant snippet is <code>logConfiguration</code> – let&rsquo;s
-look at some sensible default options, then talk through details:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span><span style=color:#e6db74>&#34;containerDefinitions&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>  {
-</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;logConfiguration&#34;</span>: {
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;logDriver&#34;</span>: <span style=color:#e6db74>&#34;awslogs&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;secretOptions&#34;</span>: <span style=color:#66d9ef>null</span>,
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;options&#34;</span>: {
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;awslogs-create-group&#34;</span>: <span style=color:#66d9ef>true</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;awslogs-group&#34;</span>: <span style=color:#e6db74>&#34;/ecs/hello-world&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;awslogs-region&#34;</span>: <span style=color:#e6db74>&#34;us-east-1&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;awslogs-stream-prefix&#34;</span>: <span style=color:#e6db74>&#34;hello-world-app&#34;</span>
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>]
-</span></span></code></pre></div><p>You can get more specifics from <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html>the docs</a>,
-but I want to call out two things here and expound on a third in the next section&mldr;</p><p>Here we&rsquo;re using the <code>awslogs</code> driver, which stores stdout and stderr from your
-container instances in <a href=https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html>CloudWatch Logs</a>.
+The need goes to eleven when you chose a managed blackbox container orchestration platform.</p>
+<p>In your ECS Task Definitions, the relevant snippet is <code>logConfiguration</code> – let’s
+look at some sensible default options, then talk through details:</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-nt">"containerDefinitions"</span><span class="tok-p">:</span> <span class="tok-p">[</span>
+  <span class="tok-p">{</span>
+    <span class="tok-nt">"logConfiguration"</span><span class="tok-p">:</span> <span class="tok-p">{</span>
+      <span class="tok-nt">"logDriver"</span><span class="tok-p">:</span> <span class="tok-s2">"awslogs"</span><span class="tok-p">,</span>
+      <span class="tok-nt">"secretOptions"</span><span class="tok-p">:</span> <span class="tok-kc">null</span><span class="tok-p">,</span>
+      <span class="tok-nt">"options"</span><span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-nt">"awslogs-create-group"</span><span class="tok-p">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span>
+        <span class="tok-nt">"awslogs-group"</span><span class="tok-p">:</span> <span class="tok-s2">"/ecs/hello-world"</span><span class="tok-p">,</span>
+        <span class="tok-nt">"awslogs-region"</span><span class="tok-p">:</span> <span class="tok-s2">"us-east-1"</span><span class="tok-p">,</span>
+        <span class="tok-nt">"awslogs-stream-prefix"</span><span class="tok-p">:</span> <span class="tok-s2">"hello-world-app"</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">]</span></code></pre>
+<p>You can get more specifics from <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html">the docs</a>,
+but I want to call out two things here and expound on a third in the next section…</p>
+<p>Here we’re using the <code>awslogs</code> driver, which stores stdout and stderr from your
+container instances in <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html">CloudWatch Logs</a>.
 If you just generate a template you will often be missing <code>awslogs-create-group</code>.
 That means you will need to log into CloudWatch Logs and create the log group.
 If you create the task before doing that, you will get errors about the missing
-log group and containers won&rsquo;t be able to provision. If you want re-useable
+log group and containers won’t be able to provision. If you want re-useable
 configuration you can easily copy/paste or feed into Terraform, ensure you have
-<code>awslogs-create-group: true</code>.</p><p>Templates will often default <code>awslogs-stream-prefix</code> to something like <code>ecs</code>. I find
+<code>awslogs-create-group: true</code>.</p>
+<p>Templates will often default <code>awslogs-stream-prefix</code> to something like <code>ecs</code>. I find
 prefixing the log group with /ecs/ suitable for that, and set the stream prefix
 to the app / container instance name. This makes searching for specific logs
-within CloudWatch a lot easier. Otherwise you&rsquo;ll be left hunting down and
-searching via container instance ID. In our sample use case this isn&rsquo;t a big
-deal, but for more complicated apps it can speedup troubleshooting.</p><h2 id=a-note-on-iam>A Note on IAM</h2><p>In examples above, we just use the <code>ecsTaskExecutionRole</code> since it is a default
+within CloudWatch a lot easier. Otherwise you’ll be left hunting down and
+searching via container instance ID. In our sample use case this isn’t a big
+deal, but for more complicated apps it can speedup troubleshooting.</p>
+<h3 id="a-note-on-iam">A Note on IAM</h3>
+<p>In examples above, we just use the <code>ecsTaskExecutionRole</code> since it is a default
 created by the ECS wizard. That is fine to use for learning and experimentation,
 but for more important things you will want to define per-service roles. This is
-worth doing for at least a couple reasons&mldr;</p><p>First, you&rsquo;ll have to do it anyway to get CloudWatch Logs fully functional. In
+worth doing for at least a couple reasons…</p>
+<p>First, you’ll have to do it anyway to get CloudWatch Logs fully functional. In
 order for <code>awslogs-create-group: true</code> suggested above to work, you need the
 <code>logs:CreateLogGroup</code> permission. The default <code>AmazonECSTaskExecutionRolePolicy</code>
-only allows creating new streams within an existing group.</p><p>More importantly, you typically need to wire tasks up to Secrets Manager or
+only allows creating new streams within an existing group.</p>
+<p>More importantly, you typically need to wire tasks up to Secrets Manager or
 Parameter Store. That means more IAM permissions. If you are running multiple
-services in a single account, you&rsquo;ll want to restrict each service to specific
-prefixes so a single compromised service can&rsquo;t side-channel into your entire
-portfolio. The project repo gives an example of a reasonable <a href=https://gitlab.com/deadlysyn/node-aws-ecs/-/tree/master/ecs>policy template</a>.</p><p>Here&rsquo;s an example of attaching managed policies to make the default role more
+services in a single account, you’ll want to restrict each service to specific
+prefixes so a single compromised service can’t side-channel into your entire
+portfolio. The project repo gives an example of a reasonable <a href="https://gitlab.com/deadlysyn/node-aws-ecs/-/tree/master/ecs">policy template</a>.</p>
+<p>Here’s an example of attaching managed policies to make the default role more
 useful (I like to keep my custom policies very granular to be re-used like
 legos). In this case we just grant access to any parameters or secrets in the
 same account using default or custom keys (<code>kms:Decrypt</code> is technically only
@@ -126,77 +183,129 @@ required if using custom KMS keys for encryption, but good future proofing).
 This is better than a simple <code>Resource: "*"</code>, but the sample policy linked above
 goes further – just think about your use case, and how much access you are
 granting! This also shows granting access to both Parameter Store and Secrets
-Manager – you probably only need one:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-task-definitions-1.png?raw=true" alt="Use managed policies to extend access">
-<img src="https://github.com/deadlysyn/www/blob/main/img/ecs-task-definitions-2.png?raw=true" alt="Policies granting access to secrets, parameters and logs"></p><p>Use managed policies to extend default accessPolicies granting access to
-parameters, secrets and log group creationHere&rsquo;s an example of what you don&rsquo;t
-want&mldr; It&rsquo;s easy to end up with blanket stuff like this, especially if trying
+Manager – you probably only need one:</p>
+<p><img alt="Use managed policies to extend access" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-task-definitions-1.png?raw=true"/>
+<img alt="Policies granting access to secrets, parameters and logs" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-task-definitions-2.png?raw=true"/></p>
+<p>Use managed policies to extend default accessPolicies granting access to
+parameters, secrets and log group creationHere’s an example of what you don’t
+want… It’s easy to end up with blanket stuff like this, especially if trying
 to combine task-specific permissions with things needed by console users. This
 would be great for the latter, but is far too wide for task instances (one
-service could easily discover and enumerate all secrets):</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-task-definitions-3.png?raw=true" alt="Be creful in access granted to tasks"></p><p>Be careful in access granted to tasks!Managing Secrets
+service could easily discover and enumerate all secrets):</p>
+<p><img alt="Be creful in access granted to tasks" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-task-definitions-3.png?raw=true"/></p>
+<p>Be careful in access granted to tasks!Managing Secrets
 One topic most real-world apps will encounter that deserves a section of its own
 is secrets management. At some point you are almost certainly going to need to
-inject sensitive information into your container&mldr; perhaps a database password,
-session secret or API keys.</p><p>AWS offers (at least?) two ways to get your custom values into ECS-hosted
-containers securely. You can use <a href=https://aws.amazon.com/secrets-manager>Secrets Manager</a>
-or <a href=https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html>Parameter Store</a>.
-These offer benefits similar to <a href=https://www.vaultproject.io>HashiCorp&rsquo;s Vault</a>,
+inject sensitive information into your container… perhaps a database password,
+session secret or API keys.</p>
+<p>AWS offers (at least?) two ways to get your custom values into ECS-hosted
+containers securely. You can use <a href="https://aws.amazon.com/secrets-manager">Secrets Manager</a>
+or <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html">Parameter Store</a>.
+These offer benefits similar to <a href="https://www.vaultproject.io">HashiCorp’s Vault</a>,
 but avoid one more thing to manage. They provide
 UI, CLI and API methods to manage secrets, securely encrypt anything you store,
-and can leverage IAM to restrict access</p><p>Both Secrets Manager and Parameter Store work equally well with ECS. There are
+and can leverage IAM to restrict access</p>
+<p>Both Secrets Manager and Parameter Store work equally well with ECS. There are
 some differences, however, including cost. Secrets Manager is better integrated
 with services like RDS, and supports automated rotation of secrets. Parameter
-store is integrated with services including ECS and <a href=https://aws.amazon.com/lambda>Lambda</a>,
+store is integrated with services including ECS and <a href="https://aws.amazon.com/lambda">Lambda</a>,
 but does not support automated rotation out of
-the box and is cheaper to use.</p><p>At the time of writing Secrets Manager costs $0.40 / secret / month while
+the box and is cheaper to use.</p>
+<p>At the time of writing Secrets Manager costs $0.40 / secret / month while
 Parameter Store is only $0.05 / secret / month. If you are managing a lot of
-secrets and don&rsquo;t require automated rotation, Parameter Store might make more
-sense.</p><p>For our simple app, we&rsquo;re just injecting non-sensitive environment variables at
-run-time. We don&rsquo;t have any secrets, so can avoid extra cost and accomplish
-everything we need with our Task Definition&rsquo;s environment.</p><p>For sake of example, let&rsquo;s say we do have secrets to think about, but we&rsquo;re not
+secrets and don’t require automated rotation, Parameter Store might make more
+sense.</p>
+<p>For our simple app, we’re just injecting non-sensitive environment variables at
+run-time. We don’t have any secrets, so can avoid extra cost and accomplish
+everything we need with our Task Definition’s environment.</p>
+<p>For sake of example, let’s say we do have secrets to think about, but we’re not
 managing RDS passwords (or similar things better integrated with Secrets
-Manager), and don&rsquo;t require rotation&mldr; at least not automated (we could always
+Manager), and don’t require rotation… at least not automated (we could always
 rotate our own secrets manually if needed). We could use a combination of
 environment (for non-sensitive things) and secrets (providing ARNs to retrieve
-from Parameter Store) to get the job done:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;containerDefinitions&#34;</span>: [
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;environment&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>      {
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;LISTEN_HOST&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;value&#34;</span>: <span style=color:#e6db74>&#34;0.0.0.0&#34;</span>
-</span></span><span style=display:flex><span>      },
-</span></span><span style=display:flex><span>      {
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;LISTEN_PORT&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;value&#34;</span>: <span style=color:#e6db74>&#34;8080&#34;</span>
-</span></span><span style=display:flex><span>      },
-</span></span><span style=display:flex><span>      {
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;NODE_ENV&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;value&#34;</span>: <span style=color:#e6db74>&#34;production&#34;</span>
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    ],
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;secrets&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>      {
-</span></span><span style=display:flex><span>        <span style=color:#960050;background-color:#1e0010>{</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;SESSION_SECRET&#34;</span>,
-</span></span><span style=display:flex><span>          <span style=color:#f92672>&#34;valueFrom&#34;</span>: <span style=color:#e6db74>&#34;arn:aws:ssm:us-east-2:012345678901:parameter/hello-world/SESSION_SECRET&#34;</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    ]
-</span></span><span style=display:flex><span>  ]
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=closing-thoughts>Closing Thoughts</h2><p>We&rsquo;ve found lots of good references to help make sense of the JSON blobs that
+from Parameter Store) to get the job done:</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-p">{</span>
+  <span class="tok-nt">"containerDefinitions"</span><span class="tok-p">:</span> <span class="tok-p">[</span>
+    <span class="tok-nt">"environment"</span><span class="tok-p">:</span> <span class="tok-p">[</span>
+      <span class="tok-p">{</span>
+        <span class="tok-nt">"name"</span><span class="tok-p">:</span> <span class="tok-s2">"LISTEN_HOST"</span><span class="tok-p">,</span>
+        <span class="tok-nt">"value"</span><span class="tok-p">:</span> <span class="tok-s2">"0.0.0.0"</span>
+      <span class="tok-p">},</span>
+      <span class="tok-p">{</span>
+        <span class="tok-nt">"name"</span><span class="tok-p">:</span> <span class="tok-s2">"LISTEN_PORT"</span><span class="tok-p">,</span>
+        <span class="tok-nt">"value"</span><span class="tok-p">:</span> <span class="tok-s2">"8080"</span>
+      <span class="tok-p">},</span>
+      <span class="tok-p">{</span>
+        <span class="tok-nt">"name"</span><span class="tok-p">:</span> <span class="tok-s2">"NODE_ENV"</span><span class="tok-p">,</span>
+        <span class="tok-nt">"value"</span><span class="tok-p">:</span> <span class="tok-s2">"production"</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">],</span>
+    <span class="tok-nt">"secrets"</span><span class="tok-p">:</span> <span class="tok-p">[</span>
+      <span class="tok-p">{</span>
+        <span class="tok-p">{</span>
+          <span class="tok-nt">"name"</span><span class="tok-p">:</span> <span class="tok-s2">"SESSION_SECRET"</span><span class="tok-p">,</span>
+          <span class="tok-nt">"valueFrom"</span><span class="tok-p">:</span> <span class="tok-s2">"arn:aws:ssm:us-east-2:012345678901:parameter/hello-world/SESSION_SECRET"</span>
+        <span class="tok-p">}</span>
+    <span class="tok-p">]</span>
+  <span class="tok-p">]</span>
+<span class="tok-p">}</span></code></pre>
+<h3 id="closing-thoughts">Closing Thoughts</h3>
+<p>We’ve found lots of good references to help make sense of the JSON blobs that
 are AWS ECS Task Definitions, and learned some nuance about a few of the more
-interesting parameters&mldr; Still, real-world examples are nice. Be sure to refer
-to the sample included in our <a href=https://gitlab.com/deadlysyn/node-aws-ecs/-/blob/master/ecs/task-definition.json>project repo</a>
-to see how everything ties together.</p><p>So far in this series we&rsquo;ve focussed on first principles&mldr; Understanding the
+interesting parameters… Still, real-world examples are nice. Be sure to refer
+to the sample included in our <a href="https://gitlab.com/deadlysyn/node-aws-ecs/-/blob/master/ecs/task-definition.json">project repo</a>
+to see how everything ties together.</p>
+<p>So far in this series we’ve focussed on first principles… Understanding the
 AWS services we need to get our job done, including CLI commands with minimal
 shell wrappers to reduce some toil. However, even if we were building from the
 ground up with an IaC tool such as Terraform [https://www.terraform.io], we
 would still need to understand and define Task Definitions (Terraform just
 leverages our JSON file). Any investment in understanding how task definitions
 work will continue to be useful as you move to more advanced deployment
-automation.</p><p>With a Dockerized app pushed to ECR and a Task Definition describing what we
-want to deploy, we&rsquo;re ready to tackle the last bits of ECS&mldr; Defining a cluster
+automation.</p>
+<p>With a Dockerized app pushed to ECR and a Task Definition describing what we
+want to deploy, we’re ready to tackle the last bits of ECS… Defining a cluster
 (to host our service) and service (to manage our tasks). In the next part of
-this series we&rsquo;ll walk through that using the web console. We&rsquo;ll also look at
-how we push updates, whether changes in our Task Definition or code.</p><p>As a final peek at the future&mldr; Once we have a fully functional app hosted on
-ECS and understand basic lifecycle management, we&rsquo;ll re-visit the CLI and UI
-tasks we&rsquo;ve used and automate those with Terraform [https://www.terraform.io].</p><p>References</p><ul><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html>ECS Task Definitions</a></li><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-secrets.html>Managing Secrets Using Secrets Manager</a></li><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-parameters.html>Managing Secrets Using Parameter Store</a></li></ul></div></section></body></html>
+this series we’ll walk through that using the web console. We’ll also look at
+how we push updates, whether changes in our Task Definition or code.</p>
+<p>As a final peek at the future… Once we have a fully functional app hosted on
+ECS and understand basic lifecycle management, we’ll re-visit the CLI and UI
+tasks we’ve used and automate those with Terraform [https://www.terraform.io].</p>
+<p>References</p>
+<ul><li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">ECS Task Definitions</a></li><li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-secrets.html">Managing Secrets Using Secrets Manager</a></li><li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-parameters.html">Managing Secrets Using Parameter Store</a></li></ul>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/containers/">containers(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/lock-down/">Lock Down</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/ecs-services/">ECS Services</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">April 4, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

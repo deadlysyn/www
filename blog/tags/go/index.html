@@ -1,16 +1,102 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Go</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"><link href=/blog/tags/go/index.xml rel=alternate type=application/rss+xml title="Hello World"><link href=/blog/tags/go/index.xml rel=feed type=application/rss+xml title="Hello World"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Go</h3><div class="container is-max-desktop has-text-centered content"><a class=is-size-4 href=/blog/posts/aws-sdk-role-assumption/>AWS SDK Role Assumption</a></br>January 23, 2022<br><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span></div><div class="container is-max-desktop has-text-centered content"><a class=is-size-4 href=/blog/posts/lean-aws-iam/>Lean IAM Management</a></br>January 16, 2022<br><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iam>iam</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span></div><div class="container is-max-desktop has-text-centered content"><a class=is-size-4 href=/blog/posts/beware-of-shadows/>Beware of Shadows</a></br>January 11, 2022<br><span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/philosophy>philosophy</a></span></div><div class="container is-max-desktop has-text-centered content"><a class=is-size-4 href=/blog/posts/retriever/>Introducing Retriever</a></br>December 4, 2021<br><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span></div><div class="container is-max-desktop has-text-centered content"><a class=is-size-4 href=/blog/posts/go-datadog-cli/>Go Datadog CLI</a></br>November 29, 2021<br><span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/o11y>o11y</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span></div></div></section><div class="container is-max-desktop has-text-centered is-size-2"><a class=icon href=/blog/tags/go/page/2/ rel=next><i class="fa-solid fa-caret-square-right"></i></a></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Posts tagged go on the deadlysyn blog.">
+    <meta name="theme-color" content="#15130f">
+    <title>blog --go — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/tags/go/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name"><span class="cmd">blog --go</span> — 6 entries tagged go</h1>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="synopsis">
+          <h2 id="synopsis" class="entry__label">SYNOPSIS</h2>
+          <p class="entry__body synopsis">
+            <span class="cmd">blog</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/aws/">--aws</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/containers/">--containers</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/culture/">--culture</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/desktop/">--desktop</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/dev/">--dev</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/git/">--git</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/go/" aria-current="page">--go</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/iac/">--iac</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/iam/">--iam</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/linux/">--linux</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/nodejs/">--nodejs</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/o11y/">--o11y</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/oss/">--oss</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/perf/">--perf</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/philosophy/">--philosophy</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/security/">--security</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/terraform/">--terraform</a>]</span>
+            <span class="opt">[<a class="flag" href="/blog/tags/terratest/">--terratest</a>]</span>
+          </p>
+        </section>
+        <section class="entry" aria-labelledby="entries">
+          <h2 id="entries" class="entry__label">ENTRIES</h2>
+          <ol class="entry__body entries">
+            <li>
+              <time datetime="2022-01-23">2022-01-23</time>
+              <a href="/blog/posts/aws-sdk-role-assumption/">AWS SDK Role Assumption</a>
+            </li>
+            <li>
+              <time datetime="2022-01-16">2022-01-16</time>
+              <a href="/blog/posts/lean-aws-iam/">Lean IAM Management</a>
+            </li>
+            <li>
+              <time datetime="2022-01-11">2022-01-11</time>
+              <a href="/blog/posts/beware-of-shadows/">Beware of Shadows</a>
+            </li>
+            <li>
+              <time datetime="2021-12-04">2021-12-04</time>
+              <a href="/blog/posts/retriever/">Introducing Retriever</a>
+            </li>
+            <li>
+              <time datetime="2021-11-29">2021-11-29</time>
+              <a href="/blog/posts/go-datadog-cli/">Go Datadog CLI</a>
+            </li>
+            <li>
+              <time datetime="2020-07-04">2020-07-04</time>
+              <a href="/blog/posts/testing-infrastructure-automation/">Testing Infrastructure Code</a>
+            </li>
+          </ol>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also">
+            <a href="/blog/">blog(7)</a>
+            <a href="/blog/tags/">tags(7)</a>
+            <a href="/">deadlysyn(1)</a>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">January 23, 2022</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

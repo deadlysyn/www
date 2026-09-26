@@ -1,154 +1,250 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Lock Down</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Lock Down</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/nodejs>nodejs</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iam>iam</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>The old days of throwing up a CGI app protected by an .htpasswd file are long
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The old days of throwing up a CGI app protected by an .htpasswd file are long gone. While you could still do it, more sophisticated apps serving…">
+    <meta name="date" content="2020-03-23">
+    <meta name="keywords" content="dev, nodejs, iam, oss">
+    <meta name="theme-color" content="#15130f">
+    <title>Lock Down — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/lock-down/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Lock Down</h1>
+            <p class="meta"><time datetime="2020-03-23">March 23, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>The old days of throwing up a CGI app protected by an .htpasswd file are long
 gone. While you could still do it, more sophisticated apps serving increasingly
-demanding users will have requirements that make it untenable.</p><p>For example, what if you have a suite of apps and don&rsquo;t want users to have to
-login again for each one? What if you don&rsquo;t want to manage all those .htpasswd
-files, or users want to login with their existing social identities?</p><h2 id=keycloak-crash-course>Keycloak Crash Course</h2><p>Keycloak is an open source IAM (Identity and Access Management) gateway. It
+demanding users will have requirements that make it untenable.</p>
+<p>For example, what if you have a suite of apps and don’t want users to have to
+login again for each one? What if you don’t want to manage all those .htpasswd
+files, or users want to login with their existing social identities?</p>
+<h3 id="keycloak-crash-course">Keycloak Crash Course</h3>
+<p>Keycloak is an open source IAM (Identity and Access Management) gateway. It
 supports all of the features called out above (SSO, social login) as well as
-many more including identity brokering (<a href=https://en.wikipedia.org/wiki/OpenID_Connect>OIDC</a>
-or <a href=https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language>SAML</a>),
+many more including identity brokering (<a href="https://en.wikipedia.org/wiki/OpenID_Connect">OIDC</a>
+or <a href="https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language">SAML</a>),
 multi-directory support (internal users can be sourced from several Active
 Directory and/or LDAP directories in preferred order) and customizable themes
-(configurable per-client for consistent UX).</p><p>Aside from the client authentication features you need, Keycloak is also easy to
+(configurable per-client for consistent UX).</p>
+<p>Aside from the client authentication features you need, Keycloak is also easy to
 manage (you can use an administrative web console or API for management tasks,
 and there is a Dockerized version for local development and testing), highly
 performant and scalable (it supports HA clustering and can be deployed via your
-favorite container orchestration platform).</p><p>The rest of this article will focus on securing a Node.js app using Keycloak.
-For more information on Keycloak&rsquo;s features, visit the <a href=https://www.keycloak.org>official website</a>.
+favorite container orchestration platform).</p>
+<p>The rest of this article will focus on securing a Node.js app using Keycloak.
+For more information on Keycloak’s features, visit the <a href="https://www.keycloak.org">official website</a>.
 For technical details including installation
-options, refer to the <a href=https://www.keycloak.org/docs/latest/server_admin/index.html>Server Administration Guide</a>.</p><h2 id=creating-a-client>Creating a Client</h2><p>Our focus is on app integration, so I&rsquo;m not going to repeat a lot of things
+options, refer to the <a href="https://www.keycloak.org/docs/latest/server_admin/index.html">Server Administration Guide</a>.</p>
+<h3 id="creating-a-client">Creating a Client</h3>
+<p>Our focus is on app integration, so I’m not going to repeat a lot of things
 which can be gleaned from the documentation. To get started, we do need a few
-things&mldr;</p><p>First, a &ldquo;client&rdquo; in Keycloak parlance may not be what comes to mind when you
-think of the typical &ldquo;client/server&rdquo; application. It is an abstraction
-representing your service, so an &ldquo;OIDC client&rdquo; or &ldquo;SAML client&rdquo; is essentially
+things…</p>
+<p>First, a “client” in Keycloak parlance may not be what comes to mind when you
+think of the typical “client/server” application. It is an abstraction
+representing your service, so an “OIDC client” or “SAML client” is essentially
 configuration on the Keycloak server. Our app is technically a client to the
-Keycloak server, but we need to configure &ldquo;Keycloak clients&rdquo; for our
-applications to use. This is done from the admin dashboard via <code>Clients > Create > Provide a name and root URL</code> (localhost works for testing) then <code>Save</code>
-(the default &ldquo;openid-connect&rdquo; is good). You can do more (as we&rsquo;ll see below), but assuming
-you&rsquo;ve ran through the installation instructions and have a realm configured
-it&rsquo;s that easy to get started.</p><p>Once you have a client, we need a small piece of associated configuration so the
-Keycloak middleware we&rsquo;ll see below knows how to work. Again from the admin
-dashboard go to Clients > the client you created above > Installation and select
-&ldquo;Keycloak OIDC JSON&rdquo;. Copy or download the provided JSON file and place it at
+Keycloak server, but we need to configure “Keycloak clients” for our
+applications to use. This is done from the admin dashboard via <code>Clients &gt; Create &gt; Provide a name and root URL</code> (localhost works for testing) then <code>Save</code>
+(the default “openid-connect” is good). You can do more (as we’ll see below), but assuming
+you’ve ran through the installation instructions and have a realm configured
+it’s that easy to get started.</p>
+<p>Once you have a client, we need a small piece of associated configuration so the
+Keycloak middleware we’ll see below knows how to work. Again from the admin
+dashboard go to Clients &gt; the client you created above &gt; Installation and select
+“Keycloak OIDC JSON”. Copy or download the provided JSON file and place it at
 the root of your project directory. You should commit this to version control
-along with the rest of your source code.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;realm&#34;</span>: <span style=color:#e6db74>&#34;yourRealm&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;auth-server-url&#34;</span>: <span style=color:#e6db74>&#34;https://your.server.tld/auth&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;ssl-required&#34;</span>: <span style=color:#e6db74>&#34;none&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;resource&#34;</span>: <span style=color:#e6db74>&#34;your-client-name&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;public-client&#34;</span>: <span style=color:#66d9ef>true</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;verify-token-audience&#34;</span>: <span style=color:#66d9ef>true</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;use-resource-role-mappings&#34;</span>: <span style=color:#66d9ef>true</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;confidential-port&#34;</span>: <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=authenticating-your-app>Authenticating Your App</h2><p>In another <a href=/blog/posts/thinking-inside-the-box>series</a> where we&rsquo;re working to
-deploy a containerized Node.js app on Amazon&rsquo;s ECS, we use a simple &ldquo;hello
-world&rdquo; web service. I&rsquo;m going to borrow that and show how to add authentication.
-Here&rsquo;s our starting point:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#e6db74>&#39;use strict&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>express</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;express&#39;</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>PORT</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>8080</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>HOST</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;0.0.0.0&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>app</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>express</span>();
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/&#39;</span>, (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>send</span>(<span style=color:#e6db74>&#39;Hello World&#39;</span>);
-</span></span><span style=display:flex><span>});
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>listen</span>(<span style=color:#a6e22e>PORT</span>, <span style=color:#a6e22e>HOST</span>);
-</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Running on http://</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>HOST</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>PORT</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
-</span></span></code></pre></div><p>The first thing we need to do is pull in the <a href=https://www.npmjs.com/package/keycloak-connect>Keycloak middleware</a>.
+along with the rest of your source code.</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-p">{</span>
+  <span class="tok-nt">"realm"</span><span class="tok-p">:</span> <span class="tok-s2">"yourRealm"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"auth-server-url"</span><span class="tok-p">:</span> <span class="tok-s2">"https://your.server.tld/auth"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"ssl-required"</span><span class="tok-p">:</span> <span class="tok-s2">"none"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"resource"</span><span class="tok-p">:</span> <span class="tok-s2">"your-client-name"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"public-client"</span><span class="tok-p">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span>
+  <span class="tok-nt">"verify-token-audience"</span><span class="tok-p">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span>
+  <span class="tok-nt">"use-resource-role-mappings"</span><span class="tok-p">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span>
+  <span class="tok-nt">"confidential-port"</span><span class="tok-p">:</span> <span class="tok-mi">0</span>
+<span class="tok-p">}</span></code></pre>
+<h3 id="authenticating-your-app">Authenticating Your App</h3>
+<p>In another <a href="/blog/posts/thinking-inside-the-box/">series</a> where we’re working to
+deploy a containerized Node.js app on Amazon’s ECS, we use a simple “hello
+world” web service. I’m going to borrow that and show how to add authentication.
+Here’s our starting point:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-s1">'use strict'</span><span class="tok-p">;</span>
+
+<span class="tok-kd">const</span> <span class="tok-nx">express</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'express'</span><span class="tok-p">);</span>
+
+<span class="tok-kd">const</span> <span class="tok-nx">PORT</span> <span class="tok-o">=</span> <span class="tok-mf">8080</span><span class="tok-p">;</span>
+<span class="tok-kd">const</span> <span class="tok-nx">HOST</span> <span class="tok-o">=</span> <span class="tok-s1">'0.0.0.0'</span><span class="tok-p">;</span>
+
+<span class="tok-kd">const</span> <span class="tok-nx">app</span> <span class="tok-o">=</span> <span class="tok-nx">express</span><span class="tok-p">();</span>
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">get</span><span class="tok-p">(</span><span class="tok-s1">'/'</span><span class="tok-p">,</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-nx">res</span><span class="tok-p">.</span><span class="tok-nx">send</span><span class="tok-p">(</span><span class="tok-s1">'Hello World'</span><span class="tok-p">);</span>
+<span class="tok-p">});</span>
+
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">listen</span><span class="tok-p">(</span><span class="tok-nx">PORT</span><span class="tok-p">,</span> <span class="tok-nx">HOST</span><span class="tok-p">);</span>
+<span class="tok-nx">console</span><span class="tok-p">.</span><span class="tok-nx">log</span><span class="tok-p">(</span><span class="tok-sb">`Running on http://</span><span class="tok-si">${</span><span class="tok-nx">HOST</span><span class="tok-si">}</span><span class="tok-sb">:</span><span class="tok-si">${</span><span class="tok-nx">PORT</span><span class="tok-si">}</span><span class="tok-sb">`</span><span class="tok-p">);</span></code></pre>
+<p>The first thing we need to do is pull in the <a href="https://www.npmjs.com/package/keycloak-connect">Keycloak middleware</a>.
 This provides several useful
-methods we can use to control access to our services. We&rsquo;ll see that in a bit,
-first be sure to <code>npm i keycloak-connect</code>, and then add the dependency:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>Keycloak</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;keycloak-connect&#39;</span>)
-</span></span></code></pre></div><p>Before we get into configuring or using Keycloak,
-we also need a couple more dependencies for this to be useful to our users&mldr;
+methods we can use to control access to our services. We’ll see that in a bit,
+first be sure to <code>npm i keycloak-connect</code>, and then add the dependency:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">Keycloak</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'keycloak-connect'</span><span class="tok-p">)</span></code></pre>
+<p>Before we get into configuring or using Keycloak,
+we also need a couple more dependencies for this to be useful to our users…
 First, we need a session store to track our authenticated users. Since the
 backing store included with <code>express-session</code> is not production worthy and we want
 to keep this as lightweight as possible (read: not pull in another dependency
-like Redis), we also need a replacement memory store. With <code>npm i express-session memorystore</code> and a couple lines of code we&rsquo;re ready to go:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>session</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;express-session&#39;</span>)
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>MemoryStore</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;memorystore&#39;</span>)(<span style=color:#a6e22e>session</span>)
-</span></span></code></pre></div><p>Before we configure and enable Keycloak, we need
+like Redis), we also need a replacement memory store. With <code>npm i express-session memorystore</code> and a couple lines of code we’re ready to go:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">session</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'express-session'</span><span class="tok-p">)</span>
+<span class="tok-kd">const</span> <span class="tok-nx">MemoryStore</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'memorystore'</span><span class="tok-p">)(</span><span class="tok-nx">session</span><span class="tok-p">)</span></code></pre>
+<p>Before we configure and enable Keycloak, we need
 to configure the session storage. While the documented example configures
-<code>memorystore</code> as part of instantiating <code>express-session</code>, we&rsquo;ll break it out so it&rsquo;s
-easier to re-use with Keycloak:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>store</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>MemoryStore</span>({
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>checkPeriod</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>86400000</span>, <span style=color:#75715e>// 24 hrs
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>max</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>1000</span>, <span style=color:#75715e>// items in cache
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>ttl</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>28800000</span>, <span style=color:#75715e>// 8 hrs
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>})
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>use</span>(
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>session</span>({
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;helloWorldApp&#39;</span>, <span style=color:#75715e>// ensure this is unique
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>secret</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>SESSION_SECRET</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>resave</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>false</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>saveUninitialized</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>false</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>cookie</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxAge</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>86400000</span>, <span style=color:#75715e>// 24 hrs
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    },
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>store</span>,
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>)
-</span></span></code></pre></div><p>Now we have user sessions, as well as a <code>memorystore</code> instance we can easily
-reference when configuring the Keycloak middleware:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>keycloak</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Keycloak</span>({ <span style=color:#a6e22e>store</span> })
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>use</span>(<span style=color:#a6e22e>keycloak</span>.<span style=color:#a6e22e>middleware</span>())
-</span></span></code></pre></div><p>We are finally ready to see the full power of
+<code>memorystore</code> as part of instantiating <code>express-session</code>, we’ll break it out so it’s
+easier to re-use with Keycloak:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">store</span> <span class="tok-o">=</span> <span class="tok-ow">new</span> <span class="tok-nx">MemoryStore</span><span class="tok-p">({</span>
+  <span class="tok-nx">checkPeriod</span><span class="tok-o">:</span> <span class="tok-mf">86400000</span><span class="tok-p">,</span> <span class="tok-c1">// 24 hrs</span>
+  <span class="tok-nx">max</span><span class="tok-o">:</span> <span class="tok-mf">1000</span><span class="tok-p">,</span> <span class="tok-c1">// items in cache</span>
+  <span class="tok-nx">ttl</span><span class="tok-o">:</span> <span class="tok-mf">28800000</span><span class="tok-p">,</span> <span class="tok-c1">// 8 hrs</span>
+<span class="tok-p">})</span>
+
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">use</span><span class="tok-p">(</span>
+  <span class="tok-nx">session</span><span class="tok-p">({</span>
+    <span class="tok-nx">name</span><span class="tok-o">:</span> <span class="tok-s1">'helloWorldApp'</span><span class="tok-p">,</span> <span class="tok-c1">// ensure this is unique</span>
+    <span class="tok-nx">secret</span><span class="tok-o">:</span> <span class="tok-nx">process</span><span class="tok-p">.</span><span class="tok-nx">env</span><span class="tok-p">.</span><span class="tok-nx">SESSION_SECRET</span><span class="tok-p">,</span>
+    <span class="tok-nx">resave</span><span class="tok-o">:</span> <span class="tok-kc">false</span><span class="tok-p">,</span>
+    <span class="tok-nx">saveUninitialized</span><span class="tok-o">:</span> <span class="tok-kc">false</span><span class="tok-p">,</span>
+    <span class="tok-nx">cookie</span><span class="tok-o">:</span> <span class="tok-p">{</span>
+      <span class="tok-nx">maxAge</span><span class="tok-o">:</span> <span class="tok-mf">86400000</span><span class="tok-p">,</span> <span class="tok-c1">// 24 hrs</span>
+    <span class="tok-p">},</span>
+    <span class="tok-nx">store</span><span class="tok-p">,</span>
+  <span class="tok-p">})</span>
+<span class="tok-p">)</span></code></pre>
+<p>Now we have user sessions, as well as a <code>memorystore</code> instance we can easily
+reference when configuring the Keycloak middleware:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">keycloak</span> <span class="tok-o">=</span> <span class="tok-ow">new</span> <span class="tok-nx">Keycloak</span><span class="tok-p">({</span> <span class="tok-nx">store</span> <span class="tok-p">})</span>
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">use</span><span class="tok-p">(</span><span class="tok-nx">keycloak</span><span class="tok-p">.</span><span class="tok-nx">middleware</span><span class="tok-p">())</span></code></pre>
+<p>We are finally ready to see the full power of
 Keycloak! The easiest way to do that is to use the protect() method like any
 other middleware. In our simple app we can wrap our lone endpoint in the
-no-argument version to ensure users must be authenticated:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/&#39;</span>, <span style=color:#a6e22e>keycloak</span>.<span style=color:#a6e22e>protect</span>(), (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>send</span>(<span style=color:#e6db74>&#39;Hello World&#39;</span>);
-</span></span><span style=display:flex><span>});
-</span></span></code></pre></div><h2 id=rbac>RBAC</h2><p>The simple case outlined above is intended for typical (interactive) web logins.
+no-argument version to ensure users must be authenticated:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">get</span><span class="tok-p">(</span><span class="tok-s1">'/'</span><span class="tok-p">,</span> <span class="tok-nx">keycloak</span><span class="tok-p">.</span><span class="tok-nx">protect</span><span class="tok-p">(),</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-nx">res</span><span class="tok-p">.</span><span class="tok-nx">send</span><span class="tok-p">(</span><span class="tok-s1">'Hello World'</span><span class="tok-p">);</span>
+<span class="tok-p">});</span></code></pre>
+<h3 id="rbac">RBAC</h3>
+<p>The simple case outlined above is intended for typical (interactive) web logins.
 A dialog will be presented (either one of the defaults or a custom theme you
 define in the client configuration) supporting user/password authentication
 against a configured user directory. This is 80% of what we typically need out
-of the box!</p><p>Keycloak offers a lot of flexibility to support additional use cases,
-but those require more configuration&mldr; For example, let&rsquo;s say you have
+of the box!</p>
+<p>Keycloak offers a lot of flexibility to support additional use cases,
+but those require more configuration… For example, let’s say you have
 different types of users (e.g. normal users and admins) and want to restrict
 parts of the app accordingly. Another similar scenario would be a service
 exposing a web front-end that talks to a ReST back-end with different
-authentication requirements.</p><p>The solution to that is client roles which provides more granular RBAC. In our
+authentication requirements.</p>
+<p>The solution to that is client roles which provides more granular RBAC. In our
 contrived case we could create <code>hello-world-user</code> and <code>hello-world-admin</code> roles then
-refer to them when calling the Keycloak middleware:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/&#39;</span>, <span style=color:#a6e22e>keycloak</span>.<span style=color:#a6e22e>protect</span>(<span style=color:#e6db74>&#39;hello-world-user&#39;</span>), (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>send</span>(<span style=color:#e6db74>&#39;Hello World&#39;</span>);
-</span></span><span style=display:flex><span>});
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/admin&#39;</span>, <span style=color:#a6e22e>keycloak</span>.<span style=color:#a6e22e>protect</span>(<span style=color:#e6db74>&#39;hello-world-admin&#39;</span>), (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>send</span>(<span style=color:#e6db74>&#39;Hello World&#39;</span>);
-</span></span><span style=display:flex><span>});
-</span></span></code></pre></div><p>Keycloak makes it easy to define groups and include users from
+refer to them when calling the Keycloak middleware:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">get</span><span class="tok-p">(</span><span class="tok-s1">'/'</span><span class="tok-p">,</span> <span class="tok-nx">keycloak</span><span class="tok-p">.</span><span class="tok-nx">protect</span><span class="tok-p">(</span><span class="tok-s1">'hello-world-user'</span><span class="tok-p">),</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-nx">res</span><span class="tok-p">.</span><span class="tok-nx">send</span><span class="tok-p">(</span><span class="tok-s1">'Hello World'</span><span class="tok-p">);</span>
+<span class="tok-p">});</span>
+
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">get</span><span class="tok-p">(</span><span class="tok-s1">'/admin'</span><span class="tok-p">,</span> <span class="tok-nx">keycloak</span><span class="tok-p">.</span><span class="tok-nx">protect</span><span class="tok-p">(</span><span class="tok-s1">'hello-world-admin'</span><span class="tok-p">),</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-nx">res</span><span class="tok-p">.</span><span class="tok-nx">send</span><span class="tok-p">(</span><span class="tok-s1">'Hello World'</span><span class="tok-p">);</span>
+<span class="tok-p">});</span></code></pre>
+<p>Keycloak makes it easy to define groups and include users from
 your backing directories that map to our defined client roles for fine-grained
-access control to the public and admin areas.</p><p>Another common use case is service-to-service communication. For that you can
+access control to the public and admin areas.</p>
+<p>Another common use case is service-to-service communication. For that you can
 use OIDC client service accounts. Simply set your client access type to
-&ldquo;confidential&rdquo; and toggle &ldquo;Service Accounts Enabled&rdquo; to &ldquo;ON&rdquo;. You can then
-retrieve and generate shared secrets under the &ldquo;Credentials&rdquo; tab and control
-exactly what can be accessed via client roles and scopes.</p><h2 id=final-thoughts>Final Thoughts</h2><p>Real-world apps are often more complex then our sample. Often you will have many
+“confidential” and toggle “Service Accounts Enabled” to “ON”. You can then
+retrieve and generate shared secrets under the “Credentials” tab and control
+exactly what can be accessed via client roles and scopes.</p>
+<h3 id="final-thoughts">Final Thoughts</h3>
+<p>Real-world apps are often more complex then our sample. Often you will have many
 sets of endpoints associated with certain areas of your application or split by
 functionality. When you import these to stitch together the larger service, a
-useful pattern is defining arrays grouping the sets of endpoints by client role:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>fooRouter</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;./routers/foo&#39;</span>)
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>barRouter</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;./routers/bar&#39;</span>)
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>bazRouter</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;./routers/baz&#39;</span>)
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>quxRouter</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;./routers/qux&#39;</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userRole</span> <span style=color:#f92672>=</span> [<span style=color:#a6e22e>fooRouter</span>, <span style=color:#a6e22e>barRouter</span>, <span style=color:#a6e22e>bazRouter</span>]
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>adminRole</span> <span style=color:#f92672>=</span> [<span style=color:#a6e22e>quxRouter</span>]
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// ...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>use</span>(<span style=color:#a6e22e>keycloak</span>.<span style=color:#a6e22e>protect</span>(<span style=color:#e6db74>&#39;hello-world-user&#39;</span>), <span style=color:#a6e22e>userRole</span>)
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>use</span>(<span style=color:#a6e22e>keycloak</span>.<span style=color:#a6e22e>protect</span>(<span style=color:#e6db74>&#39;hello-world-admin&#39;</span>), <span style=color:#a6e22e>adminRole</span>)
-</span></span></code></pre></div><p>We intentionally kept this article focused on
-the code&mldr; As you can see, it&rsquo;s easy to integrate a Node.js app with Keycloak
-as an authentication provider.</p><p>So as not to belie the pre-requisite work, I want to be fully transparent and
+useful pattern is defining arrays grouping the sets of endpoints by client role:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">fooRouter</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'./routers/foo'</span><span class="tok-p">)</span>
+<span class="tok-kd">const</span> <span class="tok-nx">barRouter</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'./routers/bar'</span><span class="tok-p">)</span>
+<span class="tok-kd">const</span> <span class="tok-nx">bazRouter</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'./routers/baz'</span><span class="tok-p">)</span>
+<span class="tok-kd">const</span> <span class="tok-nx">quxRouter</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'./routers/qux'</span><span class="tok-p">)</span>
+
+<span class="tok-kd">const</span> <span class="tok-nx">userRole</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nx">fooRouter</span><span class="tok-p">,</span> <span class="tok-nx">barRouter</span><span class="tok-p">,</span> <span class="tok-nx">bazRouter</span><span class="tok-p">]</span>
+<span class="tok-kd">const</span> <span class="tok-nx">adminRole</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nx">quxRouter</span><span class="tok-p">]</span>
+
+<span class="tok-c1">// ...</span>
+
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">use</span><span class="tok-p">(</span><span class="tok-nx">keycloak</span><span class="tok-p">.</span><span class="tok-nx">protect</span><span class="tok-p">(</span><span class="tok-s1">'hello-world-user'</span><span class="tok-p">),</span> <span class="tok-nx">userRole</span><span class="tok-p">)</span>
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">use</span><span class="tok-p">(</span><span class="tok-nx">keycloak</span><span class="tok-p">.</span><span class="tok-nx">protect</span><span class="tok-p">(</span><span class="tok-s1">'hello-world-admin'</span><span class="tok-p">),</span> <span class="tok-nx">adminRole</span><span class="tok-p">)</span></code></pre>
+<p>We intentionally kept this article focused on
+the code… As you can see, it’s easy to integrate a Node.js app with Keycloak
+as an authentication provider.</p>
+<p>So as not to belie the pre-requisite work, I want to be fully transparent and
 admit our assumptions. Namely that you have a user directory of some sort
 (internal, LDAP, Active Directory, social logins), a running Keycloak instance
 (a local dockerized version works for testing), and optionally configured client
 roles, scopes and groups (if you want to follow all the examples). Everything
 you need to know for those steps and more can be found in the following
-documentation:</p><ul><li><a href=https://www.keycloak.org/documentation>Keycloak&rsquo;s documentation</a></li><li><a href=https://www.keycloak.org/docs/latest/securing_apps/index.html#_nodejs_adapter>Securing Node.js Apps</a></li><li><a href=https://dev.to/austincunningham/keycloak-and-express-1cdd>Keycloak and Express</a></li><li><a href=https://hub.docker.com/r/jboss/keycloak>Keycloak Docker Hub</a></li><li><a href=https://www.npmjs.com/package/keycloak-connect>Keycloak-connect on NPM</a></li></ul></div></section></body></html>
+documentation:</p>
+<ul><li><a href="https://www.keycloak.org/documentation">Keycloak’s documentation</a></li><li><a href="https://www.keycloak.org/docs/latest/securing_apps/index.html#_nodejs_adapter">Securing Node.js Apps</a></li><li><a href="https://dev.to/austincunningham/keycloak-and-express-1cdd">Keycloak and Express</a></li><li><a href="https://hub.docker.com/r/jboss/keycloak">Keycloak Docker Hub</a></li><li><a href="https://www.npmjs.com/package/keycloak-connect">Keycloak-connect on NPM</a></li></ul>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/dev/">dev(7)</a>
+              <a href="/blog/tags/nodejs/">nodejs(7)</a>
+              <a href="/blog/tags/iam/">iam(7)</a>
+              <a href="/blog/tags/oss/">oss(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/contain-yourself/">Contain Yourself</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/ecs-task-definitions/">ECS Task Definitions</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">March 23, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

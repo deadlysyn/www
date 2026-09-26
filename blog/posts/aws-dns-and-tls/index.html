@@ -1,252 +1,360 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>AWS and DNS and TLS, Oh My!</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">AWS and DNS and TLS, Oh My!</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>Clone the companion project to follow along&mldr;</a></p><p>In a past <a href=/blog/posts/terraforming-aws-part-i>series</a> we used <a href=https://terraform.io>Terraform</a>
-to build <a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>a simple LAMP stack</a>
-(actually a N-tier, Linux-based, MySQL-backed web stack atop AWS&mldr;
-there is technically no Apache or Perl/PHP/Python if we&rsquo;re being pedantic).
-We <a href=https://www.grandma-dna.com/squashing-bugs>fixed some bugs</a> along the way,
-and even extended the original design to provide more <a href=/blog/posts/getting-out-more>real-world networking</a>
-for our private subnets.</p><p>In this article, I want to again (ab)use our simple N-tier project to explore
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the companion project to follow along…">
+    <meta name="date" content="2019-12-04">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>AWS and DNS and TLS, Oh My! — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/aws-dns-and-tls/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">AWS and DNS and TLS, Oh My!</h1>
+            <p class="meta"><time datetime="2019-12-04">December 4, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">Clone the companion project to follow along…</a></p>
+<p>In a past <a href="/blog/posts/terraforming-aws-part-i/">series</a> we used <a href="https://terraform.io">Terraform</a>
+to build <a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">a simple LAMP stack</a>
+(actually a N-tier, Linux-based, MySQL-backed web stack atop AWS…
+there is technically no Apache or Perl/PHP/Python if we’re being pedantic).
+We <a href="https://www.grandma-dna.com/squashing-bugs">fixed some bugs</a> along the way,
+and even extended the original design to provide more <a href="/blog/posts/getting-out-more/">real-world networking</a>
+for our private subnets.</p>
+<p>In this article, I want to again (ab)use our simple N-tier project to explore
 DNS and TLS within the AWS ecosystem. Of course this is a DevOps-heavy blog, so
-we&rsquo;ll continue the automation obsession and implement what we learn using
-Terraform. Combined with some refactoring that&rsquo;s happened along the way, this
+we’ll continue the automation obsession and implement what we learn using
+Terraform. Combined with some refactoring that’s happened along the way, this
 will add polish needed to turn our suspiciously lab-smelling proof of concept
-into automation potentially useful in the real world!</p><h2 id=concepts>Concepts</h2><p>Since we&rsquo;ve already invested a lot of time plumbing the network, getting auto
+into automation potentially useful in the real world!</p>
+<h3 id="concepts">Concepts</h3>
+<p>Since we’ve already invested a lot of time plumbing the network, getting auto
 scaling and user data just right, figuring out how to spin up a database and
-tying all those pieces together&mldr; Here we can focus specifically on DNS and
+tying all those pieces together… Here we can focus specifically on DNS and
 TLS. Each of those are often shrouded in mystery (perhaps because getting either
 one wrong can do very bad things to availability and security!) and could
-consume entire books in themselves. To avoid writing a book as a blog post, I&rsquo;m
-going to focus on AWS-specific aspects. Where helpful I&rsquo;ll touch on generic
-concepts&mldr; but this won&rsquo;t be a DNS or TLS tutorial since good resources for
-those already exist.</p><p>In a lot of my posts I present patterns that can be extended as needed to meet
+consume entire books in themselves. To avoid writing a book as a blog post, I’m
+going to focus on AWS-specific aspects. Where helpful I’ll touch on generic
+concepts… but this won’t be a DNS or TLS tutorial since good resources for
+those already exist.</p>
+<p>In a lot of my posts I present patterns that can be extended as needed to meet
 your specific needs. Patterns are common across many industries, and often seen
-as a pairing of problem and solution. It&rsquo;s important to remember that patterns
+as a pairing of problem and solution. It’s important to remember that patterns
 are more like tuples which include a third element: context! Absorbing patterns
-without awareness of their context leads to confusion.</p><p>Before exploring the pieces of the AWS LEGO set we need to manage DNS, I want to
-highlight the context&mldr; We&rsquo;ll need DNS in at least two places: routing traffic
+without awareness of their context leads to confusion.</p>
+<p>Before exploring the pieces of the AWS LEGO set we need to manage DNS, I want to
+highlight the context… We’ll need DNS in at least two places: routing traffic
 to our web cluster with a friendly name, and supporting TLS certificate
-validation. I&rsquo;ll assume you have an existing (registered) domain you control ,
+validation. I’ll assume you have an existing (registered) domain you control ,
 and that it is not serving mission-critical traffic (so experimenting with it is
 relatively safe). In reality you might need to register a new domain, cut-over
 an existing domain serving production traffic, etc. Each of these will have
 unique considerations. Hopefully you can still extract useful concepts and
 automation snippets to help you on your journey, adjusting as needed to fit your
-context.</p><h2 id=dns>DNS</h2><p>We&rsquo;ve already touched on why we need DNS and our assumptions. Since we will be
-migrating an existing, unused domain we follow the steps in <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/migrate-dns-domain-inactive.html>this guide</a>
-(at a high level). If you are moving a production domain read <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/migrate-dns-domain-in-use.html>this guide</a>
-instead.</p><p>DNS on AWS <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html>Route53</a>
-leverages Hosted Zones. A Hosted Zone can be <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/AboutHZWorkingWith.html>public</a>
-or <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html>private</a>.
+context.</p>
+<h3 id="dns">DNS</h3>
+<p>We’ve already touched on why we need DNS and our assumptions. Since we will be
+migrating an existing, unused domain we follow the steps in <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/migrate-dns-domain-inactive.html">this guide</a>
+(at a high level). If you are moving a production domain read <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/migrate-dns-domain-in-use.html">this guide</a>
+instead.</p>
+<p>DNS on AWS <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html">Route53</a>
+leverages Hosted Zones. A Hosted Zone can be <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/AboutHZWorkingWith.html">public</a>
+or <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html">private</a>.
 Public zones serve the Internet, while private zones are associated with VPCs
 (your private AWS networks). A Hosted Zone is simply a container holding DNS
-resources. While it looks similar, it&rsquo;s not technically the same as a DNS
-domain. Hosted Zones are an AWS vs. DNS concept.</p><p>For example, you can create a Hosted Zone without owning the associated domain.
-Nothing will happen until you <a href=https://dyn.com/blog/domain-name-system-dns-delegation-the-zone-authority-chain>delegate</a>
-the DNS domain to the <a href=https://docs.aws.amazon.com/Route53/latest/APIReference/Welcome.html>Delegation Set</a>
+resources. While it looks similar, it’s not technically the same as a DNS
+domain. Hosted Zones are an AWS vs. DNS concept.</p>
+<p>For example, you can create a Hosted Zone without owning the associated domain.
+Nothing will happen until you <a href="https://dyn.com/blog/domain-name-system-dns-delegation-the-zone-authority-chain">delegate</a>
+the DNS domain to the <a href="https://docs.aws.amazon.com/Route53/latest/APIReference/Welcome.html">Delegation Set</a>
 (a set of four AWS name servers associated with the Hosted Zone that will handle traffic
 for the DNS domain). You can also do interesting things with Hosted Zones such
-as using <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html>Alias Records</a>
+as using <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html">Alias Records</a>
 to map the zone apex directly to AWS resources. Contrasted with pure DNS, you
-can not alias (CNAME) the <a href=https://www.isc.org/blogs/cname-at-the-apex-of-a-zone>apex</a>. There is also a
-financial difference: Alias Records are free, CNAME queries are not!</p><p>This means getting a public domain working with AWS will require a number of
-steps:</p><ul><li>Create public Route53 Hosted Zone</li><li>Obtain Delegation Set from AWS</li><li>Update our registrar&rsquo;s DNS servers using the Delegation Set</li><li>Create any records we need (using Alias Records where applicable)</li><li>Profit</li></ul><h2 id=tls>TLS</h2><p>TLS is the modern, faster, more secure SSL. If you are hosting content on the Internet
+can not alias (CNAME) the <a href="https://www.isc.org/blogs/cname-at-the-apex-of-a-zone">apex</a>. There is also a
+financial difference: Alias Records are free, CNAME queries are not!</p>
+<p>This means getting a public domain working with AWS will require a number of
+steps:</p>
+<ul><li>Create public Route53 Hosted Zone</li><li>Obtain Delegation Set from AWS</li><li>Update our registrar’s DNS servers using the Delegation Set</li><li>Create any records we need (using Alias Records where applicable)</li><li>Profit</li></ul>
+<h3 id="tls">TLS</h3>
+<p>TLS is the modern, faster, more secure SSL. If you are hosting content on the Internet
 (or anywhere), you probably have it already and if not you need it. With all the
 great features comes added complexity. Serving TLS-protected content requires
-managing certificates.</p><p>You have many options&mldr; You can purchase certificates from third-party
-<a href=https://en.wikipedia.org/wiki/Certificate_authority>Certificate Authorities</a>
-(e.g. <a href=https://www.digicert.com>DigiCert</a> or <a href=https://www.thawte.com>Thawte</a>).
-You may integrate your service directly with modern alternatives such as <a href=https://letsencrypt.org>Let&rsquo;s Encrypt</a>.
+managing certificates.</p>
+<p>You have many options… You can purchase certificates from third-party
+<a href="https://en.wikipedia.org/wiki/Certificate_authority">Certificate Authorities</a>
+(e.g. <a href="https://www.digicert.com">DigiCert</a> or <a href="https://www.thawte.com">Thawte</a>).
+You may integrate your service directly with modern alternatives such as <a href="https://letsencrypt.org">Let’s Encrypt</a>.
 Depending on your use case, you might chose
 to cut costs and self-sign certificates using a Private Certificate Authority.
-There are times when an internal CA makes sense, and AWS even has <a href=https://docs.aws.amazon.com/acm-pca/latest/userguide/PcaWelcome.html>PCA support</a>
+There are times when an internal CA makes sense, and AWS even has <a href="https://docs.aws.amazon.com/acm-pca/latest/userguide/PcaWelcome.html">PCA support</a>
 so you
-don&rsquo;t have to carry the burden alone. If you are managing your own PCA, be sure
+don’t have to carry the burden alone. If you are managing your own PCA, be sure
 to account for the hidden costs from additional effort securing, signing,
-storing, revoking, etc. all of your certs.</p><p>Terraform can help in these cases, letting you inject certificate files directly
+storing, revoking, etc. all of your certs.</p>
+<p>Terraform can help in these cases, letting you inject certificate files directly
 into resources and configuration. Since you will have both private and public
-keys (certificates), you&rsquo;ll also need to think about secret vaulting (using
-something like <a href=https://www.vaultproject.io>HashiCorp&rsquo;s Vault</a>) to keep private
-keys secure (obviously never committing them to version control).</p><p>Considering all the options is one reason TLS can seem overwhelming. Luckily,
-AWS can help simplify our life and save us money at the same time. We&rsquo;ll use
-AWS&rsquo; <a href=https://aws.amazon.com/certificate-manager>Certificate Manager</a> (ACM) to
+keys (certificates), you’ll also need to think about secret vaulting (using
+something like <a href="https://www.vaultproject.io">HashiCorp’s Vault</a>) to keep private
+keys secure (obviously never committing them to version control).</p>
+<p>Considering all the options is one reason TLS can seem overwhelming. Luckily,
+AWS can help simplify our life and save us money at the same time. We’ll use
+AWS’ <a href="https://aws.amazon.com/certificate-manager">Certificate Manager</a> (ACM) to
 manager our TLS certificates. This provides a self-service, performant,
 highly-secure (certainly better than we could roll ourselves) certificate
 service that is nicely integrated with key parts of the AWS ecosystem (read: our
-ALB). Unlike third-party CAs which exist to issue certs, <a href=https://docs.aws.amazon.com/acm/latest/userguide/acm-billing.html>AWS gives you certs for free</a>
+ALB). Unlike third-party CAs which exist to issue certs, <a href="https://docs.aws.amazon.com/acm/latest/userguide/acm-billing.html">AWS gives you certs for free</a>
 since they make money on other resources that get used with them (ALBs, EC2 instances,
-etc).</p><p>To validate certificates (you wouldn&rsquo;t want just anyone to be able to issue
-certs for your domain), ACM can use a <a href=https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html>DNS</a>
-or <a href=https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-email.html>email</a>
+etc).</p>
+<p>To validate certificates (you wouldn’t want just anyone to be able to issue
+certs for your domain), ACM can use a <a href="https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html">DNS</a>
+or <a href="https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-email.html">email</a>
 based workflow. DNS is highly preferred, since it can be fully automated and
-managed by Terraform.</p><h2 id=code>Code</h2><p>Now that we know our goal and what pieces we need to accomplish it, we can start
-translating requirements into code. First, here&rsquo;s a simple picture of what we&rsquo;re
-tying together:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/aws-dns-and-tls-1.png?raw=true" alt="Components and Traffic Flow"></p><p>Looking at the boxes and solid lines, we point the
+managed by Terraform.</p>
+<h3 id="code">Code</h3>
+<p>Now that we know our goal and what pieces we need to accomplish it, we can start
+translating requirements into code. First, here’s a simple picture of what we’re
+tying together:</p>
+<p><img alt="Components and Traffic Flow" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/aws-dns-and-tls-1.png?raw=true"/></p>
+<p>Looking at the boxes and solid lines, we point the
 DNS server (NS) entries for our domain to the Route53 Hosted Zone Delegation
 Set. This allows us to create resource records, which we can alias to AWS
-resources. Since we&rsquo;re going to start leveraging TLS, our ALB now listens and
+resources. Since we’re going to start leveraging TLS, our ALB now listens and
 serves traffic on 443/tcp. Internally, we still talk to our EC2 instances using
 80/tcp (while we could easily encrypt this traffic as well, offloading TLS
 overhead to load balancers is a common approach and simplifies our deployment).
 ACM integrates with our Hosted Zone, publishing special DNS records which allow
-any certs issued for our domain to be validated.</p><p>From a user&rsquo;s perspective, a request to our service will still require a DNS
+any certs issued for our domain to be validated.</p>
+<p>From a user’s perspective, a request to our service will still require a DNS
 request to the registrar (hopefully cached) where our delegation will redirect
-to Route53&rsquo;s name servers for resolution. In our case we&rsquo;ll use a www record
+to Route53’s name servers for resolution. In our case we’ll use a www record
 aliased to our ALB, which terminates the connection securely using the TLS
-certificate obtained from ACM.</p><p>Let&rsquo;s build it! Creating a Hosted Zone is easy enough, but leveraging a few
-related resources should improve our quality of life:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route53_delegation_set&#34; &#34;main&#34;</span> {
-</span></span><span style=display:flex><span>  reference_name <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>env_name</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>lifecycle</span> {
-</span></span><span style=display:flex><span>    prevent_destroy <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route53_zone&#34; &#34;public&#34;</span> {
-</span></span><span style=display:flex><span>  name              <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_domain</span>
-</span></span><span style=display:flex><span>  delegation_set_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_route53_delegation_set</span>.<span style=color:#66d9ef>main</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-route53-hosted-zone&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>output</span> <span style=color:#e6db74>&#34;name_servers&#34;</span> {
-</span></span><span style=display:flex><span>  value <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_route53_zone</span>.<span style=color:#66d9ef>public</span>.<span style=color:#66d9ef>name_servers</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Aside from the <code>aws_route53_zone</code> itself (if you had an existing Hosted Zone, you
-could use the <a href=https://www.terraform.io/docs/providers/aws/d/route53_zone.html>Data Source</a>
+certificate obtained from ACM.</p>
+<p>Let’s build it! Creating a Hosted Zone is easy enough, but leveraging a few
+related resources should improve our quality of life:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_route53_delegation_set"</span> <span class="tok-nv">"main"</span> <span class="tok-p">{</span>
+  <span class="tok-na">reference_name</span> <span class="tok-o">=</span> <span class="tok-nv">var.env_name</span>
+
+  <span class="tok-nb">lifecycle</span> <span class="tok-p">{</span>
+    <span class="tok-na">prevent_destroy</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route53_zone"</span> <span class="tok-nv">"public"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>              <span class="tok-o">=</span> <span class="tok-nv">var.web_domain</span>
+  <span class="tok-na">delegation_set_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_route53_delegation_set.main.id</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-route53-hosted-zone"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">output</span> <span class="tok-nv">"name_servers"</span> <span class="tok-p">{</span>
+  <span class="tok-na">value</span> <span class="tok-o">=</span> <span class="tok-nv">aws_route53_zone.public.name_servers</span>
+<span class="tok-p">}</span></code></pre>
+<p>Aside from the <code>aws_route53_zone</code> itself (if you had an existing Hosted Zone, you
+could use the <a href="https://www.terraform.io/docs/providers/aws/d/route53_zone.html">Data Source</a>
 to get the
 Zone ID needed below), we also create a <code>aws_route53_delegation_set</code>. When you
 create a Hosted Zone, AWS will assign a random set of geographically diverse
 name servers (DNS best practice). Since you must update your registrar with
 these values for Internet users to make it to your site (or ACM to validate
-certs by conducting DNS lookups), you don&rsquo;t want future updates to potentially
-change these values and break the delegation. That&rsquo;s why we use the special
-<code>lifecycle</code> block to ensure Terraform does not destroy the Delegation Set.</p><p>Notice I said &ldquo;should&rdquo; improve our quality of life above&mldr; While this looks
+certs by conducting DNS lookups), you don’t want future updates to potentially
+change these values and break the delegation. That’s why we use the special
+<code>lifecycle</code> block to ensure Terraform does not destroy the Delegation Set.</p>
+<p>Notice I said “should” improve our quality of life above… While this looks
 like an ideal representation of our desired state, it has at least one major
-problem. As you can read in this <a href=https://github.com/hashicorp/terraform/issues/3874>issue</a>
+problem. As you can read in this <a href="https://github.com/hashicorp/terraform/issues/3874">issue</a>
 (please 👍 it!),
 <code>prevent_destroy</code> does not always work satisfactorily. Instead of simply not
 deleting the specified resource, future updates throw errors (preventing useful
 things such as cleaning up your project without hand editing and losing the
-desired benefit).</p><p>One workaround is using <a href=https://www.terraform.io/docs/commands/plan.html#resource-targeting>resource targeting</a>,
+desired benefit).</p>
+<p>One workaround is using <a href="https://www.terraform.io/docs/commands/plan.html#resource-targeting">resource targeting</a>,
 but that
 is a toilsome hack at best. A common solution is better segregation of managed
 resources. That is generally a good thing, but in this case results in another
 repo, Terraform module, state file, etc. that manages a single resource (might
-as well just use <a href=https://docs.aws.amazon.com/cli/latest/reference/route53/create-reusable-delegation-set.html>create-reusable-delegation-set</a>!).
+as well just use <a href="https://docs.aws.amazon.com/cli/latest/reference/route53/create-reusable-delegation-set.html">create-reusable-delegation-set</a>!).
 Just be aware of this pitfall, and take heart knowing HashiCorp is working
 on a real solution. In the meantime, this might be a reason to think carefully
-about how much of your infrastructure you place under Terraform&rsquo;s control.</p><p>We also add an <code>output</code> so we can easily grab the Delegation Set needed to update
+about how much of your infrastructure you place under Terraform’s control.</p>
+<p>We also add an <code>output</code> so we can easily grab the Delegation Set needed to update
 our registrar (simply run <code>terraform output name_servers</code> after executing
 <code>terraform apply</code>). Since it varies greatly and often involves clicking through a
-UI, I won&rsquo;t show that step here – simply take the provided list of name servers
-and update your domain registrar&rsquo;s DNS servers accordingly.</p><p>As mentioned above, we&rsquo;re going to use a Route53 Alias Record to point to our
+UI, I won’t show that step here – simply take the provided list of name servers
+and update your domain registrar’s DNS servers accordingly.</p>
+<p>As mentioned above, we’re going to use a Route53 Alias Record to point to our
 ALB. This is very similar to creating any other Route53 resource with Terraform,
 but since Alias Records always use a 60-second TTL, we must omit <code>ttl</code>. We also
 replace <code>records</code> with an <code>alias</code> block (you must have one or the other) referencing
 the desired resource, and take care of the zone apex since no one has time to
-type &ldquo;www&rdquo; in 2020:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>locals</span> {<span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # We&#39;ll use this more below...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  fqdns   <span style=color:#f92672>=</span> <span style=color:#66d9ef>concat</span>([<span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_domain</span>], <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>alt_names</span>)
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route53_record&#34; &#34;web&#34;</span> {
-</span></span><span style=display:flex><span>  count   <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>fqdns</span>)
-</span></span><span style=display:flex><span>  name    <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>fqdns</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  type    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;A&#34;</span>
-</span></span><span style=display:flex><span>  zone_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_route53_zone</span>.<span style=color:#66d9ef>public</span>.<span style=color:#66d9ef>zone_id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>alias</span> {
-</span></span><span style=display:flex><span>    name                   <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_lb</span>.<span style=color:#66d9ef>alb</span>.<span style=color:#66d9ef>dns_name</span>
-</span></span><span style=display:flex><span>    zone_id                <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_lb</span>.<span style=color:#66d9ef>alb</span>.<span style=color:#66d9ef>zone_id</span>
-</span></span><span style=display:flex><span>    evaluate_target_health <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><code>evaluate_target_health</code> is another advantage of Alias Records, since it will only
+type “www” in 2020:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-nb">locals</span> <span class="tok-p">{</span>
+<span class="tok-c1">  # We'll use this more below...</span>
+  <span class="tok-na">fqdns</span>   <span class="tok-o">=</span> <span class="tok-nf">concat</span><span class="tok-p">([</span><span class="tok-nv">var.web_domain</span><span class="tok-p">],</span> <span class="tok-nv">var.alt_names</span><span class="tok-p">)</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route53_record"</span> <span class="tok-nv">"web"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>   <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">local.fqdns</span><span class="tok-p">)</span>
+  <span class="tok-na">name</span>    <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">local.fqdns</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">type</span>    <span class="tok-o">=</span> <span class="tok-s2">"A"</span>
+  <span class="tok-na">zone_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_route53_zone.public.zone_id</span>
+
+  <span class="tok-nb">alias</span> <span class="tok-p">{</span>
+    <span class="tok-na">name</span>                   <span class="tok-o">=</span> <span class="tok-nv">aws_lb.alb.dns_name</span>
+    <span class="tok-na">zone_id</span>                <span class="tok-o">=</span> <span class="tok-nv">aws_lb.alb.zone_id</span>
+    <span class="tok-na">evaluate_target_health</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p><code>evaluate_target_health</code> is another advantage of Alias Records, since it will only
 route traffic to targeted resources if they are actually in a healthy state.
 Failing fast and shedding load before it consumes additional resources is a best
-practice (one of many useful patterns described in <a href=https://smile.amazon.com/Release-Design-Deploy-Production-Ready-Software/dp/1680502395>Michael Nygard&rsquo;s <em>Release It!</em></a>).</p><p>Now for the trickiest part&mldr; Requesting the certificate from ACM. The actual
+practice (one of many useful patterns described in <a href="https://smile.amazon.com/Release-Design-Deploy-Production-Ready-Software/dp/1680502395">Michael Nygard’s <em>Release It!</em></a>).</p>
+<p>Now for the trickiest part… Requesting the certificate from ACM. The actual
 request is simple, but since we also want to leverage DNS-based validation we
 need to chain several Terraform resources together. Thankfully, the Terraform
 docs are great at covering this. In the docs they assume you only have a single
-hostname to contend with, so here&rsquo;s a more real-world example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_acm_certificate&#34; &#34;cert&#34;</span> {
-</span></span><span style=display:flex><span>  domain_name               <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_domain</span>
-</span></span><span style=display:flex><span>  subject_alternative_names <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>alt_names</span>
-</span></span><span style=display:flex><span>  validation_method         <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;DNS&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-acm-cert&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>lifecycle</span> {
-</span></span><span style=display:flex><span>    create_before_destroy <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route53_record&#34; &#34;cert_validation&#34;</span> {
-</span></span><span style=display:flex><span>  count   <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>fqdns</span>)
-</span></span><span style=display:flex><span>  name    <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_acm_certificate</span>.<span style=color:#66d9ef>cert</span>.<span style=color:#66d9ef>domain_validation_options</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>resource_record_name</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  type    <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_acm_certificate</span>.<span style=color:#66d9ef>cert</span>.<span style=color:#66d9ef>domain_validation_options</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>resource_record_type</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  records <span style=color:#f92672>=</span> [<span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_acm_certificate</span>.<span style=color:#66d9ef>cert</span>.<span style=color:#66d9ef>domain_validation_options</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>resource_record_value</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)]
-</span></span><span style=display:flex><span>  ttl     <span style=color:#f92672>=</span> <span style=color:#ae81ff>60</span>
-</span></span><span style=display:flex><span>  zone_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_route53_zone</span>.<span style=color:#66d9ef>public</span>.<span style=color:#66d9ef>zone_id</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_acm_certificate_validation&#34; &#34;cert&#34;</span> {
-</span></span><span style=display:flex><span>  certificate_arn         <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_acm_certificate</span>.<span style=color:#66d9ef>cert</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  validation_record_fqdns <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_route53_record</span>.<span style=color:#66d9ef>cert_validation</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>fqdn</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><code>domain_name</code> is your Common Name (CN) for the cert, and you can include any
+hostname to contend with, so here’s a more real-world example:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_acm_certificate"</span> <span class="tok-nv">"cert"</span> <span class="tok-p">{</span>
+  <span class="tok-na">domain_name</span>               <span class="tok-o">=</span> <span class="tok-nv">var.web_domain</span>
+  <span class="tok-na">subject_alternative_names</span> <span class="tok-o">=</span> <span class="tok-nv">var.alt_names</span>
+  <span class="tok-na">validation_method</span>         <span class="tok-o">=</span> <span class="tok-s2">"DNS"</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-acm-cert"</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">lifecycle</span> <span class="tok-p">{</span>
+    <span class="tok-na">create_before_destroy</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route53_record"</span> <span class="tok-nv">"cert_validation"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>   <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">local.fqdns</span><span class="tok-p">)</span>
+  <span class="tok-na">name</span>    <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_acm_certificate.cert.domain_validation_options</span><span class="tok-p">[</span>*<span class="tok-p">].</span>resource_record_name<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">type</span>    <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_acm_certificate.cert.domain_validation_options</span><span class="tok-p">[</span>*<span class="tok-p">].</span>resource_record_type<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">records</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_acm_certificate.cert.domain_validation_options</span><span class="tok-p">[</span>*<span class="tok-p">].</span>resource_record_value<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)]</span>
+  <span class="tok-na">ttl</span>     <span class="tok-o">=</span> <span class="tok-m">60</span>
+  <span class="tok-na">zone_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_route53_zone.public.zone_id</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_acm_certificate_validation"</span> <span class="tok-nv">"cert"</span> <span class="tok-p">{</span>
+  <span class="tok-na">certificate_arn</span>         <span class="tok-o">=</span> <span class="tok-nv">aws_acm_certificate.cert.arn</span>
+  <span class="tok-na">validation_record_fqdns</span> <span class="tok-o">=</span> <span class="tok-nv">aws_route53_record.cert_validation</span><span class="tok-p">[</span>*<span class="tok-p">].</span>fqdn
+<span class="tok-p">}</span></code></pre>
+<p><code>domain_name</code> is your Common Name (CN) for the cert, and you can include any
 number of SANs via the <code>subject_alternative_names</code> list. You can probably think of
 ways to improve on this, but avoiding hard-coded indexes into
 <code>domain_validation_options</code> ensures we can easily extend the <code>alt_names</code> list in
-configuration to include any number of SANs. <a href=https://en.wikipedia.org/wiki/Wildcard_certificate>Wildcards</a>
+configuration to include any number of SANs. <a href="https://en.wikipedia.org/wiki/Wildcard_certificate">Wildcards</a>
 are supported as well.
-Note the use of <code>local.fqdns</code> to obtain <code>count</code>. We can&rsquo;t simply use
-<code>domain_validation_options</code> for that since it&rsquo;s only known at apply time.</p><p>Almost there&mldr; We&rsquo;ve got a zone, DNS records for our users, and a TLS
+Note the use of <code>local.fqdns</code> to obtain <code>count</code>. We can’t simply use
+<code>domain_validation_options</code> for that since it’s only known at apply time.</p>
+<p>Almost there… We’ve got a zone, DNS records for our users, and a TLS
 certificate that has been validated. So far, this does nothing! We need to
 adjust our ALB listener to use the shiny new certificate. As part of that, we
 will update our <code>port</code> (since the TLS standard is 443/tcp vs 80/tcp which we had
 before) and most importantly <code>protocol</code> (we were leveraging the default HTTP but
 now want HTTPS). ALBs only support HTTP or HTTPS. If you need TCP or other
-protocols, time to refactor using a <a href=https://aws.amazon.com/elasticloadbalancing/features>Network Load Balancer</a>
-(this is also required if you want to associate static or elastic IP addresses).</p><p>Let&rsquo;s quickly update our <code>aws_lb_listener</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_lb_listener&#34; &#34;listener&#34;</span> {
-</span></span><span style=display:flex><span>  load_balancer_arn <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_lb</span>.<span style=color:#66d9ef>alb</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  port              <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>lb_port</span>
-</span></span><span style=display:flex><span>  protocol          <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;HTTPS&#34;</span>
-</span></span><span style=display:flex><span>  ssl_policy        <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;ELBSecurityPolicy-2016-08&#34;</span>
-</span></span><span style=display:flex><span>  certificate_arn   <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_acm_certificate_validation</span>.<span style=color:#66d9ef>cert</span>.<span style=color:#66d9ef>certificate_arn</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>default_action</span> {
-</span></span><span style=display:flex><span>    target_group_arn <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_lb_target_group</span>.<span style=color:#66d9ef>tg</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>    type             <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;forward&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>The one other thing to pay attention to here is <code>ssl_policy</code>, which is required
+protocols, time to refactor using a <a href="https://aws.amazon.com/elasticloadbalancing/features">Network Load Balancer</a>
+(this is also required if you want to associate static or elastic IP addresses).</p>
+<p>Let’s quickly update our <code>aws_lb_listener</code>:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_lb_listener"</span> <span class="tok-nv">"listener"</span> <span class="tok-p">{</span>
+  <span class="tok-na">load_balancer_arn</span> <span class="tok-o">=</span> <span class="tok-nv">aws_lb.alb.arn</span>
+  <span class="tok-na">port</span>              <span class="tok-o">=</span> <span class="tok-nv">var.lb_port</span>
+  <span class="tok-na">protocol</span>          <span class="tok-o">=</span> <span class="tok-s2">"HTTPS"</span>
+  <span class="tok-na">ssl_policy</span>        <span class="tok-o">=</span> <span class="tok-s2">"ELBSecurityPolicy-2016-08"</span>
+  <span class="tok-na">certificate_arn</span>   <span class="tok-o">=</span> <span class="tok-nv">aws_acm_certificate_validation.cert.certificate_arn</span>
+
+  <span class="tok-nb">default_action</span> <span class="tok-p">{</span>
+    <span class="tok-na">target_group_arn</span> <span class="tok-o">=</span> <span class="tok-nv">aws_lb_target_group.tg.arn</span>
+    <span class="tok-na">type</span>             <span class="tok-o">=</span> <span class="tok-s2">"forward"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>The one other thing to pay attention to here is <code>ssl_policy</code>, which is required
 when using HTTPS. These are policies provided by AWS. While <code>2016-08</code> sounds a bit
 dated, it is the latest policy available while writing this. For a full list and
-details on what each policy contains, refer to the <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html>official documentation</a>.</p><p>Our site is secure with an ACM TLS cert including SANsAs a final note, there is
-a bit of chicken and egg when building from scratch&mldr; You need to run apply,
+details on what each policy contains, refer to the <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html">official documentation</a>.</p>
+<p>Our site is secure with an ACM TLS cert including SANsAs a final note, there is
+a bit of chicken and egg when building from scratch… You need to run apply,
 watch output until the Delegation Set is created, run to the Route53 console,
 click into your hosted zone, grab the name servers, update your registrar while
 the apply is running (likely while waiting 10-15 minutes for RDS to provision),
 then wait on the delegation (usually quick, but could take hours) so DNS
 resolution works and ACM can actually perform the requisite DNS queries to
-validate certs.</p><p>If you are too slow or that fails, the site will never come up since the
-dependency graph looks something like <em>ALB => listener => validated cert => DNS</em>
-(no DNS, no cert, no listener!). For our simple project we&rsquo;re trying to keep all
+validate certs.</p>
+<p>If you are too slow or that fails, the site will never come up since the
+dependency graph looks something like <em>ALB =&gt; listener =&gt; validated cert =&gt; DNS</em>
+(no DNS, no cert, no listener!). For our simple project we’re trying to keep all
 the pieces organized in a single repo to make it easier to reason about. In the
 real world you would typically solve this by breaking out modules (and state) to
-manage your networks, DNS, etc. separate from the application stack.</p><h2 id=conclusion>Conclusion</h2><p>By now we are starting to see a theme&mldr; For common use cases (and many
+manage your networks, DNS, etc. separate from the application stack.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>By now we are starting to see a theme… For common use cases (and many
 uncommon!), AWS has an answer. By leveraging AWS services we can greatly reduce
 maintenance and overhead while increasing security and making it easier to
 automate provisioning. Despite a potential pitfall, Terraform also shines
-again&mldr; In ~50 lines we&rsquo;ve added substantial functionality, easily managing DNS
+again… In ~50 lines we’ve added substantial functionality, easily managing DNS
 and TLS (both often considered opaque and persnickety) in a repeatable,
-auditable way.</p></div></section></body></html>
+auditable way.</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/getting-out-more/">Getting Out More</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/thinking-inside-the-box/">Thinking Inside the Box</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">December 4, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

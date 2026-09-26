@@ -1,64 +1,161 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Browser Comparison</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Browser Comparison</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/desktop>desktop</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/linux>linux</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/perf>perf</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>In a recent quest to mostly <a href=https://github.com/deadlysyn/archer>automate my typical Arch Linux installation</a>,
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="In a recent quest to mostly automate my typical Arch Linux installation, I wanted to include a useful browser (or two) so decided to benchmark a handful…">
+    <meta name="date" content="2020-11-01">
+    <meta name="keywords" content="desktop, linux, perf">
+    <meta name="theme-color" content="#15130f">
+    <title>Browser Comparison — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/browser-comparison/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Browser Comparison</h1>
+            <p class="meta"><time datetime="2020-11-01">November 1, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>In a recent quest to mostly <a href="https://github.com/deadlysyn/archer">automate my typical Arch Linux installation</a>,
 I wanted to include a useful browser (or
-two) so decided to benchmark a handful of modern options. I say &ldquo;or two&rdquo; because
-while I&rsquo;ve been a loyal Firefox user since it was the only capable browser that
+two) so decided to benchmark a handful of modern options. I say “or two” because
+while I’ve been a loyal Firefox user since it was the only capable browser that
 would compile on FreeBSD, my day job requires plugins which are only compatible
 with Chromium. I went into this fully willing to have a daily driver and a
-backup for specific plugin support.</p><h2 id=hardware-and-approach>Hardware and Approach</h2><p>These days I spend 95% of my time on <a href=https://archlinux.org>Arch Linux</a>, whether
-desktop or laptop. I still have a work-owned Macbook I keep around &ldquo;just in
-case&rdquo; and because it&rsquo;s more convenient to travel with than my throw-away Ideapad
+backup for specific plugin support.</p>
+<h3 id="hardware-and-approach">Hardware and Approach</h3>
+<p>These days I spend 95% of my time on <a href="https://archlinux.org">Arch Linux</a>, whether
+desktop or laptop. I still have a work-owned Macbook I keep around “just in
+case” and because it’s more convenient to travel with than my throw-away Ideapad
 (a rescued from the trash G510 that a SSD brought back to life). I decided to
 take advantage of everything I had on my desk, and test on the following three
-platforms:</p><p>Linux Laptop</p><ul><li>i5-4200M @ 2.5GHz</li><li>8GB RAM</li><li>1TB Samsung 860 EVO SSD</li><li>Intel graphics 4600</li><li>5.9 kernel</li></ul><p>Linux Desktop</p><ul><li>Ryzen 9 3950X</li><li>64GB RAM</li><li>1TB NVMe (Sabrent Rocket)</li><li>AMD RX5700XT 8GB</li><li>5.8 kernel</li></ul><p>Macbook Pro</p><ul><li>i9 @ 2.9GHz</li><li>32GB RAM</li><li>1TB NVMe (Apple SSD)</li><li>Intel graphics 630 2GB</li><li>10.15.7</li></ul><p>In all cases the browser was latest stable version at time of writing, stock
-install with no plugins (or plugins disabled), and cold-start results.</p><p>I found some surprising variance across runs when initially comparing Basemark.
+platforms:</p>
+<p>Linux Laptop</p>
+<ul><li>i5-4200M @ 2.5GHz</li><li>8GB RAM</li><li>1TB Samsung 860 EVO SSD</li><li>Intel graphics 4600</li><li>5.9 kernel</li></ul>
+<p>Linux Desktop</p>
+<ul><li>Ryzen 9 3950X</li><li>64GB RAM</li><li>1TB NVMe (Sabrent Rocket)</li><li>AMD RX5700XT 8GB</li><li>5.8 kernel</li></ul>
+<p>Macbook Pro</p>
+<ul><li>i9 @ 2.9GHz</li><li>32GB RAM</li><li>1TB NVMe (Apple SSD)</li><li>Intel graphics 630 2GB</li><li>10.15.7</li></ul>
+<p>In all cases the browser was latest stable version at time of writing, stock
+install with no plugins (or plugins disabled), and cold-start results.</p>
+<p>I found some surprising variance across runs when initially comparing Basemark.
 It would be worth redoing this to average a handful of test runs across
 tools/platforms, with a number of cold and warm boot tests, and also compare
-performance to nightly builds.</p><p>I decided to cut my (time) losses in terms of averaging multiple runs and wanted
-to stick to stable builds in my use case&mldr; Consider this your grain of salt
+performance to nightly builds.</p>
+<p>I decided to cut my (time) losses in terms of averaging multiple runs and wanted
+to stick to stable builds in my use case… Consider this your grain of salt
 warning. Since the benchmark tools are free and easy to use, I recommend testing
-your own hardware and considering this just another data point.</p><h2 id=results>Results</h2><p>To test, I used <a href=https://web.basemark.com>Basemark</a> and <a href=https://www.principledtechnologies.com/benchmarkxprt/webxprt>WebXPRT</a>.
+your own hardware and considering this just another data point.</p>
+<h3 id="results">Results</h3>
+<p>To test, I used <a href="https://web.basemark.com">Basemark</a> and <a href="https://www.principledtechnologies.com/benchmarkxprt/webxprt">WebXPRT</a>.
 There are plenty
 of browser test tools available, but these both receive a lot of press so I
-decided to limit my choices and get on with the testing. Here are the results:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/browser-comparison-1.png?raw=true" alt="Browser Test Results"></p><p>Again, based on variance across runs and platforms, the
+decided to limit my choices and get on with the testing. Here are the results:</p>
+<p><img alt="Browser Test Results" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/browser-comparison-1.png?raw=true"/></p>
+<p>Again, based on variance across runs and platforms, the
 ultimate takeaway might be to avoid putting too much stock in any one result or
-benchmark tool. Still, it is interesting to observe the differences.</p><p>Based on these results, Firefox seems to be a far better choice on older (or
+benchmark tool. Still, it is interesting to observe the differences.</p>
+<p>Based on these results, Firefox seems to be a far better choice on older (or
 mobile?) hardware – blowing away the competition in both Basemark and WebXPRT
 scores. Since the other three browsers are all Chromium based, this seems to
-imply Quantum does a better job managing scant resources.</p><p>Looking at more modern hardware, Firefox gets left in the dust when comparing
+imply Quantum does a better job managing scant resources.</p>
+<p>Looking at more modern hardware, Firefox gets left in the dust when comparing
 Basemark results – the lowest numbers in this category on both Linux and MacOS.
-It&rsquo;s relatively close to Ungoogled Chromium, but Vivaldi looks like a great
-choice on the Linux desktop.</p><p>Turning our focus to WebXPRT results, the pack stays a lot closer overall but
+It’s relatively close to Ungoogled Chromium, but Vivaldi looks like a great
+choice on the Linux desktop.</p>
+<p>Turning our focus to WebXPRT results, the pack stays a lot closer overall but
 Firefox eeks out a surprising lead on all three platforms. Impressive. Numbers
-never mean much without context, so my key takeaway is that it&rsquo;s worth looking
+never mean much without context, so my key takeaway is that it’s worth looking
 at the test suite specifics to see which tests better match your typical use
-case.</p><h2 id=conclusion>Conclusion</h2><p>Beyond the numbers, there are a few things which must be factored into my (and
-perhaps your) decision. One is ease of use. It&rsquo;s not insurmountable, but
+case.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>Beyond the numbers, there are a few things which must be factored into my (and
+perhaps your) decision. One is ease of use. It’s not insurmountable, but
 Ungoogled Chromium receives a ding in this area. In order to install plugins you
-have to jump through some extra hoops (you can&rsquo;t just go straight to the Chrome
-Web Store). The process is documented in their <a href=https://ungoogled-software.github.io/ungoogled-chromium-wiki/faq>FAQ</a>, but this
-along with other common tasks require extra steps.</p><p>On the security front, Brave takes the lead. It comes out of the box with HTTPS
-redirect (eliminating the need for <a href=https://en.wikipedia.org/wiki/HTTPS_Everywhere>HTTPS Everywhere</a>),
-ad blocking (perhaps eliminating the need for <a href=https://en.wikipedia.org/wiki/UBlock_Origin>uBlock Origin</a>),
-and attempts to make it harder (but certainly <a href=https://youtu.be/dsu9b5FqK_0>not impossible</a>)
+have to jump through some extra hoops (you can’t just go straight to the Chrome
+Web Store). The process is documented in their <a href="https://ungoogled-software.github.io/ungoogled-chromium-wiki/faq">FAQ</a>, but this
+along with other common tasks require extra steps.</p>
+<p>On the security front, Brave takes the lead. It comes out of the box with HTTPS
+redirect (eliminating the need for <a href="https://en.wikipedia.org/wiki/HTTPS_Everywhere">HTTPS Everywhere</a>),
+ad blocking (perhaps eliminating the need for <a href="https://en.wikipedia.org/wiki/UBlock_Origin">uBlock Origin</a>),
+and attempts to make it harder (but certainly <a href="https://youtu.be/dsu9b5FqK_0">not impossible</a>)
 for you to be
 fingerprinted. There are some annoyances out of the box, but they can be
-disabled in settings.</p><p>When hopping across tools and platforms, there is also something to be said for
-consistent look and feel. While I&rsquo;d be willing to use two browsers for specific
+disabled in settings.</p>
+<p>When hopping across tools and platforms, there is also something to be said for
+consistent look and feel. While I’d be willing to use two browsers for specific
 use cases if performance was far enough apart, the appeal of consistent UX is at
-least somewhere in my consciousness as I&rsquo;m typing this.</p><p>Initially I thought I would end up with Firefox as my daily driver and one of
+least somewhere in my consciousness as I’m typing this.</p>
+<p>Initially I thought I would end up with Firefox as my daily driver and one of
 the Chromium based browsers as backup. Since I spend some time on all three
-platforms, I decided to leave emotion at the door (I&rsquo;ve used Firefox a long
-time) and make a choice based on the Basemark and WebXPRT averages.</p><p>Firefox is a clear winner if only looking at WebXPRT, but Vivaldi comes in
+platforms, I decided to leave emotion at the door (I’ve used Firefox a long
+time) and make a choice based on the Basemark and WebXPRT averages.</p>
+<p>Firefox is a clear winner if only looking at WebXPRT, but Vivaldi comes in
 second place. Looking at Basemark, Vivaldi is a an unrivaled winner. Going with
 a Chromium browser alone ultimately means fewer things for me to install,
 configure and keep updated. One browser across all platforms gives me consistent
-UX. Based on all this, I&rsquo;ve decided to try Vivaldi as my only browser on all
-three platforms. To be honest, I&rsquo;d never taken it seriously before doing these
-tests&mldr; but it&rsquo;s performant, supports the Chromium plugins I need, is highly
-customizeable, and has decent themes out of the box.</p><p>What browser works best for you?</p><ul><li><a href=https://brave.com>Brave</a></li><li><a href=https://mozilla.org/firefox>Firefox</a></li><li><a href=https://ungoogled-software.github.io>Ungoogled Chromium</a></li><li><a href=https://vivaldi.com>Vivaldi</a></li></ul><p><strong>Caveats:</strong></p><p>My daily driver is Arch Linux + <a href=https://github.com/baskerville/bspwm>bspwm</a>. At the time of writing, that is not a good combo
-with Vivaldi due to <a href=https://github.com/baskerville/bspwm/issues/1105>this gem</a>. Stay tuned.</p></div></section></body></html>
+UX. Based on all this, I’ve decided to try Vivaldi as my only browser on all
+three platforms. To be honest, I’d never taken it seriously before doing these
+tests… but it’s performant, supports the Chromium plugins I need, is highly
+customizeable, and has decent themes out of the box.</p>
+<p>What browser works best for you?</p>
+<ul><li><a href="https://brave.com">Brave</a></li><li><a href="https://mozilla.org/firefox">Firefox</a></li><li><a href="https://ungoogled-software.github.io">Ungoogled Chromium</a></li><li><a href="https://vivaldi.com">Vivaldi</a></li></ul>
+<p><strong>Caveats:</strong></p>
+<p>My daily driver is Arch Linux + <a href="https://github.com/baskerville/bspwm">bspwm</a>. At the time of writing, that is not a good combo
+with Vivaldi due to <a href="https://github.com/baskerville/bspwm/issues/1105">this gem</a>. Stay tuned.</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/desktop/">desktop(7)</a>
+              <a href="/blog/tags/linux/">linux(7)</a>
+              <a href="/blog/tags/perf/">perf(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/coming-home/">Coming Home</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/keycloak-iac/">Keycloak IaC</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">November 1, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

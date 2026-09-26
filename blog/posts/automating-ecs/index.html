@@ -1,282 +1,333 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Automating ECS</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Automating ECS</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://github.com/deadlysyn/node-aws-ecs>Clone the project repo to follow along&mldr;</a></p><p>So far in this series we&rsquo;ve learned the fundamentals of <a href=/blog/posts/ecs-services>Amazon&rsquo;s Elastic
-Container Service</a>, <a href=/blog/posts/thinking-inside-the-box>containerized a simple Node.js
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the project repo to follow along…">
+    <meta name="date" content="2020-04-26">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>Automating ECS — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/automating-ecs/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Automating ECS</h1>
+            <p class="meta"><time datetime="2020-04-26">April 26, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://github.com/deadlysyn/node-aws-ecs">Clone the project repo to follow along…</a></p>
+<p>So far in this series we’ve learned the fundamentals of <a href="/blog/posts/ecs-services/">Amazon’s Elastic
+Container Service</a>, <a href="/blog/posts/thinking-inside-the-box/">containerized a simple Node.js
 application</a>, and deployed it to the
-cloud. In the final article of this series, we&rsquo;ll eliminate the toil of building
-and maintaining <a href=https://aws.amazon.com/ecs>ECS</a> infrastructure by automating
-everything we&rsquo;ve learned using <a href=https://www.terraform.io>Terraform</a>.</p><h2 id=container-definition>Container Definition</h2><p>Before diving into Terraform, the first thing we&rsquo;ll need is a &ldquo;container
-definition&rdquo; to feed the <code>aws_ecs_task_definition</code> resource. The good news is
-we&rsquo;ve already built this while working through the <a href=/blog/posts/ecs-task-definitions>manual configuration of our
-task</a>.</p><p>By simply trimming off everything in the task definition except the
-<code>containerDefinitions</code> list, you&rsquo;ll have all you need. The initial slog of
+cloud. In the final article of this series, we’ll eliminate the toil of building
+and maintaining <a href="https://aws.amazon.com/ecs">ECS</a> infrastructure by automating
+everything we’ve learned using <a href="https://www.terraform.io">Terraform</a>.</p>
+<h3 id="container-definition">Container Definition</h3>
+<p>Before diving into Terraform, the first thing we’ll need is a “container
+definition” to feed the <code>aws_ecs_task_definition</code> resource. The good news is
+we’ve already built this while working through the <a href="/blog/posts/ecs-task-definitions/">manual configuration of our
+task</a>.</p>
+<p>By simply trimming off everything in the task definition except the
+<code>containerDefinitions</code> list, you’ll have all you need. The initial slog of
 figuring out the task definition JSON is paying dividends! This is just reusing
 a portion of an existing file, and the point of this article is the actual
-Terraform, so I&rsquo;ll simply link to <a href=https://github.com/deadlysyn/node-aws-ecs/blob/master/terraform/container-definition.json>the example from the project repo</a>.
+Terraform, so I’ll simply link to <a href="https://github.com/deadlysyn/node-aws-ecs/blob/master/terraform/container-definition.json">the example from the project repo</a>.
 Since the first article I did a bit of clean up – removing unnecessary values
-(nulls, empty lists) and templating a few more things to make reuse easier.</p><p>NOTE: To work through the entire demo deployment, you will need to modify one
+(nulls, empty lists) and templating a few more things to make reuse easier.</p>
+<p>NOTE: To work through the entire demo deployment, you will need to modify one
 line in the container definition – the path to the Parameter Store secret. You
 also need to add the secret to test retrieval. In your AWS account, go to
-Services > Systems Manager > Parameter Store > Create parameter. For anything
+Services &gt; Systems Manager &gt; Parameter Store &gt; Create parameter. For anything
 sensitive, always use SecureString. If you use the same path and name, you will
 only need to insert your AWS Account ID in the container definition. Otherwise,
-adjust as needed.</p><h2 id=terraforming-ecs>Terraforming ECS</h2><p>To make this simpler for anyone to test drive, we&rsquo;ll use the default VPC and
-subnets that come with new AWS accounts. If you&rsquo;ve deleted those, you can use
-Terraform&rsquo;s AWS VPC and subnet resources (or a module of your choice) to create
-space for our example.</p><p><a href=/blog/posts/terraforming-aws-part-i>A past series</a> went into a lot of detail around creating network resources
+adjust as needed.</p>
+<h3 id="terraforming-ecs">Terraforming ECS</h3>
+<p>To make this simpler for anyone to test drive, we’ll use the default VPC and
+subnets that come with new AWS accounts. If you’ve deleted those, you can use
+Terraform’s AWS VPC and subnet resources (or a module of your choice) to create
+space for our example.</p>
+<p><a href="/blog/posts/terraforming-aws-part-i/">A past series</a> went into a lot of detail around creating network resources
 from scratch. Rather than rehash that I
 want to cover another common scenario – using data sources to discover existing
 network infrastructure. Beyond account defaults in this case, you will often
 have shared VPCs, subnets, NAT gateways, etc. that you can consume rather than
-having to re-create for each service.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>data</span> <span style=color:#e6db74>&#34;aws_vpc&#34; &#34;selected&#34;</span> {
-</span></span><span style=display:flex><span>  default <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>data</span> <span style=color:#e6db74>&#34;aws_subnet_ids&#34; &#34;private&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>selected</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>The <code>aws_subnet_ids</code> data source gives us a list of subnets matching specified
-criteria we can use elsewhere in our configuration. We&rsquo;ll use the private
+having to re-create for each service.</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">data</span> <span class="tok-nc">"aws_vpc"</span> <span class="tok-nv">"selected"</span> <span class="tok-p">{</span>
+  <span class="tok-na">default</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">data</span> <span class="tok-nc">"aws_subnet_ids"</span> <span class="tok-nv">"private"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">data.aws_vpc.selected.id</span>
+<span class="tok-p">}</span></code></pre>
+<p>The <code>aws_subnet_ids</code> data source gives us a list of subnets matching specified
+criteria we can use elsewhere in our configuration. We’ll use the private
 subnets to house our ECS tasks. Here simply using the <code>vpc_id</code> gets the job done,
 but a common practice is using tags to make selection of appropriate resources
-intuitive.</p><p>Before we tackle ECS itself, we need to address IAM. When deploying manually, we
+intuitive.</p>
+<p>Before we tackle ECS itself, we need to address IAM. When deploying manually, we
 leveraged the default <code>ecsTaskExecutionRole</code> and fixed it up to allow access to
-<a href=https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html>Parameter Store</a>
-and <a href=https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html>Secrets Manager</a>. At the
+<a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html">Parameter Store</a>
+and <a href="https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html">Secrets Manager</a>. At the
 time it was easy to (ab)use, but we called out the best practice of using
-service-specific roles. As part of our automation, let&rsquo;s have Terraform manage
-any roles and policies for us:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_iam_role&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  name                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>role_name</span>
-</span></span><span style=display:flex><span>  description           <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;ECS Task Execution Role for ${var.app_name}&#34;</span>
-</span></span><span style=display:flex><span>  force_detach_policies <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  assume_role_policy <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>&lt;&lt;</span><span style=color:#66d9ef>EOF</span>
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;: &#34;2008-10-17&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>    {
-</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Sid&#34;: &#34;&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Effect&#34;: &#34;Allow&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Principal&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> {
-</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Service&#34;: &#34;ecs-tasks.amazonaws.com&#34;</span>
-</span></span><span style=display:flex><span>      },
-</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Action&#34;: &#34;sts:AssumeRole&#34;</span>
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  ]
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#66d9ef>EOF</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>tags</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_iam_policy&#34; &#34;parameter_store_ro&#34;</span> {
-</span></span><span style=display:flex><span>  name_prefix <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;ParameterStoreRO&#34;</span>
-</span></span><span style=display:flex><span>  description <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Grants RO access to Parameter Store&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  policy <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>&lt;&lt;</span><span style=color:#66d9ef>EOF</span>
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;Version&#34;: &#34;2012-10-17&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>        {
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Effect&#34;: &#34;Allow&#34;</span>,
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Action&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;ssm:GetParameters&#34;</span>,
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;kms:Decrypt&#34;</span>
-</span></span><span style=display:flex><span>            ],
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;arn:aws:ssm:*:*:parameter/*&#34;</span>,
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;arn:aws:kms:*:*:key/*&#34;</span>
-</span></span><span style=display:flex><span>            ]
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    ]
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#66d9ef>EOF</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_iam_role_policy_attachment&#34; &#34;attach_parameter_store_policy&#34;</span> {
-</span></span><span style=display:flex><span>  role       <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_iam_role</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>name</span>
-</span></span><span style=display:flex><span>  policy_arn <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_iam_policy</span>.<span style=color:#66d9ef>parameter_store_ro</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_iam_role_policy_attachment&#34; &#34;attach_aws_managed_policy&#34;</span> {
-</span></span><span style=display:flex><span>  role       <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_iam_role</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>name</span>
-</span></span><span style=display:flex><span>  policy_arn <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy&#34;</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Service-specific roles allow more granular access controlWhile this is still
+service-specific roles. As part of our automation, let’s have Terraform manage
+any roles and policies for us:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_iam_role"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>                  <span class="tok-o">=</span> <span class="tok-nv">var.role_name</span>
+  <span class="tok-na">description</span>           <span class="tok-o">=</span> <span class="tok-s2">"ECS Task Execution Role for ${var.app_name}"</span>
+  <span class="tok-na">force_detach_policies</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-na">assume_role_policy</span> <span class="tok-o">=</span> <span class="tok-o">&lt;&lt;</span><span class="tok-dl">EOF</span>
+<span class="tok-sh">{</span>
+<span class="tok-sh">  "Version": "2008-10-17",</span>
+<span class="tok-sh">  "Statement": [</span>
+<span class="tok-sh">    {</span>
+<span class="tok-sh">      "Sid": "",</span>
+<span class="tok-sh">      "Effect": "Allow",</span>
+<span class="tok-sh">      "Principal": {</span>
+<span class="tok-sh">        "Service": "ecs-tasks.amazonaws.com"</span>
+<span class="tok-sh">      },</span>
+<span class="tok-sh">      "Action": "sts:AssumeRole"</span>
+<span class="tok-sh">    }</span>
+<span class="tok-sh">  ]</span>
+<span class="tok-sh">}</span>
+<span class="tok-dl">EOF</span>
+
+  <span class="tok-na">tags</span> <span class="tok-o">=</span> <span class="tok-nv">local.tags</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_iam_policy"</span> <span class="tok-nv">"parameter_store_ro"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name_prefix</span> <span class="tok-o">=</span> <span class="tok-s2">"ParameterStoreRO"</span>
+  <span class="tok-na">description</span> <span class="tok-o">=</span> <span class="tok-s2">"Grants RO access to Parameter Store"</span>
+
+  <span class="tok-na">policy</span> <span class="tok-o">=</span> <span class="tok-o">&lt;&lt;</span><span class="tok-dl">EOF</span>
+<span class="tok-sh">{</span>
+<span class="tok-sh">    "Version": "2012-10-17",</span>
+<span class="tok-sh">    "Statement": [</span>
+<span class="tok-sh">        {</span>
+<span class="tok-sh">            "Effect": "Allow",</span>
+<span class="tok-sh">            "Action": [</span>
+<span class="tok-sh">                "ssm:GetParameters",</span>
+<span class="tok-sh">                "kms:Decrypt"</span>
+<span class="tok-sh">            ],</span>
+<span class="tok-sh">            "Resource": [</span>
+<span class="tok-sh">                "arn:aws:ssm:*:*:parameter/*",</span>
+<span class="tok-sh">                "arn:aws:kms:*:*:key/*"</span>
+<span class="tok-sh">            ]</span>
+<span class="tok-sh">        }</span>
+<span class="tok-sh">    ]</span>
+<span class="tok-sh">}</span>
+<span class="tok-dl">EOF</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_iam_role_policy_attachment"</span> <span class="tok-nv">"attach_parameter_store_policy"</span> <span class="tok-p">{</span>
+  <span class="tok-na">role</span>       <span class="tok-o">=</span> <span class="tok-nv">aws_iam_role.app.name</span>
+  <span class="tok-na">policy_arn</span> <span class="tok-o">=</span> <span class="tok-nv">aws_iam_policy.parameter_store_ro.arn</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_iam_role_policy_attachment"</span> <span class="tok-nv">"attach_aws_managed_policy"</span> <span class="tok-p">{</span>
+  <span class="tok-na">role</span>       <span class="tok-o">=</span> <span class="tok-nv">aws_iam_role.app.name</span>
+  <span class="tok-na">policy_arn</span> <span class="tok-o">=</span> <span class="tok-s2">"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"</span>
+<span class="tok-p">}</span></code></pre>
+<p>Service-specific roles allow more granular access controlWhile this is still
 wide open (we could further limit Parameter Store access to specific paths), it
 gives you a starter recipe for automating a fully functional service. Refer to
-<a href=https://github.com/deadlysyn/node-aws-ecs/tree/master/ecs>the policy examples</a>
-we ran through previously if you need to grant Secrets Manager access instead.</p><p>With network details gathered and IAM squared away, we&rsquo;re ready to take care of
-ECS. As you&rsquo;ll recall from previous articles, we need to create an ECR
-repository our ECS tasks can access. We&rsquo;ll also attach a <a href=https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html>lifecycle policy</a>
-to our repository to avoid old images building up and wasting space.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_ecr_repository&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  name                 <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.app_name}-${var.environment}&#34;</span>
-</span></span><span style=display:flex><span>  image_tag_mutability <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;MUTABLE&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>image_scanning_configuration</span> {
-</span></span><span style=display:flex><span>    scan_on_push <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>tags</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_ecr_lifecycle_policy&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  repository <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_ecr_repository</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>name</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  policy <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>&lt;&lt;</span><span style=color:#66d9ef>EOF</span>
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;rules&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> [
-</span></span><span style=display:flex><span>        {
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;rulePriority&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> <span style=color:#ae81ff>1</span>,
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;description&#34;: &#34;Expire untagged images older than a week&#34;</span>,
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;selection&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> {
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;tagStatus&#34;: &#34;untagged&#34;</span>,
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;countType&#34;: &#34;sinceImagePushed&#34;</span>,
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;countUnit&#34;: &#34;days&#34;</span>,
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;countNumber&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> <span style=color:#ae81ff>7</span>
-</span></span><span style=display:flex><span>            },
-</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;action&#34;</span><span style=color:#960050;background-color:#1e0010>:</span> {
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;type&#34;: &#34;expire&#34;</span>
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    ]
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#66d9ef>EOF</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Since we are using container insights and the awslogs driver, when we manually
+<a href="https://github.com/deadlysyn/node-aws-ecs/tree/master/ecs">the policy examples</a>
+we ran through previously if you need to grant Secrets Manager access instead.</p>
+<p>With network details gathered and IAM squared away, we’re ready to take care of
+ECS. As you’ll recall from previous articles, we need to create an ECR
+repository our ECS tasks can access. We’ll also attach a <a href="https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html">lifecycle policy</a>
+to our repository to avoid old images building up and wasting space.</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_ecr_repository"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>                 <span class="tok-o">=</span> <span class="tok-s2">"${var.app_name}-${var.environment}"</span>
+  <span class="tok-na">image_tag_mutability</span> <span class="tok-o">=</span> <span class="tok-s2">"MUTABLE"</span>
+
+  <span class="tok-nb">image_scanning_configuration</span> <span class="tok-p">{</span>
+    <span class="tok-na">scan_on_push</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-na">tags</span> <span class="tok-o">=</span> <span class="tok-nv">local.tags</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_ecr_lifecycle_policy"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">repository</span> <span class="tok-o">=</span> <span class="tok-nv">aws_ecr_repository.app.name</span>
+
+  <span class="tok-na">policy</span> <span class="tok-o">=</span> <span class="tok-o">&lt;&lt;</span><span class="tok-dl">EOF</span>
+<span class="tok-sh">{</span>
+<span class="tok-sh">    "rules": [</span>
+<span class="tok-sh">        {</span>
+<span class="tok-sh">            "rulePriority": 1,</span>
+<span class="tok-sh">            "description": "Expire untagged images older than a week",</span>
+<span class="tok-sh">            "selection": {</span>
+<span class="tok-sh">                "tagStatus": "untagged",</span>
+<span class="tok-sh">                "countType": "sinceImagePushed",</span>
+<span class="tok-sh">                "countUnit": "days",</span>
+<span class="tok-sh">                "countNumber": 7</span>
+<span class="tok-sh">            },</span>
+<span class="tok-sh">            "action": {</span>
+<span class="tok-sh">                "type": "expire"</span>
+<span class="tok-sh">            }</span>
+<span class="tok-sh">        }</span>
+<span class="tok-sh">    ]</span>
+<span class="tok-sh">}</span>
+<span class="tok-dl">EOF</span>
+<span class="tok-p">}</span></code></pre>
+<p>Since we are using container insights and the awslogs driver, when we manually
 created the ECS service we had to make sure we created the CloudWatch Log Group
-or our service wouldn&rsquo;t start. Now we can let Terraform manage that for us.</p><p>To make the ECS-specific bits more modular, a number of variables are used.
+or our service wouldn’t start. Now we can let Terraform manage that for us.</p>
+<p>To make the ECS-specific bits more modular, a number of variables are used.
 These are referenced directly by our Terraform resources and exposed within the
 container definition via templatefile. Aside from the service name, region and
 port, the ECS CPU units, memory reserve and hard limit are configurable. This is
 tunable enough for most services without overwhelming the operator with excess
 detail. Finding the right balance reduces cognitive load for others using your
-automation.</p><p>We leverage a lot of defaults in the service configuration, but do pull in the
-subnets discovered above and expose instance details. For our simple case we&rsquo;ll
+automation.</p>
+<p>We leverage a lot of defaults in the service configuration, but do pull in the
+subnets discovered above and expose instance details. For our simple case we’ll
 run a single task instance, so use instance_percent_min = 0 and
 instance_percent_max = 100. In the real world we could increase instance_count
 and adjust the percentages as needed so we can use rolling updates to avoid
-downtime.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_cloudwatch_log_group&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  name              <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;/ecs/${var.app_name}-${var.environment}&#34;</span>
-</span></span><span style=display:flex><span>  retention_in_days <span style=color:#f92672>=</span> <span style=color:#ae81ff>7</span>
-</span></span><span style=display:flex><span>  tags              <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>tags</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_ecs_cluster&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.app_name}-${var.environment}&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>tags</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>setting</span> {
-</span></span><span style=display:flex><span>    name  <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;containerInsights&#34;</span>
-</span></span><span style=display:flex><span>    value <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;enabled&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_ecs_task_definition&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  family <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.app_name}-${var.environment}&#34;</span>
-</span></span><span style=display:flex><span>  container_definitions <span style=color:#f92672>=</span> <span style=color:#66d9ef>templatefile</span>(<span style=color:#e6db74>&#34;container-definition.json&#34;</span>, {
-</span></span><span style=display:flex><span>    name           <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.app_name}-${var.environment}&#34;</span>
-</span></span><span style=display:flex><span>    environment    <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>environment</span>
-</span></span><span style=display:flex><span>    image          <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${aws_ecr_repository.app.repository_url}:latest&#34;</span>
-</span></span><span style=display:flex><span>    region         <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>region</span>
-</span></span><span style=display:flex><span>    port           <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>container_port</span>
-</span></span><span style=display:flex><span>    cpu            <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>task_cpu</span>
-</span></span><span style=display:flex><span>    memory_limit   <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>task_memory_limit</span>
-</span></span><span style=display:flex><span>    memory_reserve <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>task_memory_reserve</span>
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>  task_role_arn      <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_iam_role</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  execution_role_arn <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_iam_role</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  network_mode       <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;awsvpc&#34;</span>
-</span></span><span style=display:flex><span>  cpu                <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>task_cpu</span>
-</span></span><span style=display:flex><span>  memory             <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>task_memory_limit</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  depends_on <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_cloudwatch_log_group</span>.<span style=color:#66d9ef>app</span>]
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>tags</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_ecs_service&#34; &#34;app&#34;</span> {
-</span></span><span style=display:flex><span>  name                    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.app_name}-${var.environment}&#34;</span>
-</span></span><span style=display:flex><span>  cluster                 <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_ecs_cluster</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  task_definition         <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_ecs_task_definition</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  enable_ecs_managed_tags <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  propagate_tags          <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;SERVICE&#34;</span>
-</span></span><span style=display:flex><span>  launch_type             <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;FARGATE&#34;</span>
-</span></span><span style=display:flex><span>  scheduling_strategy     <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;REPLICA&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  desired_count                      <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>instance_count</span>
-</span></span><span style=display:flex><span>  deployment_maximum_percent         <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>instance_percent_max</span>
-</span></span><span style=display:flex><span>  deployment_minimum_healthy_percent <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>instance_percent_min</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>network_configuration</span> {
-</span></span><span style=display:flex><span>    subnets          <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>private_subnets</span>
-</span></span><span style=display:flex><span>    security_groups  <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_security_group</span>.<span style=color:#66d9ef>app</span>.<span style=color:#66d9ef>id</span>]
-</span></span><span style=display:flex><span>    assign_public_ip <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>lifecycle</span> {
-</span></span><span style=display:flex><span>    ignore_changes <span style=color:#f92672>=</span> [<span style=color:#66d9ef>desired_count</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  depends_on <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_iam_role</span>.<span style=color:#66d9ef>app</span>]
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>tags</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Refer to the
-project repo for the <a href=https://github.com/deadlysyn/node-aws-ecs/tree/master/terraform>fully functional Terraform</a>&mldr;
+downtime.</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_cloudwatch_log_group"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>              <span class="tok-o">=</span> <span class="tok-s2">"/ecs/${var.app_name}-${var.environment}"</span>
+  <span class="tok-na">retention_in_days</span> <span class="tok-o">=</span> <span class="tok-m">7</span>
+  <span class="tok-na">tags</span>              <span class="tok-o">=</span> <span class="tok-nv">local.tags</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_ecs_cluster"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.app_name}-${var.environment}"</span>
+
+  <span class="tok-na">tags</span> <span class="tok-o">=</span> <span class="tok-nv">local.tags</span>
+
+  <span class="tok-nb">setting</span> <span class="tok-p">{</span>
+    <span class="tok-na">name</span>  <span class="tok-o">=</span> <span class="tok-s2">"containerInsights"</span>
+    <span class="tok-na">value</span> <span class="tok-o">=</span> <span class="tok-s2">"enabled"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_ecs_task_definition"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">family</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.app_name}-${var.environment}"</span>
+  <span class="tok-na">container_definitions</span> <span class="tok-o">=</span> <span class="tok-nf">templatefile</span><span class="tok-p">(</span><span class="tok-s2">"container-definition.json"</span><span class="tok-p">,</span> <span class="tok-p">{</span>
+    <span class="tok-na">name</span>           <span class="tok-o">=</span> <span class="tok-s2">"${var.app_name}-${var.environment}"</span>
+    <span class="tok-na">environment</span>    <span class="tok-o">=</span> <span class="tok-nv">var.environment</span>
+    <span class="tok-na">image</span>          <span class="tok-o">=</span> <span class="tok-s2">"${aws_ecr_repository.app.repository_url}:latest"</span>
+    <span class="tok-na">region</span>         <span class="tok-o">=</span> <span class="tok-nv">var.region</span>
+    <span class="tok-na">port</span>           <span class="tok-o">=</span> <span class="tok-nv">var.container_port</span>
+    <span class="tok-na">cpu</span>            <span class="tok-o">=</span> <span class="tok-nv">var.task_cpu</span>
+    <span class="tok-na">memory_limit</span>   <span class="tok-o">=</span> <span class="tok-nv">var.task_memory_limit</span>
+    <span class="tok-na">memory_reserve</span> <span class="tok-o">=</span> <span class="tok-nv">var.task_memory_reserve</span>
+  <span class="tok-p">})</span>
+  <span class="tok-na">task_role_arn</span>      <span class="tok-o">=</span> <span class="tok-nv">aws_iam_role.app.arn</span>
+  <span class="tok-na">execution_role_arn</span> <span class="tok-o">=</span> <span class="tok-nv">aws_iam_role.app.arn</span>
+  <span class="tok-na">network_mode</span>       <span class="tok-o">=</span> <span class="tok-s2">"awsvpc"</span>
+  <span class="tok-na">cpu</span>                <span class="tok-o">=</span> <span class="tok-nv">var.task_cpu</span>
+  <span class="tok-na">memory</span>             <span class="tok-o">=</span> <span class="tok-nv">var.task_memory_limit</span>
+
+  <span class="tok-na">depends_on</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_cloudwatch_log_group.app</span><span class="tok-p">]</span>
+
+  <span class="tok-na">tags</span> <span class="tok-o">=</span> <span class="tok-nv">local.tags</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_ecs_service"</span> <span class="tok-nv">"app"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>                    <span class="tok-o">=</span> <span class="tok-s2">"${var.app_name}-${var.environment}"</span>
+  <span class="tok-na">cluster</span>                 <span class="tok-o">=</span> <span class="tok-nv">aws_ecs_cluster.app.arn</span>
+  <span class="tok-na">task_definition</span>         <span class="tok-o">=</span> <span class="tok-nv">aws_ecs_task_definition.app.arn</span>
+  <span class="tok-na">enable_ecs_managed_tags</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-na">propagate_tags</span>          <span class="tok-o">=</span> <span class="tok-s2">"SERVICE"</span>
+  <span class="tok-na">launch_type</span>             <span class="tok-o">=</span> <span class="tok-s2">"FARGATE"</span>
+  <span class="tok-na">scheduling_strategy</span>     <span class="tok-o">=</span> <span class="tok-s2">"REPLICA"</span>
+
+  <span class="tok-na">desired_count</span>                      <span class="tok-o">=</span> <span class="tok-nv">var.instance_count</span>
+  <span class="tok-na">deployment_maximum_percent</span>         <span class="tok-o">=</span> <span class="tok-nv">var.instance_percent_max</span>
+  <span class="tok-na">deployment_minimum_healthy_percent</span> <span class="tok-o">=</span> <span class="tok-nv">var.instance_percent_min</span>
+
+  <span class="tok-nb">network_configuration</span> <span class="tok-p">{</span>
+    <span class="tok-na">subnets</span>          <span class="tok-o">=</span> <span class="tok-nv">local.private_subnets</span>
+    <span class="tok-na">security_groups</span>  <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_security_group.app.id</span><span class="tok-p">]</span>
+    <span class="tok-na">assign_public_ip</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">lifecycle</span> <span class="tok-p">{</span>
+    <span class="tok-na">ignore_changes</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nb">desired_count</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-na">depends_on</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_iam_role.app</span><span class="tok-p">]</span>
+
+  <span class="tok-na">tags</span> <span class="tok-o">=</span> <span class="tok-nv">local.tags</span>
+<span class="tok-p">}</span></code></pre>
+<p>Refer to the
+project repo for the <a href="https://github.com/deadlysyn/node-aws-ecs/tree/master/terraform">fully functional Terraform</a>…
 Just adjust tfvars as needed, then you can run some tests in your account (refer to the
-README for specifics on configuring Terraform for use with AWS)!</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ cat hello-world.tfvars 
-</span></span><span style=display:flex><span>role_name            = &#34;helloWorldTaskExecutionRole&#34;
-</span></span><span style=display:flex><span>region               = &#34;us-east-2&#34;
-</span></span><span style=display:flex><span>environment          = &#34;production&#34;
-</span></span><span style=display:flex><span>app_name             = &#34;hello-world&#34;
-</span></span><span style=display:flex><span>container_port       = 8080
-</span></span><span style=display:flex><span>task_cpu             = 256
-</span></span><span style=display:flex><span>task_memory_limit    = 512
-</span></span><span style=display:flex><span>task_memory_reserve  = 256
-</span></span><span style=display:flex><span>instance_count       = 1
-</span></span><span style=display:flex><span>instance_percent_min = 0
-</span></span><span style=display:flex><span>instance_percent_max = 100
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ terraform init
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ terraform plan -var-file=hello-world.tfvars -out=plan
-</span></span><span style=display:flex><span># ...
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ terraform apply plan                                 
-</span></span><span style=display:flex><span># ...
-</span></span><span style=display:flex><span>Apply complete! Resources: 13 added, 0 changed, 0 destroyed.
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>The state of your infrastructure has been saved to the path
-</span></span><span style=display:flex><span>below. This state is required to modify and destroy your
-</span></span><span style=display:flex><span>infrastructure, so keep it safe. To inspect the complete state
-</span></span><span style=display:flex><span>use the `terraform show` command.
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>State path: terraform.tfstate
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>Outputs:
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>ecr_repo = 012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world-production
-</span></span><span style=display:flex><span>iam_role_arn = arn:aws:iam::012345678901:role/helloWorldTaskExecutionRole
-</span></span><span style=display:flex><span>iam_role_name = helloWorldTaskExecutionRole
-</span></span></code></pre></div><p>If we curl the public IP of the deployed
+README for specifics on configuring Terraform for use with AWS)!</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ cat hello-world.tfvars </span>
+<span class="tok-go">role_name            = "helloWorldTaskExecutionRole"</span>
+<span class="tok-go">region               = "us-east-2"</span>
+<span class="tok-go">environment          = "production"</span>
+<span class="tok-go">app_name             = "hello-world"</span>
+<span class="tok-go">container_port       = 8080</span>
+<span class="tok-go">task_cpu             = 256</span>
+<span class="tok-go">task_memory_limit    = 512</span>
+<span class="tok-go">task_memory_reserve  = 256</span>
+<span class="tok-go">instance_count       = 1</span>
+<span class="tok-go">instance_percent_min = 0</span>
+<span class="tok-go">instance_percent_max = 100</span>
+
+<span class="tok-go">❯ terraform init</span>
+
+<span class="tok-go">❯ terraform plan -var-file=hello-world.tfvars -out=plan</span>
+<span class="tok-gp"># </span>...
+
+<span class="tok-go">❯ terraform apply plan                                 </span>
+<span class="tok-gp"># </span>...
+<span class="tok-go">Apply complete! Resources: 13 added, 0 changed, 0 destroyed.</span>
+
+<span class="tok-go">The state of your infrastructure has been saved to the path</span>
+<span class="tok-go">below. This state is required to modify and destroy your</span>
+<span class="tok-go">infrastructure, so keep it safe. To inspect the complete state</span>
+<span class="tok-go">use the `terraform show` command.</span>
+
+<span class="tok-go">State path: terraform.tfstate</span>
+
+<span class="tok-go">Outputs:</span>
+
+<span class="tok-go">ecr_repo = 012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world-production</span>
+<span class="tok-go">iam_role_arn = arn:aws:iam::012345678901:role/helloWorldTaskExecutionRole</span>
+<span class="tok-go">iam_role_name = helloWorldTaskExecutionRole</span></code></pre>
+<p>If we curl the public IP of the deployed
 task on our container port, we can see the secret retrieval working (via our IAM
 role) as it exposes a value from Parameter Store – this is obviously only for
-the sake of example. Never expose secrets, including in logs!</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ http 3.21.52.50:8080
-</span></span><span style=display:flex><span>HTTP/1.1 200 OK
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Content-Length: 47
-</span></span><span style=display:flex><span>Content-Type: text/html; charset=utf-8
-</span></span><span style=display:flex><span>Date: Fri, 01 May 2020 02:49:28 GMT
-</span></span><span style=display:flex><span>ETag: W/&#34;2f-ZLQ5cKIxGhGpXgCP1cNhiPt9ZB0&#34;
-</span></span><span style=display:flex><span>X-Powered-By: Express
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>Top secret message: HELLO FROM PARAMETER STORE!
-</span></span></code></pre></div><h2 id=final-thoughts>Final Thoughts</h2><p>Counting variable definitions and outputs, we&rsquo;ve managed to automate away the
+the sake of example. Never expose secrets, including in logs!</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ http 3.21.52.50:8080</span>
+<span class="tok-go">HTTP/1.1 200 OK</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Content-Length: 47</span>
+<span class="tok-go">Content-Type: text/html; charset=utf-8</span>
+<span class="tok-go">Date: Fri, 01 May 2020 02:49:28 GMT</span>
+<span class="tok-go">ETag: W/"2f-ZLQ5cKIxGhGpXgCP1cNhiPt9ZB0"</span>
+<span class="tok-go">X-Powered-By: Express</span>
+
+<span class="tok-go">Top secret message: HELLO FROM PARAMETER STORE!</span></code></pre>
+<h3 id="final-thoughts">Final Thoughts</h3>
+<p>Counting variable definitions and outputs, we’ve managed to automate away the
 toil of manually managing ECS-based services in less than a few hundred lines.
 Rather than simply recreating the exact service we deployed by clicking through
 the AWS console, we iterated and improved security though a service-specific IAM
@@ -284,19 +335,63 @@ role and used lifecycle management to further reduce toil. Beyond the initial
 build, this gives us a framework we can use to continue extending our service,
 ensures consistency as we go, enables reuse when building similar services, and
 acts as documentation for ourselves or future team members – all the advantages
-of <a href=https://en.wikipedia.org/wiki/Infrastructure_as_code>Infrastructure as Code</a>.</p><p>That continues in the spirit of our minimally viable example service&mldr; In the
+of <a href="https://en.wikipedia.org/wiki/Infrastructure_as_code">Infrastructure as Code</a>.</p>
+<p>That continues in the spirit of our minimally viable example service… In the
 real world you would likely have additional network configuration (perhaps an
 ALB fronting several tasks), more containers to manage (additional services,
 sidecars for monitoring or security), backing services to prepare, etc. You can
-keep adding these things yourself, but as the complexity grows you&rsquo;ll want to
-consider modules. Whether you consume modules from the <a href=https://registry.terraform.io>Terraform Registry</a>,
-GitHub authors you trust, or create your own&mldr;
-they&rsquo;ll let you avoid copying and pasting code, further ensure consistency, make
+keep adding these things yourself, but as the complexity grows you’ll want to
+consider modules. Whether you consume modules from the <a href="https://registry.terraform.io">Terraform Registry</a>,
+GitHub authors you trust, or create your own…
+they’ll let you avoid copying and pasting code, further ensure consistency, make
 reuse even easier, and allow you to build increased confidence in shared
-components.</p><p>Hopefully this is enough to get you started toward the nirvana of running
+components.</p>
+<p>Hopefully this is enough to get you started toward the nirvana of running
 containerized services on AWS ECS. Terraform makes the initial infrastructure
 build and maintenance a breeze. Once your MVP is live, you can continue shipping
-updates with just a few commands&mldr; It&rsquo;s just a matter of building a new image
+updates with just a few commands… It’s just a matter of building a new image
 with your code, pushing to ECR, and updating the ECS service to pull in the
-latest change. That&rsquo;s too much to cram in here, but for an example of how it
-could work refer to the <a href=https://github.com/deadlysyn/node-aws-ecs/blob/master/scripts/do>do script</a>.</p><p>See you next time!</p><p>References</p><ul><li><a href=https://aws.amazon.com/blogs/compute/managing-secrets-for-amazon-ecs-applications-using-parameter-store-and-iam-roles-for-tasks>Managing Secrets for ECS Applications</a></li><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-modifying-longer-id-settings.html>Modifying Account Settings</a> (if you get tagging-related errors about ARN format)</li><li><a href=https://github.com/deadlysyn/node-aws-ecs/tree/master/ecs>IAM policies for ECS Secrets Access</a></li></ul><p>This is the final part of a multi-part series, jump to part one:</p><p><a href=/blog/posts/thinking-inside-the-box>Thinking Inside the Box</a></p></div></section></body></html>
+latest change. That’s too much to cram in here, but for an example of how it
+could work refer to the <a href="https://github.com/deadlysyn/node-aws-ecs/blob/master/scripts/do">do script</a>.</p>
+<p>See you next time!</p>
+<p>References</p>
+<ul><li><a href="https://aws.amazon.com/blogs/compute/managing-secrets-for-amazon-ecs-applications-using-parameter-store-and-iam-roles-for-tasks">Managing Secrets for ECS Applications</a></li><li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-modifying-longer-id-settings.html">Modifying Account Settings</a> (if you get tagging-related errors about ARN format)</li><li><a href="https://github.com/deadlysyn/node-aws-ecs/tree/master/ecs">IAM policies for ECS Secrets Access</a></li></ul>
+<p>This is the final part of a multi-part series, jump to part one:</p>
+<p><a href="/blog/posts/thinking-inside-the-box/">Thinking Inside the Box</a></p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/ecs-services/">ECS Services</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/testing-infrastructure-automation/">Testing Infrastructure Code</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">April 26, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

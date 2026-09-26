@@ -1,39 +1,300 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Hello World</title><link>https://deadlysyn.com/blog/</link><description>Recent content on Hello World</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 25 Mar 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://deadlysyn.com/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>On Psychological Safety</title><link>https://deadlysyn.com/blog/posts/on-psychological-safety/</link><pubDate>Mon, 25 Mar 2024 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/on-psychological-safety/</guid><description>It has become common knowledge that psychological safety is key to team performance and essential for mental health. Google’s famous quest for the perfect team (Project Aristotle) empirically led to psychological safety as the number one trait of healthy teams. Here are three observations from a 30-year career that may be undermining psychological safety on your team:
-Implicit vs Explicit Norms If you have expected norms around behavior, communication, work style, etc.</description></item><item><title>Safely Expose Credentials</title><link>https://deadlysyn.com/blog/posts/safely-expose-credentials/</link><pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/safely-expose-credentials/</guid><description>If you&amp;rsquo;re juggling STS credentials while wrangling more AWS accounts than you can count, you&amp;rsquo;ve likely heard of aws-vault. Aside from the convenience factor, it&amp;rsquo;s also good for security (keep plain-text credentials off disk).
-Similarly, it&amp;rsquo;s obvious you don&amp;rsquo;t want to commit credentials. Depending how far you take that, even committing encrypted credentials (or storing them anywhere not intended for managing secrets) should be discouraged.
-One reason is building up muscle memory and inviting accidental commits of unencrypted secrets (use something like gitleaks to prevent that).</description></item><item><title>AWS SDK Role Assumption</title><link>https://deadlysyn.com/blog/posts/aws-sdk-role-assumption/</link><pubDate>Sun, 23 Jan 2022 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/aws-sdk-role-assumption/</guid><description>Short and sweet reminder to future self&amp;hellip;
-I previously mentioned we follow the AWS best practice of sandboxing teams or services in dedicated accounts. It&amp;rsquo;s such a common practice, most likely you do too. In turn, you use cross-account role assumption when accessing resources (ideally using aws-vault).
-That&amp;rsquo;s all well and good for humans, but a common requirement is ensuring services leverage the same role assumption. The exact implementation will vary a bit depending on your language of choice, but thankfully the AWS SDK makes this easy.</description></item><item><title>Lean IAM Management</title><link>https://deadlysyn.com/blog/posts/lean-aws-iam/</link><pubDate>Sun, 16 Jan 2022 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/lean-aws-iam/</guid><description>Part of DevOps culture is avoiding tickets when automation can provide lower-friction alternatives. Similarly, the SRE mindset seeks to eliminate toil. We also know from experience that the most effective Agile teams are granted a high level of autonomy.
-IAM is a routine stumbling block to autonomy. Teams need an &amp;ldquo;appropriate&amp;rdquo; level of access to do their job. That often turns into waiting on tickets, with another team twiddling bits to unblock development.</description></item><item><title>Beware of Shadows</title><link>https://deadlysyn.com/blog/posts/beware-of-shadows/</link><pubDate>Tue, 11 Jan 2022 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/beware-of-shadows/</guid><description>You&amp;rsquo;re a humble DevOps practitioner. You like Go because it&amp;rsquo;s beautifully C-like without requiring real smarts most modern DevOps tools are written in it. You&amp;rsquo;ve read Effective Go a few times, understand block scope and rely heavily on redeclaration.
-One day you write this snippet (obfuscated to protect the guilty) which lints, compiles and passes all tests (clearly I could use better tests):
-// in a caller far, far away... ctx := context.</description></item><item><title>AWS WAF Module</title><link>https://deadlysyn.com/blog/posts/aws-waf-module/</link><pubDate>Fri, 10 Dec 2021 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/aws-waf-module/</guid><description>NOTE: This includes AWSManagedRulesKnownBadInputsRuleSet by default, which AWS updated to mitigate the recent Log4j issue (CVE-2021-44228).
-Just released a Terraform module for AWS WAF. If you host &amp;ldquo;standard&amp;rdquo; web services (atop something Linux-like), this takes an opinionated approach to save you time while providing enough flexibility for common use cases.
-module &amp;#34;waf&amp;#34; { source = &amp;#34;git::ssh://git@github.com/sonatype/terraform-aws-waf.git?ref=v0.0.1&amp;#34; association_arns = [module.foo.alb_arn] environment = var.environment name = var.name namespace = var.namespace tags = var.</description></item><item><title>Introducing Retriever</title><link>https://deadlysyn.com/blog/posts/retriever/</link><pubDate>Sat, 04 Dec 2021 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/retriever/</guid><description>The AWS SDK is great. Writing boilerplate for simple tasks is&amp;hellip; Well, you have better things to do.
-Whether creating CLIs or services, one task I routinely encounter is secrets management. With AWS, I might use Secrets Manager (advanced features such as versioning simplify programmatic rotation) or Parameter Store (cost savings at scale, works great for injecting container environment).
-I find myself repeating boilerplate (load configuration, create client, retrieve secret):</description></item><item><title>Go Datadog CLI</title><link>https://deadlysyn.com/blog/posts/go-datadog-cli/</link><pubDate>Mon, 29 Nov 2021 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/go-datadog-cli/</guid><description>I found myself wrapping ChatOps around a CI/CD pipeline to manage scheduled downtime in DataDog (avoiding SLO impact for planned work). For astute readers wondering why this wasn&amp;rsquo;t a direct API call; I tend to (ab)use CI as a generic task runner (has an API, secret store, etc).
-I wanted to identify resources using labels (team:foo, service:bar). While this is a common use case and things have hopefully improved, CLIs available at the time provided numerous ways to manage downtime but lacked tag support.</description></item><item><title>Keycloak IaC</title><link>https://deadlysyn.com/blog/posts/keycloak-iac/</link><pubDate>Sun, 28 Nov 2021 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/keycloak-iac/</guid><description>Keycloak is a flexible, open source, identify access and management solution (Red Hat SSO being the commercial variant). While there is a growing community, much information is focused on service integration.
-After Terraforming supporting infrastructure, I wanted to share a &amp;ldquo;batteries included&amp;rdquo; project to quickly get anyone adopting Keycloak up and running. If you already use Keycloak, it may provide inspiration. If you find it lacking, please help extend it for the greater good.</description></item><item><title>Browser Comparison</title><link>https://deadlysyn.com/blog/posts/browser-comparison/</link><pubDate>Sun, 01 Nov 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/browser-comparison/</guid><description>In a recent quest to mostly automate my typical Arch Linux installation, I wanted to include a useful browser (or two) so decided to benchmark a handful of modern options. I say &amp;ldquo;or two&amp;rdquo; because while I&amp;rsquo;ve been a loyal Firefox user since it was the only capable browser that would compile on FreeBSD, my day job requires plugins which are only compatible with Chromium. I went into this fully willing to have a daily driver and a backup for specific plugin support.</description></item><item><title>Coming Home</title><link>https://deadlysyn.com/blog/posts/coming-home/</link><pubDate>Thu, 24 Sep 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/coming-home/</guid><description>This is going to be a coming home story disguised as yet another review of System76&amp;rsquo;s Thelio line of desktops. The Internet is full of Thelio reviews, which says something about the quality of the product while simultaneously proving geeks find gadgets looking like mid-century modern monoliths irresistible. If you want to use Linux as your primary OS, prefer or simply need top-spec hardware, and feel the objects in your life should be works of art that don&amp;rsquo;t look like they came out of a 1994 garage sale&amp;hellip;this might be a good read.</description></item><item><title>Terraformer Intro</title><link>https://deadlysyn.com/blog/posts/terraformer-intro/</link><pubDate>Fri, 14 Aug 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/terraformer-intro/</guid><description>Terraform has become the lingua franca of DevOps. As Terraform&amp;rsquo;s popularity grew, the surrounding ecosystem matured to help solve common challenges. Two great examples are Terratest which provides a modular testing framework for your IaC, and Terraformer which helps you quickly get existing infrastructure managed by Terraform. In the project&amp;rsquo;s own words, Terraformer is reverse terraform. It provides a CLI tool to generate terraform files from existing infrastructure. Let&amp;rsquo;s see it in action&amp;hellip;</description></item><item><title>Testing Infrastructure Code</title><link>https://deadlysyn.com/blog/posts/testing-infrastructure-automation/</link><pubDate>Sat, 04 Jul 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/testing-infrastructure-automation/</guid><description>Clone and follow along in the project repository&amp;hellip;
-If you&amp;rsquo;re part of the masses using Terraform (or OpenTofu), you&amp;rsquo;ve likely heard of Terratest. In the project&amp;rsquo;s own words, Terratest is a Go library that provides patterns and helper functions for testing infrastructure. Terratest can seem daunting since it requires writing Go. The good news is you only need a very small part of Go&amp;rsquo;s surface area, but have the option of using it to its full potential if you need to.</description></item><item><title>Automating ECS</title><link>https://deadlysyn.com/blog/posts/automating-ecs/</link><pubDate>Sun, 26 Apr 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/automating-ecs/</guid><description>Clone the project repo to follow along&amp;hellip;
-So far in this series we&amp;rsquo;ve learned the fundamentals of Amazon&amp;rsquo;s Elastic Container Service, containerized a simple Node.js application, and deployed it to the cloud. In the final article of this series, we&amp;rsquo;ll eliminate the toil of building and maintaining ECS infrastructure by automating everything we&amp;rsquo;ve learned using Terraform.
-Container Definition Before diving into Terraform, the first thing we&amp;rsquo;ll need is a &amp;ldquo;container definition&amp;rdquo; to feed the aws_ecs_task_definition resource.</description></item><item><title>ECS Services</title><link>https://deadlysyn.com/blog/posts/ecs-services/</link><pubDate>Sat, 11 Apr 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/ecs-services/</guid><description>Clone the project repo to follow along&amp;hellip;
-In the first three parts of this series on shipping containerized Node apps using the Elastic Container Service, we looked at how to Dockerize our app, get it ready to ship by using the Elastic Container Registry, and explored Task Definitions.
-Along the way we learned key concepts, delved into copious amounts of documentation (keep those links handy!), and used the UI and CLI to accomplish our goals.</description></item><item><title>ECS Task Definitions</title><link>https://deadlysyn.com/blog/posts/ecs-task-definitions/</link><pubDate>Sat, 04 Apr 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/ecs-task-definitions/</guid><description>Clone the project repo to follow along&amp;hellip;
-In the first two parts of our multi-part series on shipping containerized Node.js apps using the AWS Elastic Container Service, we looked at how to Dockerize our app and get it ready to ship by using the Elastic Container Registry. This time we&amp;rsquo;re going to dive into an essential piece of ECS-specific configuration known as Task Definitions. Like anything new, this may seem daunting at first&amp;hellip; but with a little exploration we&amp;rsquo;ll gain enough knowledge to start feeling comfortable.</description></item><item><title>Lock Down</title><link>https://deadlysyn.com/blog/posts/lock-down/</link><pubDate>Mon, 23 Mar 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/lock-down/</guid><description>The old days of throwing up a CGI app protected by an .htpasswd file are long gone. While you could still do it, more sophisticated apps serving increasingly demanding users will have requirements that make it untenable.
-For example, what if you have a suite of apps and don&amp;rsquo;t want users to have to login again for each one? What if you don&amp;rsquo;t want to manage all those .htpasswd files, or users want to login with their existing social identities?</description></item><item><title>Contain Yourself</title><link>https://deadlysyn.com/blog/posts/contain-yourself/</link><pubDate>Sat, 14 Mar 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/contain-yourself/</guid><description>Clone the project repo to follow along&amp;hellip;
-In part one of this series we walked through using Docker to containerize a simple Node.js app and verified our shiny new container worked as expected. Unfortunately, containers aren&amp;rsquo;t much use if we can&amp;rsquo;t get them deployed to start delighting users with the sheer awesomeness of our brilliant code.
-In the container world, the path to production involves some sort of registry&amp;hellip; While it sounds fancy, a registry isn&amp;rsquo;t much different from the simple web servers you historically used to host RPMs or DEBs (essentially just another tool to help you maintain the ITIL concept of a Definitive Software Library.</description></item><item><title>Thinking Inside the Box</title><link>https://deadlysyn.com/blog/posts/thinking-inside-the-box/</link><pubDate>Sun, 08 Mar 2020 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/thinking-inside-the-box/</guid><description>Clone the project repo to follow along&amp;hellip;
-This is going to be another multi-part series&amp;hellip; I don&amp;rsquo;t want to get too far ahead of myself, but the end goal is shipping a Node.js app using Amazon Web Service&amp;rsquo;s Elastic Container Service (ECS). We have to crawl before we can walk (or run an app), so this first article will cover the basics of getting a simple Node app containerized (feel free to plug in whatever app you want).</description></item><item><title>AWS and DNS and TLS, Oh My!</title><link>https://deadlysyn.com/blog/posts/aws-dns-and-tls/</link><pubDate>Wed, 04 Dec 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/aws-dns-and-tls/</guid><description>Clone the companion project to follow along&amp;hellip;
-In a past series we used Terraform to build a simple LAMP stack (actually a N-tier, Linux-based, MySQL-backed web stack atop AWS&amp;hellip; there is technically no Apache or Perl/PHP/Python if we&amp;rsquo;re being pedantic). We fixed some bugs along the way, and even extended the original design to provide more real-world networking for our private subnets.
-In this article, I want to again (ab)use our simple N-tier project to explore DNS and TLS within the AWS ecosystem.</description></item><item><title>Getting Out More</title><link>https://deadlysyn.com/blog/posts/getting-out-more/</link><pubDate>Sat, 23 Nov 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/getting-out-more/</guid><description>Clone the companion project to follow along&amp;hellip;
-In a past series we used Terraform to provision public and private subnets in a custom VPC within a configurable AWS region. In AWS terms, the difference between &amp;ldquo;public&amp;rdquo; and &amp;ldquo;private&amp;rdquo; subnets is simply that public subnets are connected to the Internet. That connection is made through an Internet Gateway (IGW). Along with provisioning the IGW itself, we add Route Tables and Route Table Associations to tie our public subnets to an IGW.</description></item><item><title>Squashing Bugs</title><link>https://deadlysyn.com/blog/posts/squashing-bugs/</link><pubDate>Fri, 22 Nov 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/squashing-bugs/</guid><description>Clone the companion project to follow along&amp;hellip;
-In a recent multi-part series on Terraforming a simple N-tier stack atop AWS, we provisioned a number of public and private subnets. We used CIDR ranges provided as input variables and the cidrsubnet function to automatically carve out smaller subnets based on the number of AZs in the target region.
-As originally mentioned, this was an attempt to follow typical HA best practices (not having all resources in a single AZ) and meet RDS subnet group requirements.</description></item><item><title>Terraforming AWS: Part III</title><link>https://deadlysyn.com/blog/posts/terraforming-aws-part-iii/</link><pubDate>Sun, 17 Nov 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/terraforming-aws-part-iii/</guid><description>Clone the companion project to follow along&amp;hellip;
-So far in Part I and Part II of this series we have provisioned a multi-AZ network with custom VPC, subnets, internet gateway and routing tables then deployed highly-available, auto-scaling Linux servers using EC2 and ALB. Our multi-tier starter project only has one big piece remaining – the database!
-In the final part of this series we&amp;rsquo;ll explore AWS&amp;rsquo; Relational Database Service (RDS). More than simply moving your database to the cloud, RDS provides numerous DBaaS advantages including fault tolerance, automated backups, and easy upgrades.</description></item><item><title>Terraforming AWS: Part II</title><link>https://deadlysyn.com/blog/posts/terraforming-aws-part-ii/</link><pubDate>Wed, 13 Nov 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/terraforming-aws-part-ii/</guid><description>Clone the companion project to follow along&amp;hellip;
-In Part I of this series [/blog/posts/terraforming-aws-part-i], we worked through a lot of AWS fundamentals and bootstrapped a network including custom VPC, public and private subnets and route tables. Thanks to that foundation, this and subsequent parts will be able to focus on more condensed code and make quicker progress.
-In this tutorial, we can move onto something more exciting: EC2 (Elastic Compute Cloud) and ALB (Application Load Balancing).</description></item><item><title>Terraforming AWS: Part I</title><link>https://deadlysyn.com/blog/posts/terraforming-aws-part-i/</link><pubDate>Sun, 10 Nov 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/terraforming-aws-part-i/</guid><description>Clone the companion project to follow along&amp;hellip;
-When you hear &amp;ldquo;Cloud Computing&amp;rdquo;, the first thing that likely comes to mind is Amazon Web Services. Aside from record reliability and one of the largest infrastructure footprints in the world, they provide a diverse service catalog serving as an erector set any engineer can use to build ready-made infrastructures.
-Similarly, HashiCorp&amp;rsquo;s Terraform has become a staple of the DevOps toolbox. With a flexible DSL and diverse provider ecosystem supporting every major cloud provider, Terraform went from relative newcomer to ubiquitous automation standard within a few years.</description></item><item><title>Observability in Node.js</title><link>https://deadlysyn.com/blog/posts/observability-in-node-js/</link><pubDate>Fri, 01 Nov 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/observability-in-node-js/</guid><description>Observability has always been directly linked to reliability in distributed systems. After all, it&amp;rsquo;s hard to reason about things you can not see. Thanks in part to Google&amp;rsquo;s espousal of Site Reliability Engineering principles (the SRE Bible has been a free read on-line for awhile now, so go check that out if you haven&amp;rsquo;t yet!), the continuous evolution of our craft, and an abundance of cloud native tooling&amp;hellip; observing value-producing things is easier than ever.</description></item><item><title>Making Promises in Node.js</title><link>https://deadlysyn.com/blog/posts/making-promises-in-nodejs/</link><pubDate>Tue, 29 Oct 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/making-promises-in-nodejs/</guid><description>I recently decided to refactor a small platform smoke test framework called Splinter I wrote a while back. Aside from applying lessons learned since instantiation and pulling in the latest Node LTS release, I wanted to cleanup code resembling callback hell by using async/await. It&amp;rsquo;s practically 2020 I thought, promises aren&amp;rsquo;t exactly new, so this will be easy!
-I soon discovered good intentions line the road to callback hell&amp;hellip; Splinter simply executes minimalistic CRUD tests against MongoDB, MySQL, PostgreSQL, RabbitMQ and Redis.</description></item><item><title>Node Health Checks</title><link>https://deadlysyn.com/blog/posts/node-health-checks/</link><pubDate>Tue, 22 Oct 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/node-health-checks/</guid><description>Cloud Foundry (CF) has a concept of health checks. These can take a few forms, but the preferred approach is HTTP (vs port- or process-based checks). Applications can expose a /healthcheck endpoint which the Cloud Controller polls. If an application becomes unhealthy (indicated by non-200 HTTP status code), restarts are attempted.
-There is a health check timeout which I like to think of as the startup timeout. During initial startup of the application, the health check process will wait this long (polling every couple seconds) for the app to become healthy.</description></item><item><title>Simple Things Matter</title><link>https://deadlysyn.com/blog/posts/simple-things-matter/</link><pubDate>Mon, 21 Oct 2019 00:00:00 +0000</pubDate><guid>https://deadlysyn.com/blog/posts/simple-things-matter/</guid><description>Often in life we rush through things we&amp;rsquo;ve done so many times we feel they are simple. Some times they are simple, but in social contexts it is easy to forget how a little time taken to be intentional can help others (or ourselves) in the future.
-One example of this I encounter almost daily is git commit messages. Often you will see one-liners such as &amp;ldquo;fixed typo&amp;rdquo; or &amp;ldquo;squashed bug&amp;rdquo; – most likely meaningful enough to the person who just spent hours tracking down the typo or figuring out how to fix the bug.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>deadlysyn: Yelling at Clouds</title>
+    <link>https://deadlysyn.com/blog/</link>
+    <description>Writing on DevOps, SRE, cloud infrastructure, IaC, Go, Node.js and engineering culture.</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 25 Mar 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://deadlysyn.com/blog/index.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>On Psychological Safety</title>
+      <link>https://deadlysyn.com/blog/posts/on-psychological-safety/</link>
+      <guid>https://deadlysyn.com/blog/posts/on-psychological-safety/</guid>
+      <pubDate>Mon, 25 Mar 2024 00:00:00 +0000</pubDate>
+      <category>culture</category>
+      <category>philosophy</category>
+      <description>It has become common knowledge that psychological safety is key to team performance and essential for mental health. Google’s famous quest for the perfect…</description>
+    </item>
+    <item>
+      <title>Safely Expose Credentials</title>
+      <link>https://deadlysyn.com/blog/posts/safely-expose-credentials/</link>
+      <guid>https://deadlysyn.com/blog/posts/safely-expose-credentials/</guid>
+      <pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>security</category>
+      <description>If you’re juggling STS credentials while wrangling more AWS accounts than you can count, you’ve likely heard of aws-vault. Aside from the convenience…</description>
+    </item>
+    <item>
+      <title>AWS SDK Role Assumption</title>
+      <link>https://deadlysyn.com/blog/posts/aws-sdk-role-assumption/</link>
+      <guid>https://deadlysyn.com/blog/posts/aws-sdk-role-assumption/</guid>
+      <pubDate>Sun, 23 Jan 2022 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>dev</category>
+      <category>go</category>
+      <description>Short and sweet reminder to future self…</description>
+    </item>
+    <item>
+      <title>Lean IAM Management</title>
+      <link>https://deadlysyn.com/blog/posts/lean-aws-iam/</link>
+      <guid>https://deadlysyn.com/blog/posts/lean-aws-iam/</guid>
+      <pubDate>Sun, 16 Jan 2022 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>go</category>
+      <category>iam</category>
+      <category>oss</category>
+      <description>Part of DevOps culture is avoiding tickets when automation can provide lower-friction alternatives. Similarly, the SRE mindset seeks to eliminate toil. We…</description>
+    </item>
+    <item>
+      <title>Beware of Shadows</title>
+      <link>https://deadlysyn.com/blog/posts/beware-of-shadows/</link>
+      <guid>https://deadlysyn.com/blog/posts/beware-of-shadows/</guid>
+      <pubDate>Tue, 11 Jan 2022 00:00:00 +0000</pubDate>
+      <category>dev</category>
+      <category>go</category>
+      <category>philosophy</category>
+      <description>You’re a humble DevOps practitioner. You like Go because it’s beautifully C-like without requiring real smarts most modern DevOps tools are written in it.…</description>
+    </item>
+    <item>
+      <title>AWS WAF Module</title>
+      <link>https://deadlysyn.com/blog/posts/aws-waf-module/</link>
+      <guid>https://deadlysyn.com/blog/posts/aws-waf-module/</guid>
+      <pubDate>Fri, 10 Dec 2021 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>oss</category>
+      <category>terraform</category>
+      <description>NOTE: This includes AWSManagedRulesKnownBadInputsRuleSet by default, which AWS updated to mitigate the recent Log4j issue (CVE-2021-44228).</description>
+    </item>
+    <item>
+      <title>Introducing Retriever</title>
+      <link>https://deadlysyn.com/blog/posts/retriever/</link>
+      <guid>https://deadlysyn.com/blog/posts/retriever/</guid>
+      <pubDate>Sat, 04 Dec 2021 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>dev</category>
+      <category>go</category>
+      <category>oss</category>
+      <description>The AWS SDK is great. Writing boilerplate for simple tasks is… Well, you have better things to do.</description>
+    </item>
+    <item>
+      <title>Go Datadog CLI</title>
+      <link>https://deadlysyn.com/blog/posts/go-datadog-cli/</link>
+      <guid>https://deadlysyn.com/blog/posts/go-datadog-cli/</guid>
+      <pubDate>Mon, 29 Nov 2021 00:00:00 +0000</pubDate>
+      <category>go</category>
+      <category>o11y</category>
+      <category>oss</category>
+      <description>I found myself wrapping ChatOps around a CI/CD pipeline to manage scheduled downtime in DataDog (avoiding SLO impact for planned work). For astute readers…</description>
+    </item>
+    <item>
+      <title>Keycloak IaC</title>
+      <link>https://deadlysyn.com/blog/posts/keycloak-iac/</link>
+      <guid>https://deadlysyn.com/blog/posts/keycloak-iac/</guid>
+      <pubDate>Sun, 28 Nov 2021 00:00:00 +0000</pubDate>
+      <category>iac</category>
+      <category>oss</category>
+      <category>terraform</category>
+      <description>Keycloak is a flexible, open source, identify access and management solution (Red Hat SSO being the commercial variant). While there is a growing…</description>
+    </item>
+    <item>
+      <title>Browser Comparison</title>
+      <link>https://deadlysyn.com/blog/posts/browser-comparison/</link>
+      <guid>https://deadlysyn.com/blog/posts/browser-comparison/</guid>
+      <pubDate>Sun, 01 Nov 2020 00:00:00 +0000</pubDate>
+      <category>desktop</category>
+      <category>linux</category>
+      <category>perf</category>
+      <description>In a recent quest to mostly automate my typical Arch Linux installation, I wanted to include a useful browser (or two) so decided to benchmark a handful…</description>
+    </item>
+    <item>
+      <title>Coming Home</title>
+      <link>https://deadlysyn.com/blog/posts/coming-home/</link>
+      <guid>https://deadlysyn.com/blog/posts/coming-home/</guid>
+      <pubDate>Thu, 24 Sep 2020 00:00:00 +0000</pubDate>
+      <category>desktop</category>
+      <category>linux</category>
+      <description>This is going to be a coming home story disguised as yet another review of System76’s Thelio line of desktops. The Internet is full of Thelio reviews…</description>
+    </item>
+    <item>
+      <title>Terraformer Intro</title>
+      <link>https://deadlysyn.com/blog/posts/terraformer-intro/</link>
+      <guid>https://deadlysyn.com/blog/posts/terraformer-intro/</guid>
+      <pubDate>Fri, 14 Aug 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>oss</category>
+      <category>terraform</category>
+      <description>Terraform has become the lingua franca of DevOps. As Terraform’s popularity grew, the surrounding ecosystem matured to help solve common challenges. Two…</description>
+    </item>
+    <item>
+      <title>Testing Infrastructure Code</title>
+      <link>https://deadlysyn.com/blog/posts/testing-infrastructure-automation/</link>
+      <guid>https://deadlysyn.com/blog/posts/testing-infrastructure-automation/</guid>
+      <pubDate>Sat, 04 Jul 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>go</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <category>terratest</category>
+      <description>Clone and follow along in the project repository…</description>
+    </item>
+    <item>
+      <title>Automating ECS</title>
+      <link>https://deadlysyn.com/blog/posts/automating-ecs/</link>
+      <guid>https://deadlysyn.com/blog/posts/automating-ecs/</guid>
+      <pubDate>Sun, 26 Apr 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the project repo to follow along…</description>
+    </item>
+    <item>
+      <title>ECS Services</title>
+      <link>https://deadlysyn.com/blog/posts/ecs-services/</link>
+      <guid>https://deadlysyn.com/blog/posts/ecs-services/</guid>
+      <pubDate>Sat, 11 Apr 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the project repo to follow along…</description>
+    </item>
+    <item>
+      <title>ECS Task Definitions</title>
+      <link>https://deadlysyn.com/blog/posts/ecs-task-definitions/</link>
+      <guid>https://deadlysyn.com/blog/posts/ecs-task-definitions/</guid>
+      <pubDate>Sat, 04 Apr 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>containers</category>
+      <description>Clone the project repo to follow along…</description>
+    </item>
+    <item>
+      <title>Lock Down</title>
+      <link>https://deadlysyn.com/blog/posts/lock-down/</link>
+      <guid>https://deadlysyn.com/blog/posts/lock-down/</guid>
+      <pubDate>Mon, 23 Mar 2020 00:00:00 +0000</pubDate>
+      <category>dev</category>
+      <category>nodejs</category>
+      <category>iam</category>
+      <category>oss</category>
+      <description>The old days of throwing up a CGI app protected by an .htpasswd file are long gone. While you could still do it, more sophisticated apps serving…</description>
+    </item>
+    <item>
+      <title>Contain Yourself</title>
+      <link>https://deadlysyn.com/blog/posts/contain-yourself/</link>
+      <guid>https://deadlysyn.com/blog/posts/contain-yourself/</guid>
+      <pubDate>Sat, 14 Mar 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>containers</category>
+      <description>Clone the project repo to follow along…</description>
+    </item>
+    <item>
+      <title>Thinking Inside the Box</title>
+      <link>https://deadlysyn.com/blog/posts/thinking-inside-the-box/</link>
+      <guid>https://deadlysyn.com/blog/posts/thinking-inside-the-box/</guid>
+      <pubDate>Sun, 08 Mar 2020 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>containers</category>
+      <category>nodejs</category>
+      <description>Clone the project repo to follow along…</description>
+    </item>
+    <item>
+      <title>AWS and DNS and TLS, Oh My!</title>
+      <link>https://deadlysyn.com/blog/posts/aws-dns-and-tls/</link>
+      <guid>https://deadlysyn.com/blog/posts/aws-dns-and-tls/</guid>
+      <pubDate>Wed, 04 Dec 2019 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the companion project to follow along…</description>
+    </item>
+    <item>
+      <title>Getting Out More</title>
+      <link>https://deadlysyn.com/blog/posts/getting-out-more/</link>
+      <guid>https://deadlysyn.com/blog/posts/getting-out-more/</guid>
+      <pubDate>Sat, 23 Nov 2019 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the companion project to follow along…</description>
+    </item>
+    <item>
+      <title>Squashing Bugs</title>
+      <link>https://deadlysyn.com/blog/posts/squashing-bugs/</link>
+      <guid>https://deadlysyn.com/blog/posts/squashing-bugs/</guid>
+      <pubDate>Fri, 22 Nov 2019 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the companion project to follow along…</description>
+    </item>
+    <item>
+      <title>Terraforming AWS: Part III</title>
+      <link>https://deadlysyn.com/blog/posts/terraforming-aws-part-iii/</link>
+      <guid>https://deadlysyn.com/blog/posts/terraforming-aws-part-iii/</guid>
+      <pubDate>Sun, 17 Nov 2019 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the companion project to follow along…</description>
+    </item>
+    <item>
+      <title>Terraforming AWS: Part II</title>
+      <link>https://deadlysyn.com/blog/posts/terraforming-aws-part-ii/</link>
+      <guid>https://deadlysyn.com/blog/posts/terraforming-aws-part-ii/</guid>
+      <pubDate>Wed, 13 Nov 2019 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the companion project to follow along…</description>
+    </item>
+    <item>
+      <title>Terraforming AWS: Part I</title>
+      <link>https://deadlysyn.com/blog/posts/terraforming-aws-part-i/</link>
+      <guid>https://deadlysyn.com/blog/posts/terraforming-aws-part-i/</guid>
+      <pubDate>Sun, 10 Nov 2019 00:00:00 +0000</pubDate>
+      <category>aws</category>
+      <category>iac</category>
+      <category>terraform</category>
+      <description>Clone the companion project to follow along…</description>
+    </item>
+    <item>
+      <title>Observability in Node.js</title>
+      <link>https://deadlysyn.com/blog/posts/observability-in-node-js/</link>
+      <guid>https://deadlysyn.com/blog/posts/observability-in-node-js/</guid>
+      <pubDate>Fri, 01 Nov 2019 00:00:00 +0000</pubDate>
+      <category>dev</category>
+      <category>nodejs</category>
+      <category>o11y</category>
+      <description>Observability has always been directly linked to reliability in distributed systems. After all, it’s hard to reason about things you can not see. Thanks…</description>
+    </item>
+    <item>
+      <title>Making Promises in Node.js</title>
+      <link>https://deadlysyn.com/blog/posts/making-promises-in-nodejs/</link>
+      <guid>https://deadlysyn.com/blog/posts/making-promises-in-nodejs/</guid>
+      <pubDate>Tue, 29 Oct 2019 00:00:00 +0000</pubDate>
+      <category>dev</category>
+      <category>nodejs</category>
+      <description>I recently decided to refactor a small platform smoke test framework called Splinter I wrote a while back. Aside from applying lessons learned since…</description>
+    </item>
+    <item>
+      <title>Node Health Checks</title>
+      <link>https://deadlysyn.com/blog/posts/node-health-checks/</link>
+      <guid>https://deadlysyn.com/blog/posts/node-health-checks/</guid>
+      <pubDate>Tue, 22 Oct 2019 00:00:00 +0000</pubDate>
+      <category>dev</category>
+      <category>nodejs</category>
+      <description>Cloud Foundry (CF) has a concept of health checks. These can take a few forms, but the preferred approach is HTTP (vs port- or process-based checks).…</description>
+    </item>
+    <item>
+      <title>Simple Things Matter</title>
+      <link>https://deadlysyn.com/blog/posts/simple-things-matter/</link>
+      <guid>https://deadlysyn.com/blog/posts/simple-things-matter/</guid>
+      <pubDate>Mon, 21 Oct 2019 00:00:00 +0000</pubDate>
+      <category>dev</category>
+      <category>git</category>
+      <description>Often in life we rush through things we’ve done so many times we feel they are simple. Some times they are simple, but in social contexts it is easy to…</description>
+    </item>
+  </channel>
+</rss>

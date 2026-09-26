@@ -1,128 +1,220 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Terraforming AWS: Part III</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Terraforming AWS: Part III</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>Clone the companion project to follow along&mldr;</a></p><p>So far in <a href=/blog/posts/terraforming-aws-part-i>Part I</a> and <a href=/blog/posts/terraforming-aws-part-ii>Part II</a>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the companion project to follow along…">
+    <meta name="date" content="2019-11-17">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>Terraforming AWS: Part III — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/terraforming-aws-part-iii/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Terraforming AWS: Part III</h1>
+            <p class="meta"><time datetime="2019-11-17">November 17, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">Clone the companion project to follow along…</a></p>
+<p>So far in <a href="/blog/posts/terraforming-aws-part-i/">Part I</a> and <a href="/blog/posts/terraforming-aws-part-ii/">Part II</a>
 of this series we have provisioned a
 multi-AZ network with custom VPC, subnets, internet gateway and routing tables
 then deployed highly-available, auto-scaling Linux servers using EC2 and ALB.
-Our multi-tier starter project only has one big piece remaining – the database!</p><p>In the final part of this series we&rsquo;ll explore AWS&rsquo; <a href=https://aws.amazon.com/rds>Relational Database Service</a> (RDS).
+Our multi-tier starter project only has one big piece remaining – the database!</p>
+<p>In the final part of this series we’ll explore AWS’ <a href="https://aws.amazon.com/rds">Relational Database Service</a> (RDS).
 More than simply moving your database to the
 cloud, RDS provides numerous DBaaS advantages including fault tolerance,
-automated backups, and easy upgrades. Before we jump in, here&rsquo;s a refresher on
-what we&rsquo;re building:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-iii-1.png?raw=true" alt="Our N-Tier Goal"></p><h2 id=overview>Overview</h2><p>Adopting a DBaaS like RDS as part of your application architecture has many
-benefits. Your team can focus on their value proposition (which probably isn&rsquo;t
+automated backups, and easy upgrades. Before we jump in, here’s a refresher on
+what we’re building:</p>
+<p><img alt="Our N-Tier Goal" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-iii-1.png?raw=true"/></p>
+<h3 id="overview">Overview</h3>
+<p>Adopting a DBaaS like RDS as part of your application architecture has many
+benefits. Your team can focus on their value proposition (which probably isn’t
 just running a database!), offload management tasks to the IaaS provider, and
-easily spin up new instances using common tools such as Terraform or Ansible.</p><p>If you&rsquo;re still leery of putting your data in the hands of a provider, take
-heart&mldr; RDS has a solid track record, having been <a href=https://en.wikipedia.org/wiki/Timeline_of_Amazon_Web_Services>announced in 2009</a>
+easily spin up new instances using common tools such as Terraform or Ansible.</p>
+<p>If you’re still leery of putting your data in the hands of a provider, take
+heart… RDS has a solid track record, having been <a href="https://en.wikipedia.org/wiki/Timeline_of_Amazon_Web_Services">announced in 2009</a>
 and rapidly evolving since inception. From a service perspective, you have more traditional
-options such as <a href=https://www.mysql.com>MySQL</a> or <a href=https://www.postgresql.org>PostgreSQL</a>
-or the latest offering known simply as <a href=https://aws.amazon.com/rds/aurora>Aurora</a>. While
-Aurora is technically the new kid on the block, it&rsquo;s an easy choice thanks to an impressive
-feature set.</p><blockquote><p>Amazon Aurora features a distributed, fault-tolerant, self-healing storage system that auto-scales up to 64TB per database instance. It delivers high performance and availability with up to 15 low-latency  read replicas, point-in-time recovery, continuous backup to Amazon S3, and replication across three Availability Zones (AZs).</p></blockquote><p>Whichever option you choose, you&rsquo;ll save a lot of time not thinking about DBA
+options such as <a href="https://www.mysql.com">MySQL</a> or <a href="https://www.postgresql.org">PostgreSQL</a>
+or the latest offering known simply as <a href="https://aws.amazon.com/rds/aurora">Aurora</a>. While
+Aurora is technically the new kid on the block, it’s an easy choice thanks to an impressive
+feature set.</p>
+<blockquote><p>Amazon Aurora features a distributed, fault-tolerant, self-healing storage system that auto-scales up to 64TB per database instance. It delivers high performance and availability with up to 15 low-latency  read replicas, point-in-time recovery, continuous backup to Amazon S3, and replication across three Availability Zones (AZs).</p>
+</blockquote>
+<p>Whichever option you choose, you’ll save a lot of time not thinking about DBA
 tasks and be able to easily manage your infrastructure with automation. For our
 simple project, we are going to provision a MySQL RDS instance using the
-previously configured subnets to build a <a href=https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html#USER_VPC.Subnets>database subnet group</a>
-spanning all of the AZs in our region.</p><p>To save time we&rsquo;ll dial back storage and backup options (even this simple case
+previously configured subnets to build a <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html#USER_VPC.Subnets">database subnet group</a>
+spanning all of the AZs in our region.</p>
+<p>To save time we’ll dial back storage and backup options (even this simple case
 can take 10-20 minutes to deploy based on load in the target region), but
 discuss trade-offs as we go so you are prepared to adjust when
-using RDS in production!</p><h2 id=code>Code</h2><p>In Part I we used <code>cidrsubnet</code> to split our CIDR range into several subnets. This
+using RDS in production!</p>
+<h3 id="code">Code</h3>
+<p>In Part I we used <code>cidrsubnet</code> to split our CIDR range into several subnets. This
 allowed us to deploy a subnet in each AZ within our region, a best practice for
 high availability. Aside from distributing EC2 instances across these subnets,
 RDS also requires subnets spanning at least two availability zones to form
-what&rsquo;s known as a <code>DBSubnetGroup</code>. Since we already have the subnets, the
-Terraform is easy:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_db_subnet_group&#34; &#34;default&#34;</span> {
-</span></span><span style=display:flex><span>  name       <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;main&#34;</span>
-</span></span><span style=display:flex><span>  subnet_ids <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_subnet</span>.<span style=color:#66d9ef>private_subnets</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>That&rsquo;s it! Aside from optional tags, <code>DBSubnetGroups</code>
-don&rsquo;t require many options. The key thing here is our familiar splat syntax to
-build up <code>subnet_ids</code>. Without this RDS will automatically use the project&rsquo;s
-default VPC (assuming you haven&rsquo;t deleted it). Now we can configure our RDS
-instance with just a few more lines of HCL:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_db_instance&#34; &#34;rds&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_security_group_ids  <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_security_group</span>.<span style=color:#66d9ef>mysql_ingress</span>.<span style=color:#66d9ef>id</span>]
-</span></span><span style=display:flex><span>  db_subnet_group_name    <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_subnet_group</span>.<span style=color:#66d9ef>default</span>.<span style=color:#66d9ef>name</span>
-</span></span><span style=display:flex><span>  maintenance_window      <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Sat:00:00-Sat:03:00&#34;</span>
-</span></span><span style=display:flex><span>  multi_az                <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  allocated_storage       <span style=color:#f92672>=</span> <span style=color:#ae81ff>10</span>
-</span></span><span style=display:flex><span>  backup_retention_period <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>  skip_final_snapshot     <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  engine                  <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;mysql&#34;</span>
-</span></span><span style=display:flex><span>  engine_version          <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;5.7&#34;</span>
-</span></span><span style=display:flex><span>  instance_class          <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>db_instance_type</span>
-</span></span><span style=display:flex><span>  name                    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;testdb&#34;</span>
-</span></span><span style=display:flex><span>  username                <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;root&#34;</span>
-</span></span><span style=display:flex><span>  password                <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>db_password</span>
-</span></span><span style=display:flex><span>  parameter_group_name    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;default.mysql5.7&#34;</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Our choice of MySQL is made obvious by <code>engine</code>, <code>engine_version</code>, and
-<code>parameter_group_name</code>. You&rsquo;ll find versions of these catered to your database
-back-end of choice in <a href=https://www.terraform.io/docs/providers/aws/r/db_instance.html>the documentation</a>.
+what’s known as a <code>DBSubnetGroup</code>. Since we already have the subnets, the
+Terraform is easy:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_db_subnet_group"</span> <span class="tok-nv">"default"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>       <span class="tok-o">=</span> <span class="tok-s2">"main"</span>
+  <span class="tok-na">subnet_ids</span> <span class="tok-o">=</span> <span class="tok-nv">aws_subnet.private_subnets</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id
+<span class="tok-p">}</span></code></pre>
+<p>That’s it! Aside from optional tags, <code>DBSubnetGroups</code>
+don’t require many options. The key thing here is our familiar splat syntax to
+build up <code>subnet_ids</code>. Without this RDS will automatically use the project’s
+default VPC (assuming you haven’t deleted it). Now we can configure our RDS
+instance with just a few more lines of HCL:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_db_instance"</span> <span class="tok-nv">"rds"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_security_group_ids</span>  <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_security_group.mysql_ingress.id</span><span class="tok-p">]</span>
+  <span class="tok-na">db_subnet_group_name</span>    <span class="tok-o">=</span> <span class="tok-nv">aws_db_subnet_group.default.name</span>
+  <span class="tok-na">maintenance_window</span>      <span class="tok-o">=</span> <span class="tok-s2">"Sat:00:00-Sat:03:00"</span>
+  <span class="tok-na">multi_az</span>                <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-na">allocated_storage</span>       <span class="tok-o">=</span> <span class="tok-m">10</span>
+  <span class="tok-na">backup_retention_period</span> <span class="tok-o">=</span> <span class="tok-m">0</span>
+  <span class="tok-na">skip_final_snapshot</span>     <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-na">engine</span>                  <span class="tok-o">=</span> <span class="tok-s2">"mysql"</span>
+  <span class="tok-na">engine_version</span>          <span class="tok-o">=</span> <span class="tok-s2">"5.7"</span>
+  <span class="tok-na">instance_class</span>          <span class="tok-o">=</span> <span class="tok-nv">var.db_instance_type</span>
+  <span class="tok-na">name</span>                    <span class="tok-o">=</span> <span class="tok-s2">"testdb"</span>
+  <span class="tok-na">username</span>                <span class="tok-o">=</span> <span class="tok-s2">"root"</span>
+  <span class="tok-na">password</span>                <span class="tok-o">=</span> <span class="tok-nv">var.db_password</span>
+  <span class="tok-na">parameter_group_name</span>    <span class="tok-o">=</span> <span class="tok-s2">"default.mysql5.7"</span>
+<span class="tok-p">}</span></code></pre>
+<p>Our choice of MySQL is made obvious by <code>engine</code>, <code>engine_version</code>, and
+<code>parameter_group_name</code>. You’ll find versions of these catered to your database
+back-end of choice in <a href="https://www.terraform.io/docs/providers/aws/r/db_instance.html">the documentation</a>.
 Worth noting,
-<code>engine_version</code> can be specified in <a href=https://semver.org>semver format</a> to control
-automated upgrades. If you specify &ldquo;MAJOR.MINOR.PATCH&rdquo;, you effectively pin the
-database version. Specifying a version as &ldquo;MAJOR.MINOR&rdquo; will pull in PATCH
+<code>engine_version</code> can be specified in <a href="https://semver.org">semver format</a> to control
+automated upgrades. If you specify “MAJOR.MINOR.PATCH”, you effectively pin the
+database version. Specifying a version as “MAJOR.MINOR” will pull in PATCH
 upgrades automagically. This is because <code>allow_minor_version_upgrade</code> is true by
-default.</p><p>Never fear&mldr; upgrades only happen during maintenance windows. In our example,
-we&rsquo;ve carefully tuned <code>maintenance_window</code> to
+default.</p>
+<p>Never fear… upgrades only happen during maintenance windows. In our example,
+we’ve carefully tuned <code>maintenance_window</code> to
 ensure any upgrades or fail-overs happen outside business hours. Adjust as
-needed. If you&rsquo;re feeling particularly brave, you can also set
+needed. If you’re feeling particularly brave, you can also set
 <code>allow_major_version_upgrade = true</code>. Since automated maintenance often involves
 provisioning and promoting new database instances, you need to ensure that all
-subnets in your <code>DBSunetGroup</code> have at least one free IP at all times.</p><p>For our use case we&rsquo;ve provisioned a tiny amount of storage (10GB), but in
+subnets in your <code>DBSunetGroup</code> have at least one free IP at all times.</p>
+<p>For our use case we’ve provisioned a tiny amount of storage (10GB), but in
 practice you will likely need more <code>allocated_storage</code>. Storage will auto-scale by
 default. If you want to disable this, you can set <code>max_allocated_storage = 0</code> or
-chose a reasonable threshold for your application (if you don&rsquo;t set a threshold,
-I suggest a <a href=https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html>billing alarm</a>).</p><p>Relating to storage, anything in production will want to appropriately tune
-<code>backup_retention_period</code> to ensure backups are persisted. Here I&rsquo;ve simply saved
+chose a reasonable threshold for your application (if you don’t set a threshold,
+I suggest a <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html">billing alarm</a>).</p>
+<p>Relating to storage, anything in production will want to appropriately tune
+<code>backup_retention_period</code> to ensure backups are persisted. Here I’ve simply saved
 free-tier space. If you do make this non-zero, you should also remove
 <code>skip_final_snapshot</code> which prevents the database from automatically exporting a
-backup before deletion&mldr; you can&rsquo;t take a final snapshot when backups are
-disabled, but it&rsquo;s a good safety net. For critical databases, you also
-want <code>deletion_protection = true</code>.</p><p>While optional, <code>multi_az</code> takes full advantage of AWS&rsquo; geographic diversity to
+backup before deletion… you can’t take a final snapshot when backups are
+disabled, but it’s a good safety net. For critical databases, you also
+want <code>deletion_protection = true</code>.</p>
+<p>While optional, <code>multi_az</code> takes full advantage of AWS’ geographic diversity to
 provide more resilience. When enabled, RDS automatically replicates data to a
-standby instance in a different AZ. While we&rsquo;re talking about production, it&rsquo;s
+standby instance in a different AZ. While we’re talking about production, it’s
 not shown here to save resources but you will likely want to export slow query
 and error logs to S3 (<code>enabled_cloudwatch_logs_exports = ["slowquery", "error"]</code>)
 and enable enhanced monitoring (<code>monitoring_interval = 60</code>). If you enable
 enhanced monitoring, refer to the AWS documentation for more information on
-<a href=https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Monitoring.html#USER_Monitoring>configuring the required IAM role</a>.</p><p>The last two things I&rsquo;ll discuss here are the security group and secrets
-management&mldr; Since our Terraform code will be committed to source control, we
-obviously don&rsquo;t want things like database passwords exposed. Here we simply use
+<a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Monitoring.html#USER_Monitoring">configuring the required IAM role</a>.</p>
+<p>The last two things I’ll discuss here are the security group and secrets
+management… Since our Terraform code will be committed to source control, we
+obviously don’t want things like database passwords exposed. Here we simply use
 a variable input (<code>var.db_password</code>). This will be prompted for if not provided
-via <code>-var</code> or the environment. I use <a href=https://direnv.net>direnv</a> to help in
+via <code>-var</code> or the environment. I use <a href="https://direnv.net">direnv</a> to help in
 situations like this. Once configured for your shell, it can automatically run
 commands and export environment variables. This makes it easy to retrieve
-secrets from <a href=https://www.vaultproject.io>Vault</a> and have them consumed by
-Terraform.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ cat .envrc
-</span></span><span style=display:flex><span>export TF_VAR_db_password=$(vault read secret/my-secret ...)
-</span></span></code></pre></div><p>Last but not least, we need to configure one or more
+secrets from <a href="https://www.vaultproject.io">Vault</a> and have them consumed by
+Terraform.</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ cat .envrc</span>
+<span class="tok-go">export TF_VAR_db_password=$(vault read secret/my-secret ...)</span></code></pre>
+<p>Last but not least, we need to configure one or more
 security groups to provide as <code>vpc_security_group_ids</code>. This is similar to the
-process followed when we worked through the EC2 auto-scaling group:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_security_group&#34; &#34;mysql_ingress&#34;</span> {
-</span></span><span style=display:flex><span>  name   <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-myql-ingress-sg&#34;</span>
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>ingress</span> {
-</span></span><span style=display:flex><span>    from_port   <span style=color:#f92672>=</span> <span style=color:#ae81ff>3306</span>
-</span></span><span style=display:flex><span>    to_port     <span style=color:#f92672>=</span> <span style=color:#ae81ff>3306</span>
-</span></span><span style=display:flex><span>    protocol    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;tcp&#34;</span>
-</span></span><span style=display:flex><span>    cidr_blocks <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>egress</span> {
-</span></span><span style=display:flex><span>    from_port   <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>    to_port     <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>    protocol    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;-1&#34;</span>
-</span></span><span style=display:flex><span>    cidr_blocks <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>RDS is highly configurable, stable and performant. In less than 40 lines and 15
-minutes we&rsquo;ve managed to provision a fully functional MySQL database. Gone are
-the days of waiting on racking hardware or opening tickets!</p><p>Outside the lab you&rsquo;ll want to make many of the adjustments noted above – select
+process followed when we worked through the EC2 auto-scaling group:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_security_group"</span> <span class="tok-nv">"mysql_ingress"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>   <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-myql-ingress-sg"</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+
+  <span class="tok-nb">ingress</span> <span class="tok-p">{</span>
+    <span class="tok-na">from_port</span>   <span class="tok-o">=</span> <span class="tok-m">3306</span>
+    <span class="tok-na">to_port</span>     <span class="tok-o">=</span> <span class="tok-m">3306</span>
+    <span class="tok-na">protocol</span>    <span class="tok-o">=</span> <span class="tok-s2">"tcp"</span>
+    <span class="tok-na">cidr_blocks</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"0.0.0.0/0"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">egress</span> <span class="tok-p">{</span>
+    <span class="tok-na">from_port</span>   <span class="tok-o">=</span> <span class="tok-m">0</span>
+    <span class="tok-na">to_port</span>     <span class="tok-o">=</span> <span class="tok-m">0</span>
+    <span class="tok-na">protocol</span>    <span class="tok-o">=</span> <span class="tok-s2">"-1"</span>
+    <span class="tok-na">cidr_blocks</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"0.0.0.0/0"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<h3 id="conclusion">Conclusion</h3>
+<p>RDS is highly configurable, stable and performant. In less than 40 lines and 15
+minutes we’ve managed to provision a fully functional MySQL database. Gone are
+the days of waiting on racking hardware or opening tickets!</p>
+<p>Outside the lab you’ll want to make many of the adjustments noted above – select
 a suitable maintenance window, chose an appropriate amount of upgrade
 automation, think carefully about your backups and tune monitoring. Depending on
-your use case, you may also want to enable encryption. We&rsquo;ve avoided that here
+your use case, you may also want to enable encryption. We’ve avoided that here
 since it would involve more moving parts (KMS and certificate management), but
 might revisit the topic in a dedicated article. For now, I hope you see how easy
-it is to embrace DBaaS thanks to AWS&rsquo; RDS!</p></div></section></body></html>
+it is to embrace DBaaS thanks to AWS’ RDS!</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/terraforming-aws-part-ii/">Terraforming AWS: Part II</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/squashing-bugs/">Squashing Bugs</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">November 17, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

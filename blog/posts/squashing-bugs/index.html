@@ -1,74 +1,155 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Squashing Bugs</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Squashing Bugs</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>Clone the companion project to follow along&mldr;</a></p><p>In a recent multi-part <a href=/blog/posts/terraforming-aws-part-i>series</a> on
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the companion project to follow along…">
+    <meta name="date" content="2019-11-22">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>Squashing Bugs — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/squashing-bugs/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Squashing Bugs</h1>
+            <p class="meta"><time datetime="2019-11-22">November 22, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">Clone the companion project to follow along…</a></p>
+<p>In a recent multi-part <a href="/blog/posts/terraforming-aws-part-i/">series</a> on
 Terraforming a simple N-tier stack atop AWS, we provisioned a number of public
-and private subnets. We used CIDR ranges provided as <a href=https://www.terraform.io/docs/configuration/variables.html>input variables</a>
-and the <a href=https://www.terraform.io/docs/configuration/functions/cidrsubnet.html>cidrsubnet function</a>
+and private subnets. We used CIDR ranges provided as <a href="https://www.terraform.io/docs/configuration/variables.html">input variables</a>
+and the <a href="https://www.terraform.io/docs/configuration/functions/cidrsubnet.html">cidrsubnet function</a>
 to automatically carve out smaller subnets based on the number of AZs in the
-target region.</p><p>As originally mentioned, this was an attempt to follow typical HA best practices
-(not having all resources in a single AZ) and meet <a href=https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html#USER_VPC.Subnets>RDS subnet group</a>
+target region.</p>
+<p>As originally mentioned, this was an attempt to follow typical HA best practices
+(not having all resources in a single AZ) and meet <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html#USER_VPC.Subnets">RDS subnet group</a>
 requirements. In the real world you would need to ensure selected subnets fit
 into your IP allocation scheme, and carefully cater the layout to be optimal for
 your context. The approach was an opinionated way to quickly spin up N subnets
-without too much thought&mldr; As is often the case with opinions, this one soon
-met edge cases where it didn&rsquo;t make sense.</p><blockquote><p><a href=https://www.saffo.com/02008/07/26/strong-opinions-weakly-held>Strong opinions weakly held</a> –Paul Saffo</p></blockquote><p>Here&rsquo;s part of the related block of code from the original series:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_subnet&#34; &#34;public_subnets&#34;</span> {
-</span></span><span style=display:flex><span>  count                   <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc_id                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  cidr_block              <span style=color:#f92672>=</span> <span style=color:#66d9ef>cidrsubnet</span>(<span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>public_cidr</span>, <span style=color:#ae81ff>2</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  availability_zone       <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  map_public_ip_on_launch <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-public-subnet${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><code>cidrsubnet</code> works by taking a CIDR range and adding the specified number of
-netmask bits (the second argument). In our case, we started with /24&rsquo;s for the
-public and private CIDRs which got carved up into four /26&rsquo;s.</p><p>The original intent was not to be perfectly efficient, since this clearly leaves
-some address space on the table in a typical three-AZ region&mldr; but the real
-problem was that it doesn&rsquo;t work at all in larger regions with more than three
-AZs. Since <a href=https://aws.amazon.com/about-aws/global-infrastructure/regions_az>certain AWS regions have four or more AZs</a>,
-this opinion needs updated to allow deployment in any region.</p><p>To avoid hard-coding the second argument and satisfy most cases without adding
+without too much thought… As is often the case with opinions, this one soon
+met edge cases where it didn’t make sense.</p>
+<blockquote><p><a href="https://www.saffo.com/02008/07/26/strong-opinions-weakly-held">Strong opinions weakly held</a> –Paul Saffo</p>
+</blockquote>
+<p>Here’s part of the related block of code from the original series:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_subnet"</span> <span class="tok-nv">"public_subnets"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>                   <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc_id</span>                  <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">cidr_block</span>              <span class="tok-o">=</span> <span class="tok-nf">cidrsubnet</span><span class="tok-p">(</span><span class="tok-nv">var.public_cidr</span><span class="tok-p">,</span> <span class="tok-m">2</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">availability_zone</span>       <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">map_public_ip_on_launch</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-public-subnet${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p><code>cidrsubnet</code> works by taking a CIDR range and adding the specified number of
+netmask bits (the second argument). In our case, we started with /24’s for the
+public and private CIDRs which got carved up into four /26’s.</p>
+<p>The original intent was not to be perfectly efficient, since this clearly leaves
+some address space on the table in a typical three-AZ region… but the real
+problem was that it doesn’t work at all in larger regions with more than three
+AZs. Since <a href="https://aws.amazon.com/about-aws/global-infrastructure/regions_az">certain AWS regions have four or more AZs</a>,
+this opinion needs updated to allow deployment in any region.</p>
+<p>To avoid hard-coding the second argument and satisfy most cases without adding
 too much complexity, I used a ternary (or conditional in Terraform parlance).
-This still adds two bits (turning our /24 into four /26&rsquo;s) in regions with fewer
-than four AZs while adding three bits (creating eight /27&rsquo;s) in larger regions.
-Here it is in action:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>locals</span> {<span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # When we have 2, 3 or 4 AZs in a region divide the public and private
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # CIDR ranges into 4 subnets (add 2 bits to netmask). In larger regions
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # with &gt;4 AZs, divide into 8 subnets (add 3 bits to netmask).
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  newbits <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>) <span style=color:#960050;background-color:#1e0010>&gt;</span> <span style=color:#ae81ff>4</span> <span style=color:#960050;background-color:#1e0010>?</span> <span style=color:#ae81ff>3</span> <span style=color:#960050;background-color:#1e0010>:</span> <span style=color:#ae81ff>2</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_subnet&#34; &#34;public_subnets&#34;</span> {
-</span></span><span style=display:flex><span>  count                   <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc_id                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  cidr_block              <span style=color:#f92672>=</span> <span style=color:#66d9ef>cidrsubnet</span>(<span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>public_cidr</span>, <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>newbits</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  availability_zone       <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  map_public_ip_on_launch <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-public-subnet${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_subnet&#34; &#34;private_subnets&#34;</span> {
-</span></span><span style=display:flex><span>  count             <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc_id            <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  cidr_block        <span style=color:#f92672>=</span> <span style=color:#66d9ef>cidrsubnet</span>(<span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>private_cidr</span>, <span style=color:#66d9ef>local</span>.<span style=color:#66d9ef>newbits</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  availability_zone <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-private-subnet${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Using conditionals to add flexibility&mldr;This still isn&rsquo;t optimal in all
+This still adds two bits (turning our /24 into four /26’s) in regions with fewer
+than four AZs while adding three bits (creating eight /27’s) in larger regions.
+Here it is in action:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-nb">locals</span> <span class="tok-p">{</span>
+<span class="tok-c1">  # When we have 2, 3 or 4 AZs in a region divide the public and private</span>
+<span class="tok-c1">  # CIDR ranges into 4 subnets (add 2 bits to netmask). In larger regions</span>
+<span class="tok-c1">  # with &gt;4 AZs, divide into 8 subnets (add 3 bits to netmask).</span>
+  <span class="tok-na">newbits</span> <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span> &gt; <span class="tok-m">4</span> <span class="tok-p">?</span> <span class="tok-m">3</span> <span class="tok-p">:</span> <span class="tok-m">2</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_subnet"</span> <span class="tok-nv">"public_subnets"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>                   <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc_id</span>                  <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">cidr_block</span>              <span class="tok-o">=</span> <span class="tok-nf">cidrsubnet</span><span class="tok-p">(</span><span class="tok-nv">var.public_cidr</span><span class="tok-p">,</span> <span class="tok-nv">local.newbits</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">availability_zone</span>       <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">map_public_ip_on_launch</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-public-subnet${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_subnet"</span> <span class="tok-nv">"private_subnets"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>             <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc_id</span>            <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">cidr_block</span>        <span class="tok-o">=</span> <span class="tok-nf">cidrsubnet</span><span class="tok-p">(</span><span class="tok-nv">var.private_cidr</span><span class="tok-p">,</span> <span class="tok-nv">local.newbits</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">availability_zone</span> <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-private-subnet${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>Using conditionals to add flexibility…This still isn’t optimal in all
 scenarios, but remains opinionated enough to get the job done in most cases
 without requiring much thought. It respects CIDR subnet boundaries and
 future-proofs a bit, allowing larger regions to expand to eight AZs without
 modification. As before, the top-level CIDR ranges for the public and private
-subnets can be adjusted as needed.</p><p>With just a few more lines we&rsquo;ve added flexibility, and fixed a bug which led to
-ugly error messages in larger regions. It&rsquo;s still not perfect, but perfection is
-never the goal&mldr; it&rsquo;s all about iterating and learning!</p><blockquote><p><a href=https://en.wikipedia.org/wiki/Perfect_is_the_enemy_of_good>Perfect is the enemy of good.</a> –Voltaire</p></blockquote></div></section></body></html>
+subnets can be adjusted as needed.</p>
+<p>With just a few more lines we’ve added flexibility, and fixed a bug which led to
+ugly error messages in larger regions. It’s still not perfect, but perfection is
+never the goal… it’s all about iterating and learning!</p>
+<blockquote><p><a href="https://en.wikipedia.org/wiki/Perfect_is_the_enemy_of_good">Perfect is the enemy of good.</a> –Voltaire</p>
+</blockquote>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/terraforming-aws-part-iii/">Terraforming AWS: Part III</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/getting-out-more/">Getting Out More</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">November 22, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

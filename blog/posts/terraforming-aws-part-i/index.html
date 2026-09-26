@@ -1,87 +1,196 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Terraforming AWS: Part I</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Terraforming AWS: Part I</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>Clone the companion project to follow along&mldr;</a></p><p>When you hear &ldquo;Cloud Computing&rdquo;, the first thing that likely comes to mind is <a href=https://aws.amazon.com>Amazon Web Services</a>. Aside from record reliability and one of the largest infrastructure footprints in the world, they provide a diverse service catalog serving as an erector set any engineer can use to build ready-made infrastructures.</p><p>Similarly, <a href=https://www.terraform.io>HashiCorp&rsquo;s Terraform</a> has become a staple of the DevOps toolbox. With a flexible DSL and diverse provider ecosystem supporting every major cloud provider, Terraform went from relative newcomer to ubiquitous automation standard within a few years.</p><p>This multi-part series will walk you through common tasks faced when automating AWS with Terraform. We&rsquo;ll look at the major primitives (network, compute, storage), and provide tips and tricks to make your automation cleaner and reusable.</p><h2 id=aws-network-concepts>AWS Network Concepts</h2><p>Key things we need to know about when it comes to AWS networking are regions, availability zones, virtual private clouds (VPC), subnets, route tables, and internet gateways (IGW). Let&rsquo;s quickly define each of these, and then jump to code!</p><p>Regions map to geographic areas such as &ldquo;US East 2&rdquo; or &ldquo;EU West 1&rdquo;. Within a given region, Amazon operates multiple data centers (usually three, a conveniently odd number for any consensus-based protocol). Amazon accepts reality (systems fail all the time, the Internet can break, maintenance has to be done), so provides high availability by encouraging critical applications to be spread across availability zones within a region. For example, if you were hosting an important service in US East, you would minimally deploy instances to <code>us-east-1a</code>, <code>us-east-1b</code> and <code>us-east-1c</code> to avoid any single point of failure.</p><p>For anything truly critical, you would also want to select one or more sites in other regions such as us-east-2 or us-west-1. For a full list of available regions and availability zones, consult the <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>AWS documentation</a>.</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-i-1.png?raw=true" alt="AWS Regions and AZs Support HA"></p><p>Within a given region, you can have one or more VPCs. A VPC is a virtual network construct similar to combining VLANs and an overlay protocol such as VXLAN which allows it to span physical network boundaries. Think CIDR range which can span all of the availability zones within a region. Within availability zones (data centers), you have subnets (smaller CIDR ranges) which are allocated from the VPC range. So you could have a VPC allocated 10.0.0.0/16, and subnets consisting of 10.0.0.0/24, 10.0.1.0/24, etc.</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-i-2.png?raw=true" alt="AWS Network Concepts"></p><p>When allocating address space, overlap is not allowed within the VPC and subnets are contained within an availability zone. If needed, you can assign additional CIDR subnets (secondary ranges) to the VPC to support growth, but you can not change the size of an existing allocation. <a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html>Read this detailed guide for more details on AWS networking.</a></p><p>The last two concepts we&rsquo;ll work with here have to do with public and private subnets. In AWS, a &ldquo;public&rdquo; subnet is simply defined as one which can route to the Internet. We allow that by deploying an <a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html>Internet Gateway</a>, <a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html>route table</a>, and <a href=https://docs.aws.amazon.com/vpc/latest/userguide/WorkWithRouteTables.html#AssociateSubnet>route table association</a> which is just a way of tying a route table and subnet together.</p><p>Note that you do not need routes for subnets within a VPC to communicate. Those &ldquo;local&rdquo; routes are automatically added by AWS. However, you will need to consider security groups. By default AWS denies all inbound (ingress) and allows all outbound (egress) communication. However, Terraform automatically removes the default egress rule to enhance security. This means you will need to specifically allow ingress and egress traffic for Terraform controlled resources.</p><p>In our project we will see each of these in more detail to provision a public and private subnet. In a typical multi-tier application, you would have a public-facing load balancer as an entry point for Internet traffic. In turn, it would distribute load across multiple backends housed on private subnets (caches, web servers) which consume data sources similarly insulated from the public. This is what we&rsquo;ll work toward:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-i-3.png?raw=true" alt="Simple N-Tier Deployment"></p><p>If you are completely new to Terraform, the last thing I&rsquo;ll say before jumping in is that many of the code samples in this series are condensed for easier reading. A Terraform project or module typically consists of multiple files (main.tf housing the code, variables.tf providing inputs or definitions used by the code and outputs.tf providing CLI output for reference or consumption as inputs by other code). This project is no different, and we&rsquo;ll come to see more of the structure as we go along. Feel free to <a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>browse the project repository for more context</a>.</p><h2 id=plumbing-the-network>Plumbing the Network</h2><p>Good news&mldr; With all those definitions out of the way, we&rsquo;re ready to start building the network portion of this simple web stack! Worth nothing, any new AWS project will contain a default VPC, which in turn contains a few starter subnets. You start with more than one subnet because AWS best practices tell us to distribute services across availability zones for HA, and subnets can not span availability zones. Most tutorials will simply leverage the default VPC and subnets to build something useful in fewer steps. You can always do that, but I wanted to go a bit deeper here so you can understand all of the moving parts. In the real world, you will almost certainly want to provision VPCs and subnets for each of your projects.</p><p>We&rsquo;re going to pick some random RFC1918 ranges. When deploying a new project in your company, it makes sense to think about existing resources and pick ranges which don&rsquo;t overlap or otherwise collide and cause problems. Here we&rsquo;ll simply use:</p><ul><li>VPC: <code>10.1.0.0/16</code></li><li>Public subnet: <code>10.1.1.0/24</code></li><li>Private subnet: <code>10.1.2.0/24</code></li></ul><p>First, you&rsquo;ll need to pull the appropriate provider into <code>main.tf</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>provider</span> <span style=color:#e6db74>&#34;aws&#34;</span> {
-</span></span><span style=display:flex><span>  region <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>region</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><code>var.region</code> tells us the value comes from a variable called <code>region</code> defined in <code>variables.tf</code>, allowing us to easily deploy in different regions. We can accept the default, or <a href=https://www.terraform.io/docs/configuration/variables.html>provide overrides via environment or command line</a>. Let&rsquo;s add <code>env_name</code> as well, so we can use it as a convenient tag or prefix for related resources:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>variable</span> <span style=color:#e6db74>&#34;env_name&#34;</span> {
-</span></span><span style=display:flex><span>  description <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Short descriptive name to help identify resources we create&#34;</span>
-</span></span><span style=display:flex><span>  type        <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;string&#34;</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>variable</span> <span style=color:#e6db74>&#34;region&#34;</span> {
-</span></span><span style=display:flex><span>  type    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;string&#34;</span>
-</span></span><span style=display:flex><span>  default <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;us-east-2&#34;</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Now we can define our VPC:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_vpc&#34; &#34;vpc&#34;</span> {
-</span></span><span style=display:flex><span>  cidr_block           <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>vpc_cidr</span>
-</span></span><span style=display:flex><span>  enable_dns_hostnames <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-vpc&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><code>enable_dns_hostnames</code> tells AWS to assign DNS names to resources we provision. This will come in handy for reaching the load balanced VIP later. In production, you would typically integrate with something like a <a href=https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-working-with.html>Route53 Hosted Zone</a>. Without this, you can still reach things you provision via IP address.</p><p>We now have a container spanning all availability zones within our specified region that is ready for subnets. Let&rsquo;s look at one of those:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_subnet&#34; &#34;public&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_id                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  cidr_block              <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;10.1.1.0/24&#34;</span>
-</span></span><span style=display:flex><span>  availability_zone       <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>availability_zone</span>
-</span></span><span style=display:flex><span>  map_public_ip_on_launch <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-public-subnet&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Aside from using <code>aws_subnet</code> to define subnets, we give it a name and associate it with our VPC. Since this is going to be our public subnet, we allow AWS to assign resources on this network routable IP addresses.</p><p>While it might look configurable, we&rsquo;ve also got some problems. We&rsquo;ve allocated our entire public CIDR range to a single subnet, but we know subnets can only exist within one AZ. We also know we want to utilize all AZs within a region for HA. We could duplicate this block to create public (and private!) subnets within each AZ, but that would be hard to maintain. How can we stick to best practices while DRYing it up?</p><h2 id=avoiding-duplication>Avoiding Duplication</h2><p>Lucky for us, <a href=https://www.terraform.io/docs/configuration/functions.html>Terraform provides a number of functions</a> we can use to simplify common tasks. Let&rsquo;s extend <code>main.tf</code> with a data resource and use several functions to achieve our goal:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>data</span> <span style=color:#e6db74>&#34;aws_availability_zones&#34; &#34;all&#34;</span> {}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_subnet&#34; &#34;public_subnets&#34;</span> {
-</span></span><span style=display:flex><span>  count                   <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc_id                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  cidr_block              <span style=color:#f92672>=</span> <span style=color:#66d9ef>cidrsubnet</span>(<span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>public_cidr</span>, <span style=color:#ae81ff>2</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  availability_zone       <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  map_public_ip_on_launch <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-public-subnet${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_subnet&#34; &#34;private_subnets&#34;</span> {
-</span></span><span style=display:flex><span>  count             <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc_id            <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  cidr_block        <span style=color:#f92672>=</span> <span style=color:#66d9ef>cidrsubnet</span>(<span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>private_cidr</span>, <span style=color:#ae81ff>2</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  availability_zone <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-private-subnet${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>First, we use a <a href=https://www.terraform.io/docs/configuration/data-sources.html>Data Source</a> to query the availability zones within our region so we can distribute subnets and other resources across them. We&rsquo;ve added the private subnet provisioning here, the main difference being that we do not include <code>map_public_ip_on_launch</code>. We&rsquo;ll talk about one other important difference below, but first the functions!</p><p><code>count</code> is an often used Terraform idiom. Specifying <code>count</code> iterates like a loop. In this case, we use the number of returned availability zones (or the length of the containing list) to provision one subnet per AZ. Since a subnet can only exist in a single AZ, and we have a single /24 to work with, we use <code>cidrsubnet</code> to carve out smaller blocks of addresses which can be mapped to individual AZs using element. While not as expressive as a full programming language, reading through <a href=https://www.terraform.io/docs/configuration/functions.html>the documented functions</a> will give you lots of ideas.</p><p>We could further simplify this (reducing even more duplication) by encapsulating all our code and configuration associated with provisioning subnets within a module, then simply re-using the module as needed. That is a best practice, and we&rsquo;ll learn how to work with modules later!</p><h2 id=final-steps>Final Steps</h2><p>So we&rsquo;ve got six subnets defined with only two blocks of code, and avoided any messiness like hard coding AZs which would make our automation brittle. We&rsquo;ve also seen one difference between public and private subnets, where we avoided mapping public addresses to private resources.</p><p>The final steps to make our public subnets useful is defining an Internet gateway, and associating a route table allowing it to be used. Compared to our subnet definitions, that involves less magic:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_internet_gateway&#34; &#34;igw&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-igw&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route_table&#34; &#34;public_route&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>route</span> {
-</span></span><span style=display:flex><span>    cidr_block <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>
-</span></span><span style=display:flex><span>    gateway_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_internet_gateway</span>.<span style=color:#66d9ef>igw</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-public-route&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route_table_association&#34; &#34;public_rta&#34;</span> {
-</span></span><span style=display:flex><span>  count          <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>all</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  subnet_id      <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_subnet</span>.<span style=color:#66d9ef>public_subnets</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  route_table_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_route_table</span>.<span style=color:#66d9ef>public_route</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Assigning an IGW to our VPC gives us a router we can use to reach the Internet. Using similar techniques as above, we iterate over our public subnets and associate a route table allowing public resources to leverage our IGW. Pretty neat, huh?</p><h2 id=next-steps>Next Steps</h2><p>We&rsquo;ve covered a lot of ground, ramping up on AWS networking basics and fully plumbing a custom network infrastructure. We avoided duplication and created more flexible automation by leveraging native functions and a bit of creativity. We&rsquo;ve laid the foundation needed for our simple web stack in a little over 50 lines of code, and adhered to best practices ensuring a secure and highly available deployment.</p><p>In the next part of this series we&rsquo;ll move onto managing compute resources. Rather than simply managing <a href=https://aws.amazon.com/ec2>EC2 instances</a> directly, we&rsquo;ll use higher level concepts including <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html>target groups</a> and <a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html>launch configurations</a>. We&rsquo;ll also take advantage of the latest <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html>Application Load Balancing</a> functionality, and talk about why it&rsquo;s the successor to now legacy <a href=https://aws.amazon.com/elasticloadbalancing/features/#compare>Elastic Load Balancing</a>.</p><p>Thanks for reading&mldr; see you next time!</p></div></section></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the companion project to follow along…">
+    <meta name="date" content="2019-11-10">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>Terraforming AWS: Part I — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/terraforming-aws-part-i/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Terraforming AWS: Part I</h1>
+            <p class="meta"><time datetime="2019-11-10">November 10, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">Clone the companion project to follow along…</a></p>
+<p>When you hear “Cloud Computing”, the first thing that likely comes to mind is <a href="https://aws.amazon.com">Amazon Web Services</a>. Aside from record reliability and one of the largest infrastructure footprints in the world, they provide a diverse service catalog serving as an erector set any engineer can use to build ready-made infrastructures.</p>
+<p>Similarly, <a href="https://www.terraform.io">HashiCorp’s Terraform</a> has become a staple of the DevOps toolbox. With a flexible DSL and diverse provider ecosystem supporting every major cloud provider, Terraform went from relative newcomer to ubiquitous automation standard within a few years.</p>
+<p>This multi-part series will walk you through common tasks faced when automating AWS with Terraform. We’ll look at the major primitives (network, compute, storage), and provide tips and tricks to make your automation cleaner and reusable.</p>
+<h3 id="aws-network-concepts">AWS Network Concepts</h3>
+<p>Key things we need to know about when it comes to AWS networking are regions, availability zones, virtual private clouds (VPC), subnets, route tables, and internet gateways (IGW). Let’s quickly define each of these, and then jump to code!</p>
+<p>Regions map to geographic areas such as “US East 2” or “EU West 1”. Within a given region, Amazon operates multiple data centers (usually three, a conveniently odd number for any consensus-based protocol). Amazon accepts reality (systems fail all the time, the Internet can break, maintenance has to be done), so provides high availability by encouraging critical applications to be spread across availability zones within a region. For example, if you were hosting an important service in US East, you would minimally deploy instances to <code>us-east-1a</code>, <code>us-east-1b</code> and <code>us-east-1c</code> to avoid any single point of failure.</p>
+<p>For anything truly critical, you would also want to select one or more sites in other regions such as us-east-2 or us-west-1. For a full list of available regions and availability zones, consult the <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html">AWS documentation</a>.</p>
+<p><img alt="AWS Regions and AZs Support HA" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-i-1.png?raw=true"/></p>
+<p>Within a given region, you can have one or more VPCs. A VPC is a virtual network construct similar to combining VLANs and an overlay protocol such as VXLAN which allows it to span physical network boundaries. Think CIDR range which can span all of the availability zones within a region. Within availability zones (data centers), you have subnets (smaller CIDR ranges) which are allocated from the VPC range. So you could have a VPC allocated 10.0.0.0/16, and subnets consisting of 10.0.0.0/24, 10.0.1.0/24, etc.</p>
+<p><img alt="AWS Network Concepts" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-i-2.png?raw=true"/></p>
+<p>When allocating address space, overlap is not allowed within the VPC and subnets are contained within an availability zone. If needed, you can assign additional CIDR subnets (secondary ranges) to the VPC to support growth, but you can not change the size of an existing allocation. <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html">Read this detailed guide for more details on AWS networking.</a></p>
+<p>The last two concepts we’ll work with here have to do with public and private subnets. In AWS, a “public” subnet is simply defined as one which can route to the Internet. We allow that by deploying an <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html">Internet Gateway</a>, <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html">route table</a>, and <a href="https://docs.aws.amazon.com/vpc/latest/userguide/WorkWithRouteTables.html#AssociateSubnet">route table association</a> which is just a way of tying a route table and subnet together.</p>
+<p>Note that you do not need routes for subnets within a VPC to communicate. Those “local” routes are automatically added by AWS. However, you will need to consider security groups. By default AWS denies all inbound (ingress) and allows all outbound (egress) communication. However, Terraform automatically removes the default egress rule to enhance security. This means you will need to specifically allow ingress and egress traffic for Terraform controlled resources.</p>
+<p>In our project we will see each of these in more detail to provision a public and private subnet. In a typical multi-tier application, you would have a public-facing load balancer as an entry point for Internet traffic. In turn, it would distribute load across multiple backends housed on private subnets (caches, web servers) which consume data sources similarly insulated from the public. This is what we’ll work toward:</p>
+<p><img alt="Simple N-Tier Deployment" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-i-3.png?raw=true"/></p>
+<p>If you are completely new to Terraform, the last thing I’ll say before jumping in is that many of the code samples in this series are condensed for easier reading. A Terraform project or module typically consists of multiple files (main.tf housing the code, variables.tf providing inputs or definitions used by the code and outputs.tf providing CLI output for reference or consumption as inputs by other code). This project is no different, and we’ll come to see more of the structure as we go along. Feel free to <a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">browse the project repository for more context</a>.</p>
+<h3 id="plumbing-the-network">Plumbing the Network</h3>
+<p>Good news… With all those definitions out of the way, we’re ready to start building the network portion of this simple web stack! Worth nothing, any new AWS project will contain a default VPC, which in turn contains a few starter subnets. You start with more than one subnet because AWS best practices tell us to distribute services across availability zones for HA, and subnets can not span availability zones. Most tutorials will simply leverage the default VPC and subnets to build something useful in fewer steps. You can always do that, but I wanted to go a bit deeper here so you can understand all of the moving parts. In the real world, you will almost certainly want to provision VPCs and subnets for each of your projects.</p>
+<p>We’re going to pick some random RFC1918 ranges. When deploying a new project in your company, it makes sense to think about existing resources and pick ranges which don’t overlap or otherwise collide and cause problems. Here we’ll simply use:</p>
+<ul><li>VPC: <code>10.1.0.0/16</code></li><li>Public subnet: <code>10.1.1.0/24</code></li><li>Private subnet: <code>10.1.2.0/24</code></li></ul>
+<p>First, you’ll need to pull the appropriate provider into <code>main.tf</code>:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">provider</span> <span class="tok-nv">"aws"</span> <span class="tok-p">{</span>
+  <span class="tok-na">region</span> <span class="tok-o">=</span> <span class="tok-nv">var.region</span>
+<span class="tok-p">}</span></code></pre>
+<p><code>var.region</code> tells us the value comes from a variable called <code>region</code> defined in <code>variables.tf</code>, allowing us to easily deploy in different regions. We can accept the default, or <a href="https://www.terraform.io/docs/configuration/variables.html">provide overrides via environment or command line</a>. Let’s add <code>env_name</code> as well, so we can use it as a convenient tag or prefix for related resources:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">variable</span> <span class="tok-nv">"env_name"</span> <span class="tok-p">{</span>
+  <span class="tok-na">description</span> <span class="tok-o">=</span> <span class="tok-s2">"Short descriptive name to help identify resources we create"</span>
+  <span class="tok-na">type</span>        <span class="tok-o">=</span> <span class="tok-s2">"string"</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">variable</span> <span class="tok-nv">"region"</span> <span class="tok-p">{</span>
+  <span class="tok-na">type</span>    <span class="tok-o">=</span> <span class="tok-s2">"string"</span>
+  <span class="tok-na">default</span> <span class="tok-o">=</span> <span class="tok-s2">"us-east-2"</span>
+<span class="tok-p">}</span></code></pre>
+<p>Now we can define our VPC:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_vpc"</span> <span class="tok-nv">"vpc"</span> <span class="tok-p">{</span>
+  <span class="tok-na">cidr_block</span>           <span class="tok-o">=</span> <span class="tok-nv">var.vpc_cidr</span>
+  <span class="tok-na">enable_dns_hostnames</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-vpc"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p><code>enable_dns_hostnames</code> tells AWS to assign DNS names to resources we provision. This will come in handy for reaching the load balanced VIP later. In production, you would typically integrate with something like a <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-working-with.html">Route53 Hosted Zone</a>. Without this, you can still reach things you provision via IP address.</p>
+<p>We now have a container spanning all availability zones within our specified region that is ready for subnets. Let’s look at one of those:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_subnet"</span> <span class="tok-nv">"public"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_id</span>                  <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">cidr_block</span>              <span class="tok-o">=</span> <span class="tok-s2">"10.1.1.0/24"</span>
+  <span class="tok-na">availability_zone</span>       <span class="tok-o">=</span> <span class="tok-nv">var.availability_zone</span>
+  <span class="tok-na">map_public_ip_on_launch</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-public-subnet"</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-p">}</span></code></pre>
+<p>Aside from using <code>aws_subnet</code> to define subnets, we give it a name and associate it with our VPC. Since this is going to be our public subnet, we allow AWS to assign resources on this network routable IP addresses.</p>
+<p>While it might look configurable, we’ve also got some problems. We’ve allocated our entire public CIDR range to a single subnet, but we know subnets can only exist within one AZ. We also know we want to utilize all AZs within a region for HA. We could duplicate this block to create public (and private!) subnets within each AZ, but that would be hard to maintain. How can we stick to best practices while DRYing it up?</p>
+<h3 id="avoiding-duplication">Avoiding Duplication</h3>
+<p>Lucky for us, <a href="https://www.terraform.io/docs/configuration/functions.html">Terraform provides a number of functions</a> we can use to simplify common tasks. Let’s extend <code>main.tf</code> with a data resource and use several functions to achieve our goal:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">data</span> <span class="tok-nc">"aws_availability_zones"</span> <span class="tok-nv">"all"</span> <span class="tok-p">{}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_subnet"</span> <span class="tok-nv">"public_subnets"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>                   <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc_id</span>                  <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">cidr_block</span>              <span class="tok-o">=</span> <span class="tok-nf">cidrsubnet</span><span class="tok-p">(</span><span class="tok-nv">var.public_cidr</span><span class="tok-p">,</span> <span class="tok-m">2</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">availability_zone</span>       <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">map_public_ip_on_launch</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-public-subnet${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_subnet"</span> <span class="tok-nv">"private_subnets"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>             <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc_id</span>            <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">cidr_block</span>        <span class="tok-o">=</span> <span class="tok-nf">cidrsubnet</span><span class="tok-p">(</span><span class="tok-nv">var.private_cidr</span><span class="tok-p">,</span> <span class="tok-m">2</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">availability_zone</span> <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-private-subnet${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>First, we use a <a href="https://www.terraform.io/docs/configuration/data-sources.html">Data Source</a> to query the availability zones within our region so we can distribute subnets and other resources across them. We’ve added the private subnet provisioning here, the main difference being that we do not include <code>map_public_ip_on_launch</code>. We’ll talk about one other important difference below, but first the functions!</p>
+<p><code>count</code> is an often used Terraform idiom. Specifying <code>count</code> iterates like a loop. In this case, we use the number of returned availability zones (or the length of the containing list) to provision one subnet per AZ. Since a subnet can only exist in a single AZ, and we have a single /24 to work with, we use <code>cidrsubnet</code> to carve out smaller blocks of addresses which can be mapped to individual AZs using element. While not as expressive as a full programming language, reading through <a href="https://www.terraform.io/docs/configuration/functions.html">the documented functions</a> will give you lots of ideas.</p>
+<p>We could further simplify this (reducing even more duplication) by encapsulating all our code and configuration associated with provisioning subnets within a module, then simply re-using the module as needed. That is a best practice, and we’ll learn how to work with modules later!</p>
+<h3 id="final-steps">Final Steps</h3>
+<p>So we’ve got six subnets defined with only two blocks of code, and avoided any messiness like hard coding AZs which would make our automation brittle. We’ve also seen one difference between public and private subnets, where we avoided mapping public addresses to private resources.</p>
+<p>The final steps to make our public subnets useful is defining an Internet gateway, and associating a route table allowing it to be used. Compared to our subnet definitions, that involves less magic:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_internet_gateway"</span> <span class="tok-nv">"igw"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-igw"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route_table"</span> <span class="tok-nv">"public_route"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+
+  <span class="tok-nb">route</span> <span class="tok-p">{</span>
+    <span class="tok-na">cidr_block</span> <span class="tok-o">=</span> <span class="tok-s2">"0.0.0.0/0"</span>
+    <span class="tok-na">gateway_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_internet_gateway.igw.id</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-public-route"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route_table_association"</span> <span class="tok-nv">"public_rta"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>          <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.all.names</span><span class="tok-p">)</span>
+  <span class="tok-na">subnet_id</span>      <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_subnet.public_subnets</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">route_table_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_route_table.public_route.id</span>
+<span class="tok-p">}</span></code></pre>
+<p>Assigning an IGW to our VPC gives us a router we can use to reach the Internet. Using similar techniques as above, we iterate over our public subnets and associate a route table allowing public resources to leverage our IGW. Pretty neat, huh?</p>
+<h3 id="next-steps">Next Steps</h3>
+<p>We’ve covered a lot of ground, ramping up on AWS networking basics and fully plumbing a custom network infrastructure. We avoided duplication and created more flexible automation by leveraging native functions and a bit of creativity. We’ve laid the foundation needed for our simple web stack in a little over 50 lines of code, and adhered to best practices ensuring a secure and highly available deployment.</p>
+<p>In the next part of this series we’ll move onto managing compute resources. Rather than simply managing <a href="https://aws.amazon.com/ec2">EC2 instances</a> directly, we’ll use higher level concepts including <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html">target groups</a> and <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html">launch configurations</a>. We’ll also take advantage of the latest <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">Application Load Balancing</a> functionality, and talk about why it’s the successor to now legacy <a href="https://aws.amazon.com/elasticloadbalancing/features/#compare">Elastic Load Balancing</a>.</p>
+<p>Thanks for reading… see you next time!</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/observability-in-node-js/">Observability in Node.js</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/terraforming-aws-part-ii/">Terraforming AWS: Part II</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">November 10, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

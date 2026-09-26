@@ -1,5 +1,75 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Simple Things Matter</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Simple Things Matter</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/git>git</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>Often in life we rush through things we&rsquo;ve done so many times we feel they are simple. Some times they are simple, but in social contexts it is easy to forget how a little time taken to be intentional can help others (or ourselves) in the future.</p><p>One example of this I encounter almost daily is git commit messages. Often you will see one-liners such as &ldquo;fixed typo&rdquo; or &ldquo;squashed bug&rdquo; – most likely meaningful enough to the person who just spent hours tracking down the typo or figuring out how to fix the bug. What about a few months later? Or at 3AM when you need to roll back?</p><p>I like to think quality commit messages are one of the best ways to document code&rsquo;s evolution over time. This of course goes hand in hand with good commenting (explaining context vs behavior) and clean architecture/code.</p><p>Often folks look at me like I&rsquo;m crazy (which I am, but perhaps not on this point)&mldr; This seems especially true on DevOps teams practicing Infrastructure as Code. When discussing &ldquo;quality&rdquo; in terms of commit messages, I often point to <a href=https://chris.beams.io/posts/git-commit>this gem</a>. Recently I also stumbled across <a href=https://fatbusinessman.com/2019/my-favourite-git-commit>this newer incantation</a>. They only take a few minutes to read, but adopting similar practices will almost certainly improve your project&rsquo;s maintainability over time.</p><blockquote><p>The humblest tasks get beautified if loving hands do them. -Louisa May Alcott</p></blockquote></div></section></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Often in life we rush through things we’ve done so many times we feel they are simple. Some times they are simple, but in social contexts it is easy to…">
+    <meta name="date" content="2019-10-21">
+    <meta name="keywords" content="dev, git">
+    <meta name="theme-color" content="#15130f">
+    <title>Simple Things Matter — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/simple-things-matter/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Simple Things Matter</h1>
+            <p class="meta"><time datetime="2019-10-21">October 21, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>Often in life we rush through things we’ve done so many times we feel they are simple. Some times they are simple, but in social contexts it is easy to forget how a little time taken to be intentional can help others (or ourselves) in the future.</p>
+<p>One example of this I encounter almost daily is git commit messages. Often you will see one-liners such as “fixed typo” or “squashed bug” – most likely meaningful enough to the person who just spent hours tracking down the typo or figuring out how to fix the bug. What about a few months later? Or at 3AM when you need to roll back?</p>
+<p>I like to think quality commit messages are one of the best ways to document code’s evolution over time. This of course goes hand in hand with good commenting (explaining context vs behavior) and clean architecture/code.</p>
+<p>Often folks look at me like I’m crazy (which I am, but perhaps not on this point)… This seems especially true on DevOps teams practicing Infrastructure as Code. When discussing “quality” in terms of commit messages, I often point to <a href="https://chris.beams.io/posts/git-commit">this gem</a>. Recently I also stumbled across <a href="https://fatbusinessman.com/2019/my-favourite-git-commit">this newer incantation</a>. They only take a few minutes to read, but adopting similar practices will almost certainly improve your project’s maintainability over time.</p>
+<blockquote><p>The humblest tasks get beautified if loving hands do them. -Louisa May Alcott</p>
+</blockquote>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/dev/">dev(7)</a>
+              <a href="/blog/tags/git/">git(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/node-health-checks/">Node Health Checks</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">October 21, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,84 +1,169 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Node Health Checks</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Node Health Checks</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/nodejs>nodejs</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>Cloud Foundry (CF) has a concept of health checks. These can take a few forms, but the preferred approach is HTTP (vs port- or process-based checks). Applications can expose a <code>/healthcheck</code> endpoint which the <a href=https://docs.cloudfoundry.org/concepts/architecture/cloud-controller.html>Cloud Controller</a> polls. If an application becomes unhealthy (indicated by non-200 HTTP status code), restarts are attempted.</p><p>There is a health check timeout which I like to think of as the startup timeout. During initial startup of the application, the health check process will wait this long (polling every couple seconds) for the app to become healthy. This value is configurable (60–600 seconds in <a href=https://pivotal.io/platform>Pivotal Cloud Foundry</a>), supporting apps which have more intensive setup tasks.</p><p>There is also an invocation timeout which controls how long the health checker will wait for a response from a running app (after initial startup has completed, and the application has provided the first healthy response). Historically, this was hard coded to one second.</p><p>This kept health checks from bogging down the system, but also meant apps that needed to do intensive health checks of many dependencies would often timeout and be judged unhealthy.</p><p><a href=https://github.com/cloudfoundry/cloud_controller_ng/issues/1055>A patch was provided which makes this configurable</a>, but when I first heard about it I had flashbacks to a prior life&mldr; The general problem is nothing CF specific. I recall working around similar issues when Nagios and Cacti were cutting edge (poller timeouts).</p><p>This is not a pattern I invented, colleagues much smarter than I pointed out the solution was decoupling the response from test execution rather than fewer (reduced coverage) or less accurate tests (port or process).</p><h2 id=code-time>Code Time!</h2><p><a href=https://gitlab.com/deadlysyn/node-healthcheck>Clone the repository to follow along&mldr;</a></p><p>Even with configurable timeouts, decoupling is good&mldr; so I wanted to create a simple <a href=https://nodejs.org>Node</a> app utilizing <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise>promises</a> and <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function>async/await</a> to simulate a health check pattern designed to work with Cloud Foundry. The idea is using async/await to properly run and gather results for any number of long-lived tests while keeping your endpoint as responsive and accurate as possible.</p><p>Just so the examples make more sense if you haven’t looked at the sample app in its entirety, I create a global object we can use to store test results. We also set a default status code which you’ll see more of later.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#75715e>// hold test results
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>global</span>.<span style=color:#a6e22e>testResults</span> <span style=color:#f92672>=</span> { <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>200</span> };
-</span></span></code></pre></div><p>To simulate potentially slow tests of application dependencies, I used <code>setTimeout</code> to introduce delay. Imagine an overloaded database or your favorite upstream API getting slammed during peak hours.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>databaseTest</span> <span style=color:#f92672>=</span> () =&gt;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>new</span> Promise(<span style=color:#a6e22e>resolve</span> =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>setTimeout</span>(() =&gt; {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;db test running&#39;</span>);
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>resolve</span>({
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;OK&#39;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>timestamp</span><span style=color:#f92672>:</span> Date.<span style=color:#a6e22e>now</span>(),
-</span></span><span style=display:flex><span>      });
-</span></span><span style=display:flex><span>    }, <span style=color:#ae81ff>3000</span>);
-</span></span><span style=display:flex><span>  });
-</span></span></code></pre></div><p>In the sample app I have a couple of these, and a real application might have many&mldr; so the next step was wrapping the test suite in an <code>async</code> function which calls each test and <code>await</code>s the responses. In the simple case it checks our mock results for failure and updates the status code accordingly.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>testRunner</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>next</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>database</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>databaseTest</span>();
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>database</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>!==</span> <span style=color:#e6db74>&#39;OK&#39;</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>500</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>network</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>networkTest</span>();
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>network</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>!==</span> <span style=color:#e6db74>&#39;OK&#39;</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>500</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// etc...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
-</span></span></code></pre></div><p>The last piece is properly structuring the health check endpoint itself&mldr; we want to fire off <code>testRunner</code>, but not as middleware which would cause the response to block.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/healthcheck&#39;</span>, (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>next</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// not middleware so we don&#39;t wait for next()
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>testRunner</span>();
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>status</span>(<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>status</span>).<span style=color:#a6e22e>json</span>(<span style=color:#a6e22e>testResults</span>);
-</span></span><span style=display:flex><span>});
-</span></span></code></pre></div><p>As health check requests come in, the <code>async</code> function will run off and do all the required checks, updating <code>testResults</code> as it progresses. If something goes wrong, subsequent requests will receive a non-200 status code. In addition, a potentially useful <code>message</code> and <code>timestamp</code> are returned for each test&mldr; perhaps integrated with third-party monitoring.</p><p>If you have <a href=https://www.docker.com>Docker</a> running on your machine, you can simply <a href=https://github.com/deadlysyn/node-healthcheck>clone this project</a> then run <code>make build; make run</code> to get Express listening on <code>http://localhost:3000/healthcheck</code>.</p><p>The endpoint will respond immediately with the default response code (200). This keeps the health check process happy. If you watch stdout, you’ll see db test running after a few seconds, and network test running a couple seconds later. Refreshing the endpoint will show the test results. You can set <code>message</code> to something other than OK to simulate failure. Failure of any test results in a 500 status code.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ http localhost:3000/healthcheck
-</span></span><span style=display:flex><span>HTTP/1.1 200 OK
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Content-Length: 14
-</span></span><span style=display:flex><span>Content-Type: application/json; charset=utf-8
-</span></span><span style=display:flex><span>Date: Sun, 20 Jan 2019 18:09:30 GMT
-</span></span><span style=display:flex><span>ETag: W/&#34;e-QlsUp1vTYvBgYHrHCBYe2n/q268&#34;
-</span></span><span style=display:flex><span>X-Powered-By: Express
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    &#34;status&#34;: 200
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ http localhost:3000/healthcheck
-</span></span><span style=display:flex><span>HTTP/1.1 200 OK
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Content-Length: 121
-</span></span><span style=display:flex><span>Content-Type: application/json; charset=utf-8
-</span></span><span style=display:flex><span>Date: Sun, 20 Jan 2019 18:06:56 GMT
-</span></span><span style=display:flex><span>ETag: W/&#34;79-topudR8vULOkkpcpIVCdvk+S1nQ&#34;
-</span></span><span style=display:flex><span>X-Powered-By: Express
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    &#34;database&#34;: {
-</span></span><span style=display:flex><span>        &#34;message&#34;: &#34;OK&#34;,
-</span></span><span style=display:flex><span>        &#34;timestamp&#34;: 1548007610802
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    &#34;network&#34;: {
-</span></span><span style=display:flex><span>        &#34;message&#34;: &#34;OK&#34;,
-</span></span><span style=display:flex><span>        &#34;timestamp&#34;: 1548007612803
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    &#34;status&#34;: 200
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ http localhost:3000/healthcheck
-</span></span><span style=display:flex><span>HTTP/1.1 500 Internal Server Error
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Content-Length: 125
-</span></span><span style=display:flex><span>Content-Type: application/json; charset=utf-8
-</span></span><span style=display:flex><span>Date: Sun, 20 Jan 2019 18:09:43 GMT
-</span></span><span style=display:flex><span>ETag: W/&#34;7d-NbOObgl/2uT9jLi9gSpqy8qDyWE&#34;
-</span></span><span style=display:flex><span>X-Powered-By: Express
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    &#34;database&#34;: {
-</span></span><span style=display:flex><span>        &#34;message&#34;: &#34;OK&#34;,
-</span></span><span style=display:flex><span>        &#34;timestamp&#34;: &#34;1548007773994&#34;
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    &#34;network&#34;: {
-</span></span><span style=display:flex><span>        &#34;message&#34;: &#34;FAIL&#34;,
-</span></span><span style=display:flex><span>        &#34;timestamp&#34;: 1548007775999
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    &#34;status&#34;: 500
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Hopefully this gives you some ideas on ways to create better health checks for your Node apps running on Cloud Foundry!</p></div></section></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Cloud Foundry (CF) has a concept of health checks. These can take a few forms, but the preferred approach is HTTP (vs port- or process-based checks).…">
+    <meta name="date" content="2019-10-22">
+    <meta name="keywords" content="dev, nodejs">
+    <meta name="theme-color" content="#15130f">
+    <title>Node Health Checks — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/node-health-checks/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Node Health Checks</h1>
+            <p class="meta"><time datetime="2019-10-22">October 22, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>Cloud Foundry (CF) has a concept of health checks. These can take a few forms, but the preferred approach is HTTP (vs port- or process-based checks). Applications can expose a <code>/healthcheck</code> endpoint which the <a href="https://docs.cloudfoundry.org/concepts/architecture/cloud-controller.html">Cloud Controller</a> polls. If an application becomes unhealthy (indicated by non-200 HTTP status code), restarts are attempted.</p>
+<p>There is a health check timeout which I like to think of as the startup timeout. During initial startup of the application, the health check process will wait this long (polling every couple seconds) for the app to become healthy. This value is configurable (60–600 seconds in <a href="https://pivotal.io/platform">Pivotal Cloud Foundry</a>), supporting apps which have more intensive setup tasks.</p>
+<p>There is also an invocation timeout which controls how long the health checker will wait for a response from a running app (after initial startup has completed, and the application has provided the first healthy response). Historically, this was hard coded to one second.</p>
+<p>This kept health checks from bogging down the system, but also meant apps that needed to do intensive health checks of many dependencies would often timeout and be judged unhealthy.</p>
+<p><a href="https://github.com/cloudfoundry/cloud_controller_ng/issues/1055">A patch was provided which makes this configurable</a>, but when I first heard about it I had flashbacks to a prior life… The general problem is nothing CF specific. I recall working around similar issues when Nagios and Cacti were cutting edge (poller timeouts).</p>
+<p>This is not a pattern I invented, colleagues much smarter than I pointed out the solution was decoupling the response from test execution rather than fewer (reduced coverage) or less accurate tests (port or process).</p>
+<h3 id="code-time">Code Time!</h3>
+<p><a href="https://gitlab.com/deadlysyn/node-healthcheck">Clone the repository to follow along…</a></p>
+<p>Even with configurable timeouts, decoupling is good… so I wanted to create a simple <a href="https://nodejs.org">Node</a> app utilizing <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">promises</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a> to simulate a health check pattern designed to work with Cloud Foundry. The idea is using async/await to properly run and gather results for any number of long-lived tests while keeping your endpoint as responsive and accurate as possible.</p>
+<p>Just so the examples make more sense if you haven’t looked at the sample app in its entirety, I create a global object we can use to store test results. We also set a default status code which you’ll see more of later.</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-c1">// hold test results</span>
+<span class="tok-nb">global</span><span class="tok-p">.</span><span class="tok-nx">testResults</span> <span class="tok-o">=</span> <span class="tok-p">{</span> <span class="tok-nx">status</span><span class="tok-o">:</span> <span class="tok-mf">200</span> <span class="tok-p">};</span></code></pre>
+<p>To simulate potentially slow tests of application dependencies, I used <code>setTimeout</code> to introduce delay. Imagine an overloaded database or your favorite upstream API getting slammed during peak hours.</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">databaseTest</span> <span class="tok-o">=</span> <span class="tok-p">()</span> <span class="tok-p">=&gt;</span>
+  <span class="tok-ow">new</span> <span class="tok-nb">Promise</span><span class="tok-p">(</span><span class="tok-nx">resolve</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+    <span class="tok-nx">setTimeout</span><span class="tok-p">(()</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+      <span class="tok-nx">console</span><span class="tok-p">.</span><span class="tok-nx">log</span><span class="tok-p">(</span><span class="tok-s1">'db test running'</span><span class="tok-p">);</span>
+      <span class="tok-nx">resolve</span><span class="tok-p">({</span>
+        <span class="tok-nx">message</span><span class="tok-o">:</span> <span class="tok-s1">'OK'</span><span class="tok-p">,</span>
+        <span class="tok-nx">timestamp</span><span class="tok-o">:</span> <span class="tok-nb">Date</span><span class="tok-p">.</span><span class="tok-nx">now</span><span class="tok-p">(),</span>
+      <span class="tok-p">});</span>
+    <span class="tok-p">},</span> <span class="tok-mf">3000</span><span class="tok-p">);</span>
+  <span class="tok-p">});</span></code></pre>
+<p>In the sample app I have a couple of these, and a real application might have many… so the next step was wrapping the test suite in an <code>async</code> function which calls each test and <code>await</code>s the responses. In the simple case it checks our mock results for failure and updates the status code accordingly.</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">testRunner</span> <span class="tok-o">=</span> <span class="tok-k">async</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">next</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">database</span> <span class="tok-o">=</span> <span class="tok-k">await</span> <span class="tok-nx">databaseTest</span><span class="tok-p">();</span>
+  <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">database</span><span class="tok-p">.</span><span class="tok-nx">message</span> <span class="tok-o">!==</span> <span class="tok-s1">'OK'</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+    <span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">status</span> <span class="tok-o">=</span> <span class="tok-mf">500</span><span class="tok-p">;</span>
+  <span class="tok-p">}</span>
+  <span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">network</span> <span class="tok-o">=</span> <span class="tok-k">await</span> <span class="tok-nx">networkTest</span><span class="tok-p">();</span>
+  <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">network</span><span class="tok-p">.</span><span class="tok-nx">message</span> <span class="tok-o">!==</span> <span class="tok-s1">'OK'</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+    <span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">status</span> <span class="tok-o">=</span> <span class="tok-mf">500</span><span class="tok-p">;</span>
+  <span class="tok-p">}</span>
+  <span class="tok-c1">// etc...</span>
+<span class="tok-p">};</span></code></pre>
+<p>The last piece is properly structuring the health check endpoint itself… we want to fire off <code>testRunner</code>, but not as middleware which would cause the response to block.</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">get</span><span class="tok-p">(</span><span class="tok-s1">'/healthcheck'</span><span class="tok-p">,</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">,</span> <span class="tok-nx">next</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-c1">// not middleware so we don't wait for next()</span>
+  <span class="tok-nx">testRunner</span><span class="tok-p">();</span>
+  <span class="tok-nx">res</span><span class="tok-p">.</span><span class="tok-nx">status</span><span class="tok-p">(</span><span class="tok-nx">testResults</span><span class="tok-p">.</span><span class="tok-nx">status</span><span class="tok-p">).</span><span class="tok-nx">json</span><span class="tok-p">(</span><span class="tok-nx">testResults</span><span class="tok-p">);</span>
+<span class="tok-p">});</span></code></pre>
+<p>As health check requests come in, the <code>async</code> function will run off and do all the required checks, updating <code>testResults</code> as it progresses. If something goes wrong, subsequent requests will receive a non-200 status code. In addition, a potentially useful <code>message</code> and <code>timestamp</code> are returned for each test… perhaps integrated with third-party monitoring.</p>
+<p>If you have <a href="https://www.docker.com">Docker</a> running on your machine, you can simply <a href="https://github.com/deadlysyn/node-healthcheck">clone this project</a> then run <code>make build; make run</code> to get Express listening on <code>http://localhost:3000/healthcheck</code>.</p>
+<p>The endpoint will respond immediately with the default response code (200). This keeps the health check process happy. If you watch stdout, you’ll see db test running after a few seconds, and network test running a couple seconds later. Refreshing the endpoint will show the test results. You can set <code>message</code> to something other than OK to simulate failure. Failure of any test results in a 500 status code.</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ http localhost:3000/healthcheck</span>
+<span class="tok-go">HTTP/1.1 200 OK</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Content-Length: 14</span>
+<span class="tok-go">Content-Type: application/json; charset=utf-8</span>
+<span class="tok-go">Date: Sun, 20 Jan 2019 18:09:30 GMT</span>
+<span class="tok-go">ETag: W/"e-QlsUp1vTYvBgYHrHCBYe2n/q268"</span>
+<span class="tok-go">X-Powered-By: Express</span>
+<span class="tok-go">{</span>
+<span class="tok-go">    "status": 200</span>
+<span class="tok-go">}</span>
+
+<span class="tok-go">❯ http localhost:3000/healthcheck</span>
+<span class="tok-go">HTTP/1.1 200 OK</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Content-Length: 121</span>
+<span class="tok-go">Content-Type: application/json; charset=utf-8</span>
+<span class="tok-go">Date: Sun, 20 Jan 2019 18:06:56 GMT</span>
+<span class="tok-go">ETag: W/"79-topudR8vULOkkpcpIVCdvk+S1nQ"</span>
+<span class="tok-go">X-Powered-By: Express</span>
+<span class="tok-go">{</span>
+<span class="tok-go">    "database": {</span>
+<span class="tok-go">        "message": "OK",</span>
+<span class="tok-go">        "timestamp": 1548007610802</span>
+<span class="tok-go">    },</span>
+<span class="tok-go">    "network": {</span>
+<span class="tok-go">        "message": "OK",</span>
+<span class="tok-go">        "timestamp": 1548007612803</span>
+<span class="tok-go">    },</span>
+<span class="tok-go">    "status": 200</span>
+<span class="tok-go">}</span>
+
+<span class="tok-go">❯ http localhost:3000/healthcheck</span>
+<span class="tok-go">HTTP/1.1 500 Internal Server Error</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Content-Length: 125</span>
+<span class="tok-go">Content-Type: application/json; charset=utf-8</span>
+<span class="tok-go">Date: Sun, 20 Jan 2019 18:09:43 GMT</span>
+<span class="tok-go">ETag: W/"7d-NbOObgl/2uT9jLi9gSpqy8qDyWE"</span>
+<span class="tok-go">X-Powered-By: Express</span>
+<span class="tok-go">{</span>
+<span class="tok-go">    "database": {</span>
+<span class="tok-go">        "message": "OK",</span>
+<span class="tok-go">        "timestamp": "1548007773994"</span>
+<span class="tok-go">    },</span>
+<span class="tok-go">    "network": {</span>
+<span class="tok-go">        "message": "FAIL",</span>
+<span class="tok-go">        "timestamp": 1548007775999</span>
+<span class="tok-go">    },</span>
+<span class="tok-go">    "status": 500</span>
+<span class="tok-go">}</span></code></pre>
+<p>Hopefully this gives you some ideas on ways to create better health checks for your Node apps running on Cloud Foundry!</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/dev/">dev(7)</a>
+              <a href="/blog/tags/nodejs/">nodejs(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/simple-things-matter/">Simple Things Matter</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/making-promises-in-nodejs/">Making Promises in Node.js</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">October 22, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

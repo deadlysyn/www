@@ -1,85 +1,169 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Beware of Shadows</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Beware of Shadows</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/philosophy>philosophy</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>You&rsquo;re a humble DevOps practitioner. You like Go because <del>it&rsquo;s beautifully
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="You’re a humble DevOps practitioner. You like Go because it’s beautifully C-like without requiring real smarts most modern DevOps tools are written in it.…">
+    <meta name="date" content="2022-01-11">
+    <meta name="keywords" content="dev, go, philosophy">
+    <meta name="theme-color" content="#15130f">
+    <title>Beware of Shadows — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/beware-of-shadows/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Beware of Shadows</h1>
+            <p class="meta"><time datetime="2022-01-11">January 11, 2022</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>You’re a humble DevOps practitioner. You like Go because <del>it’s beautifully
 C-like without requiring real smarts</del> most modern DevOps tools are written in
-it. You&rsquo;ve read
-<a href=https://go.dev/doc/effective_go>Effective Go</a>
+it. You’ve read
+<a href="https://go.dev/doc/effective_go">Effective Go</a>
 a few times, understand
-<a href=https://go.dev/ref/spec#Blocks>block scope</a>
+<a href="https://go.dev/ref/spec#Blocks">block scope</a>
 and rely heavily on
-<a href=https://go.dev/doc/effective_go#redeclaration>redeclaration</a>.</p><p>One day you write this snippet (obfuscated to protect the guilty) which lints,
-compiles and passes all tests (clearly I could use better tests):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>// in a caller far, far away...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>ctx</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>()
-</span></span><span style=display:flex><span><span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>someFunc</span>(<span style=color:#a6e22e>ctx</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// later in someFunc...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>things</span> []<span style=color:#a6e22e>foo</span>.<span style=color:#a6e22e>Thing</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>thingID</span>) &gt; <span style=color:#ae81ff>0</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>thing</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getThing</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>thingID</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>logger</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>things</span> = append(<span style=color:#a6e22e>things</span>, <span style=color:#a6e22e>thing</span>)
-</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>things</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getThings</span>(<span style=color:#a6e22e>ctx</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>logger</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>things</span>) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;no things!&#34;</span>)
-</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>The code started only supporting collections. When adding support for single
+<a href="https://go.dev/doc/effective_go#redeclaration">redeclaration</a>.</p>
+<p>One day you write this snippet (obfuscated to protect the guilty) which lints,
+compiles and passes all tests (clearly I could use better tests):</p>
+<pre tabindex="0"><code class="language-go"><span class="tok-c1">// in a caller far, far away...</span>
+<span class="tok-nx">ctx</span> <span class="tok-o">:=</span> <span class="tok-nx">context</span><span class="tok-p">.</span><span class="tok-nx">Background</span><span class="tok-p">()</span>
+<span class="tok-nx">res</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">someFunc</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">)</span>
+
+<span class="tok-c1">// later in someFunc...</span>
+<span class="tok-kd">var</span> <span class="tok-nx">things</span> <span class="tok-p">[]</span><span class="tok-nx">foo</span><span class="tok-p">.</span><span class="tok-nx">Thing</span>
+<span class="tok-k">if</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-nx">thingID</span><span class="tok-p">)</span> <span class="tok-p">&gt;</span> <span class="tok-mi">0</span> <span class="tok-p">{</span>
+	<span class="tok-nx">thing</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">getThing</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">,</span> <span class="tok-nx">thingID</span><span class="tok-p">)</span>
+	<span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+		<span class="tok-nx">logger</span><span class="tok-p">.</span><span class="tok-nx">Fatal</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span>
+	<span class="tok-p">}</span>
+	<span class="tok-nx">things</span> <span class="tok-p">=</span> <span class="tok-nb">append</span><span class="tok-p">(</span><span class="tok-nx">things</span><span class="tok-p">,</span> <span class="tok-nx">thing</span><span class="tok-p">)</span>
+<span class="tok-p">}</span> <span class="tok-k">else</span> <span class="tok-p">{</span>
+	<span class="tok-nx">things</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">getThings</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">)</span>
+	<span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+		<span class="tok-nx">logger</span><span class="tok-p">.</span><span class="tok-nx">Fatal</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span>
+	<span class="tok-p">}</span>
+	<span class="tok-k">if</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-nx">things</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-mi">0</span> <span class="tok-p">{</span>
+		<span class="tok-nx">fmt</span><span class="tok-p">.</span><span class="tok-nx">Println</span><span class="tok-p">(</span><span class="tok-s">"no things!"</span><span class="tok-p">)</span>
+		<span class="tok-k">return</span>
+	<span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>The code started only supporting collections. When adding support for single
 items, <code>things</code> was declared in advance and control flow added to assign
 as needed (real developers would keep the happy path aligned, a noble goal
-that&rsquo;s orthogonal to this discussion).</p><p>The single case works fine since <code>things</code> is assigned with <code>=</code>. While you
+that’s orthogonal to this discussion).</p>
+<p>The single case works fine since <code>things</code> is assigned with <code>=</code>. While you
 understood <code>:=</code> to magically redeclare or reassign as needed, the <code>else</code> fails
 miserably because <code>things</code> is in fact not assigned as expected (it will create
 a new block-scoped <code>things</code>, with subsequent code operating on the originally
 declared <code>things</code>). You confirm this the only way a non-programmer
 knows how — lots of <code>fmt.Printf</code> statements checking the length and
-content of <code>things</code>. Yep, it&rsquo;s an empty list.</p><p>In desperation your primordial DevOps brain rewrites&mldr; It looks sloppy, but
+content of <code>things</code>. Yep, it’s an empty list.</p>
+<p>In desperation your primordial DevOps brain rewrites… It looks sloppy, but
 works. You manage to sleep at night by convincing yourself this really is
 somewhat idiomatic (one nice thing about Go is not getting overly obsessed
-with DRY or trying to be clever at the cost of readability; &ldquo;just writing more
-code&rdquo; is often the idiomatic way):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>things</span> []<span style=color:#a6e22e>foo</span>.<span style=color:#a6e22e>Thing</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>thingID</span>) &gt; <span style=color:#ae81ff>0</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>thing</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getThing</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>thingID</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>logger</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>things</span> = append(<span style=color:#a6e22e>things</span>, <span style=color:#a6e22e>thing</span>)
-</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>t</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getThings</span>(<span style=color:#a6e22e>ctx</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>logger</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>t</span>) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;no things!&#34;</span>)
-</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>things</span> = <span style=color:#a6e22e>t</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>What gives? Re-reading <a href=https://go.dev/doc/effective_go#redeclaration>the docs</a> you see:</p><blockquote><p>In a := declaration a variable v may appear even if it has already been
-declared, provided:</p><ul><li>this declaration is in the same scope as the existing declaration of v (<strong>if v is already declared in an outer scope, the declaration will create a new variable</strong>),</li><li>the corresponding value in the initialization is assignable to v, and</li><li>there is at least one other variable that is created by the declaration.</li></ul></blockquote><p>I&rsquo;ve read that many times and rely on it almost daily, but occasionally still
+with DRY or trying to be clever at the cost of readability; “just writing more
+code” is often the idiomatic way):</p>
+<pre tabindex="0"><code class="language-go"><span class="tok-kd">var</span> <span class="tok-nx">things</span> <span class="tok-p">[]</span><span class="tok-nx">foo</span><span class="tok-p">.</span><span class="tok-nx">Thing</span>
+<span class="tok-k">if</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-nx">thingID</span><span class="tok-p">)</span> <span class="tok-p">&gt;</span> <span class="tok-mi">0</span> <span class="tok-p">{</span>
+	<span class="tok-nx">thing</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">getThing</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">,</span> <span class="tok-nx">thingID</span><span class="tok-p">)</span>
+	<span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+		<span class="tok-nx">logger</span><span class="tok-p">.</span><span class="tok-nx">Fatal</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span>
+	<span class="tok-p">}</span>
+	<span class="tok-nx">things</span> <span class="tok-p">=</span> <span class="tok-nb">append</span><span class="tok-p">(</span><span class="tok-nx">things</span><span class="tok-p">,</span> <span class="tok-nx">thing</span><span class="tok-p">)</span>
+<span class="tok-p">}</span> <span class="tok-k">else</span> <span class="tok-p">{</span>
+	<span class="tok-nx">t</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">getThings</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">)</span>
+	<span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+		<span class="tok-nx">logger</span><span class="tok-p">.</span><span class="tok-nx">Fatal</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span>
+	<span class="tok-p">}</span>
+	<span class="tok-k">if</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-nx">t</span><span class="tok-p">)</span> <span class="tok-o">==</span> <span class="tok-mi">0</span> <span class="tok-p">{</span>
+		<span class="tok-nx">fmt</span><span class="tok-p">.</span><span class="tok-nx">Println</span><span class="tok-p">(</span><span class="tok-s">"no things!"</span><span class="tok-p">)</span>
+		<span class="tok-k">return</span>
+	<span class="tok-p">}</span>
+	<span class="tok-nx">things</span> <span class="tok-p">=</span> <span class="tok-nx">t</span>
+<span class="tok-p">}</span></code></pre>
+<p>What gives? Re-reading <a href="https://go.dev/doc/effective_go#redeclaration">the docs</a> you see:</p>
+<blockquote><p>In a := declaration a variable v may appear even if it has already been
+declared, provided:</p>
+<ul><li>this declaration is in the same scope as the existing declaration of v (<strong>if v is already declared in an outer scope, the declaration will create a new variable</strong>),</li><li>the corresponding value in the initialization is assignable to v, and</li><li>there is at least one other variable that is created by the declaration.</li></ul>
+</blockquote>
+<p>I’ve read that many times and rely on it almost daily, but occasionally still
 find myself holding an incorrect mental model. My brain decides the first
 version feels right (function scope where the initial declaration occurs rules
 redeclaration), even though the declaration is scoped to the nearest block (the
-<code>if</code>).</p><p>This is so common in Go it has an official name, &ldquo;shadowing&rdquo;. Give it a search
-and the confusion is enlightening. Jon Bodner&rsquo;s
-<a href=https://www.oreilly.com/library/view/learning-go/9781492077206>Learning Go</a>
-even calls it out as a specific case to be aware of with a suggested fix:</p><blockquote><p><em>Because <code>:=</code> allows you to assign to both new and existing variables, it
+<code>if</code>).</p>
+<p>This is so common in Go it has an official name, “shadowing”. Give it a search
+and the confusion is enlightening. Jon Bodner’s
+<a href="https://www.oreilly.com/library/view/learning-go/9781492077206">Learning Go</a>
+even calls it out as a specific case to be aware of with a suggested fix:</p>
+<blockquote><p><em>Because <code>:=</code> allows you to assign to both new and existing variables, it
 sometimes creates new variables when you think you are reusing existing ones.
 In those situations, explicitly declare all of your new variables with <code>var</code>
 to make it clear which variables are new, and then use the assignment (<code>=</code>)
-operator to assign values to both new and old variables.</em></p><p>— <em>Learning Go</em>, Chapter 2, &ldquo;var Versus :=&rdquo;</p></blockquote><p>Shadowing can happen in many contexts including &ldquo;simple&rdquo; cases with a single
+operator to assign values to both new and old variables.</em></p>
+<p>— <em>Learning Go</em>, Chapter 2, “var Versus :=”</p>
+</blockquote>
+<p>Shadowing can happen in many contexts including “simple” cases with a single
 variable, multi-variable declarations and assignments (more common in my
-experience), and package imports.</p><p>You sit back, take another sip of coffee, and think about the epiphany&mldr;
-Nope, no epiphany here. Just another &ldquo;WTF&rdquo; moment where useful magic bites you
+experience), and package imports.</p>
+<p>You sit back, take another sip of coffee, and think about the epiphany…
+Nope, no epiphany here. Just another “WTF” moment where useful magic bites you
 in the ass. You know your developer friends will give you side-eye over the
 extra variable or not dropping the else entirely, but just as you start another
-rewrite the pager goes off. #devopslife</p></div></section></body></html>
+rewrite the pager goes off. #devopslife</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/dev/">dev(7)</a>
+              <a href="/blog/tags/go/">go(7)</a>
+              <a href="/blog/tags/philosophy/">philosophy(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/aws-waf-module/">AWS WAF Module</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/lean-aws-iam/">Lean IAM Management</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">January 11, 2022</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

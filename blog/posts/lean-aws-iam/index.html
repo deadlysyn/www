@@ -1,52 +1,130 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Lean IAM Management</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Lean IAM Management</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iam>iam</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>Part of DevOps culture is avoiding tickets when automation can provide
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Part of DevOps culture is avoiding tickets when automation can provide lower-friction alternatives. Similarly, the SRE mindset seeks to eliminate toil. We…">
+    <meta name="date" content="2022-01-16">
+    <meta name="keywords" content="aws, go, iam, oss">
+    <meta name="theme-color" content="#15130f">
+    <title>Lean IAM Management — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/lean-aws-iam/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Lean IAM Management</h1>
+            <p class="meta"><time datetime="2022-01-16">January 16, 2022</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>Part of DevOps culture is avoiding tickets when automation can provide
 lower-friction alternatives. Similarly, the SRE mindset seeks to eliminate
 toil. We also know from experience that the most effective Agile teams
-are granted a high level of autonomy.</p><p>IAM is a routine stumbling block to autonomy. Teams need an
-&ldquo;appropriate&rdquo; level of access to do their job. That often turns into waiting on
+are granted a high level of autonomy.</p>
+<p>IAM is a routine stumbling block to autonomy. Teams need an
+“appropriate” level of access to do their job. That often turns into waiting on
 tickets, with another team twiddling bits to unblock development. We say we
 hire people we can trust, then increase toil and wait time by taking decision
-making out of the hands of those closest to the problem.</p><p>In our defense, IAM is scary because it involves a lot of moving parts. We&rsquo;re
+making out of the hands of those closest to the problem.</p>
+<p>In our defense, IAM is scary because it involves a lot of moving parts. We’re
 not trying to block work, we just want adequate controls. How can we do better?
 Lean thinking tells us to observe, explore the problem space, and run
-experiments starting with the simplest solution which adds value.</p><p>There is no such thing as one size fits all. For context, we manage a lot of
+experiments starting with the simplest solution which adds value.</p>
+<p>There is no such thing as one size fits all. For context, we manage a lot of
 AWS accounts (following the
-<a href=https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html>best practice of sandboxing services in dedicated accounts</a>
-to limit blast radius). A central &ldquo;IAM account&rdquo; houses user-related resources,
+<a href="https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html">best practice of sandboxing services in dedicated accounts</a>
+to limit blast radius). A central “IAM account” houses user-related resources,
 and
-<a href=https://aws.amazon.com/premiumsupport/knowledge-center/iam-assume-role-cli>cross-account role assumption</a>
-provides access to account resources.</p><p>The IAM account has conveniently-named groups (<code>team-foo</code>, <code>team-bar</code>) to make
+<a href="https://aws.amazon.com/premiumsupport/knowledge-center/iam-assume-role-cli">cross-account role assumption</a>
+provides access to account resources.</p>
+<p>The IAM account has conveniently-named groups (<code>team-foo</code>, <code>team-bar</code>) to make
 it easier for us to know what groups do at a glance, enable discovery, and
 ensure more sensible access requests. Within an account, teams are autonomous.
 They have the most context about their services, and we trust them to
-self-manage custom policies or other resources specific to their accounts.</p><p>As we scaled and started fielding more access requests, we investigated
+self-manage custom policies or other resources specific to their accounts.</p>
+<p>As we scaled and started fielding more access requests, we investigated
 alternatives to traditional RBAC.
-<a href=https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_attribute-based-access-control.html>ABAC</a>
+<a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_attribute-based-access-control.html">ABAC</a>
 has a lot of promise, and this is honestly where we want to be some day,
 but it is a form of complexity (changing the status quo) and still has
-<a href=https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html>gaps in service support</a>.
+<a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html">gaps in service support</a>.
 While an interesting approach, ABAC effectively changes the shape of the
-problem but still requires tooling to manage access.</p><p>Next we looked at <a href=https://netflixtechblog.com/consoleme-a-central-control-plane-for-aws-permissions-and-access-fd09afdd60a8>ConsoleMe</a>
+problem but still requires tooling to manage access.</p>
+<p>Next we looked at <a href="https://netflixtechblog.com/consoleme-a-central-control-plane-for-aws-permissions-and-access-fd09afdd60a8">ConsoleMe</a>
 to provide self-service management of IAM resources. The sheer scope of
 features equates to complexity that led to cost/benefit discussions. It is an
 amazingly-capable tool that anyone tackling IAM management should consider,
-but putting our lean product hat on we had to ask, &ldquo;Is this the simplest
-solution to our problem?&rdquo;</p><p>We didn&rsquo;t need cross-account discovery, control of per-account resources, or
+but putting our lean product hat on we had to ask, “Is this the simplest
+solution to our problem?”</p>
+<p>We didn’t need cross-account discovery, control of per-account resources, or
 many other advanced features ConsoleMe provides. We just need to eliminate
 tickets for group membership changes! Having an IT helpdesk add new team members
 to groups provided no value. Team members know best who should be in
 team-specific groups. CloudTrail provides an audit log. We wanted a simple way
-for group members to add additional members (GitHub team maintainer model).</p><p>Enter <a href=https://github.com/deadlysyn/grouper>grouper</a>, a lightweight
-API written in Go that handles this one aspect of AWS IAM management&mldr; It&rsquo;s
+for group members to add additional members (GitHub team maintainer model).</p>
+<p>Enter <a href="https://github.com/deadlysyn/grouper">grouper</a>, a lightweight
+API written in Go that handles this one aspect of AWS IAM management… It’s
 stateless, can be easily extended (it is an intentionally lean microservice,
-but uses <a href=https://github.com/gin-gonic/gin>Gin</a> so you can quickly bolt on
+but uses <a href="https://github.com/gin-gonic/gin">Gin</a> so you can quickly bolt on
 new endpoints), provides an audit trail (CloudWatch, configurable Slack webhook),
-and is a <a href=https://12factor.net>twelve-factor app</a> that can be hosted atop your
-favorite container orchestrator.</p><p>If this sounds interesting, <a href=https://github.com/deadlysyn/grouper>browse the README</a>
+and is a <a href="https://12factor.net">twelve-factor app</a> that can be hosted atop your
+favorite container orchestrator.</p>
+<p>If this sounds interesting, <a href="https://github.com/deadlysyn/grouper">browse the README</a>
 for more detail on current functionality and how to deploy. If you have
-questions or feature requests, open issues or submit PRs.</p></div></section></body></html>
+questions or feature requests, open issues or submit PRs.</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/go/">go(7)</a>
+              <a href="/blog/tags/iam/">iam(7)</a>
+              <a href="/blog/tags/oss/">oss(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/beware-of-shadows/">Beware of Shadows</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/aws-sdk-role-assumption/">AWS SDK Role Assumption</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">January 16, 2022</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

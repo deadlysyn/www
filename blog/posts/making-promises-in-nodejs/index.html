@@ -1,222 +1,306 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Making Promises in Node.js</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Making Promises in Node.js</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/nodejs>nodejs</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>I recently decided to refactor a small platform smoke test framework called
-<a href=https://gitlab.com/deadlysyn/splinter>Splinter</a> I wrote a while back. Aside from
-applying lessons learned since instantiation and pulling in the latest <a href=https://nodejs.org/dist/latest-v12.x/docs/api>Node LTS release</a>,
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="I recently decided to refactor a small platform smoke test framework called Splinter I wrote a while back. Aside from applying lessons learned since…">
+    <meta name="date" content="2019-10-29">
+    <meta name="keywords" content="dev, nodejs">
+    <meta name="theme-color" content="#15130f">
+    <title>Making Promises in Node.js — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/making-promises-in-nodejs/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Making Promises in Node.js</h1>
+            <p class="meta"><time datetime="2019-10-29">October 29, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>I recently decided to refactor a small platform smoke test framework called
+<a href="https://gitlab.com/deadlysyn/splinter">Splinter</a> I wrote a while back. Aside from
+applying lessons learned since instantiation and pulling in the latest <a href="https://nodejs.org/dist/latest-v12.x/docs/api">Node LTS release</a>,
 I wanted to cleanup
-code resembling <a href=https://blog.risingstack.com/node-js-async-best-practices-avoiding-callback-hell-node-js-at-scale>callback hell</a>
-by using <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function>async/await</a>.
-It&rsquo;s practically 2020 I thought, promises aren&rsquo;t exactly new, so this will be
-easy!</p><p>I soon discovered good intentions line the road to callback hell&mldr; Splinter
-simply executes minimalistic CRUD tests against <a href=https://www.mongodb.com>MongoDB</a>,
-<a href=https://www.mysql.com>MySQL</a>, <a href=https://www.postgresql.org>PostgreSQL</a>,
-<a href=https://www.rabbitmq.com>RabbitMQ</a> and <a href=https://redis.io>Redis</a>. The idea is to
+code resembling <a href="https://blog.risingstack.com/node-js-async-best-practices-avoiding-callback-hell-node-js-at-scale">callback hell</a>
+by using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>.
+It’s practically 2020 I thought, promises aren’t exactly new, so this will be
+easy!</p>
+<p>I soon discovered good intentions line the road to callback hell… Splinter
+simply executes minimalistic CRUD tests against <a href="https://www.mongodb.com">MongoDB</a>,
+<a href="https://www.mysql.com">MySQL</a>, <a href="https://www.postgresql.org">PostgreSQL</a>,
+<a href="https://www.rabbitmq.com">RabbitMQ</a> and <a href="https://redis.io">Redis</a>. The idea is to
 quickly validate shared services are consumable. Refactoring MongoDB was quick
-and easy since I&rsquo;ve done most Node.js
+and easy since I’ve done most Node.js
 projects using Mongo. Moving on to MySQL and PostgreSQL was also a delight,
 since the upstream client libraries from NPM have evolved over the years to make
-async/await a first class citizen.</p><p>Once I got to RabbitMQ, I hit a bit of a roadblock. My first instinct was to
+async/await a first class citizen.</p>
+<p>Once I got to RabbitMQ, I hit a bit of a roadblock. My first instinct was to
 refactor using similar patterns as prior services, sprinkling async/await pixie
 dust throughout the code and instantly reaping magical benefits. As naive as it
-sounds, that mostly worked&mldr; mostly. I hit a roadblock with <a href=http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish>channel.publish</a>
-and <a href=http://www.squaremobius.net/amqp.node/channel_api.html#channel_consume>channel.consume</a> which
-weren&rsquo;t willing to let me <code>await</code> as expected. Who says the machines aren&rsquo;t in
-control?</p><p>Stepping back a bit, this all started with the following callback hell (which
-also contained a number of other code smells we&rsquo;ll address as we go along):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#a6e22e>middleware</span>.<span style=color:#a6e22e>testRabbit</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>next</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>svc</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>locals</span>.<span style=color:#a6e22e>conf</span>.<span style=color:#a6e22e>rabbitInstance</span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cfg</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>init</span>(<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>svc</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>q</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>randName</span>()
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// may be called before conn or ch are defined
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cleanup</span> <span style=color:#f92672>=</span> () =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>finish</span> <span style=color:#f92672>=</span> () =&gt; {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>try</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>conn</span>.<span style=color:#a6e22e>close</span>()
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>next</span>()
-</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>err</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>next</span>()
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ch</span>.<span style=color:#a6e22e>deleteQueue</span>(<span style=color:#a6e22e>q</span>, {}, (<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>ok</span>) =&gt; {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>finish</span>()
-</span></span><span style=display:flex><span>      })
-</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>err</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>finish</span>()
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>rabbit</span>.<span style=color:#a6e22e>connect</span>(
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>cfg</span>.<span style=color:#a6e22e>creds</span>.<span style=color:#a6e22e>uri</span>,
-</span></span><span style=display:flex><span>    { <span style=color:#a6e22e>noDelay</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span> },
-</span></span><span style=display:flex><span>    (<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>conn</span>) =&gt; {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>err</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>handleErr</span>(<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>cfg</span>, <span style=color:#a6e22e>cleanup</span>)
-</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>conn</span>.<span style=color:#a6e22e>createChannel</span>((<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>ch</span>) =&gt; {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>err</span>) {
-</span></span><span style=display:flex><span>          <span style=color:#a6e22e>handleErr</span>(<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>cfg</span>, <span style=color:#a6e22e>cleanup</span>)
-</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>          <span style=color:#a6e22e>ch</span>.<span style=color:#a6e22e>assertQueue</span>(<span style=color:#a6e22e>q</span>, { <span style=color:#a6e22e>exclusive</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>autoDelete</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span> }, (<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>ok</span>) =&gt; {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>err</span>) {
-</span></span><span style=display:flex><span>              <span style=color:#a6e22e>handleErr</span>(<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>cfg</span>, <span style=color:#a6e22e>cleanup</span>)
-</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>              <span style=color:#a6e22e>ch</span>.<span style=color:#a6e22e>sendToQueue</span>(<span style=color:#a6e22e>q</span>, <span style=color:#a6e22e>Buffer</span>.<span style=color:#a6e22e>from</span>(<span style=color:#a6e22e>cfg</span>.<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>toString</span>()))
-</span></span><span style=display:flex><span>              <span style=color:#a6e22e>ch</span>.<span style=color:#a6e22e>consume</span>(<span style=color:#a6e22e>q</span>, <span style=color:#a6e22e>msg</span> =&gt; {
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>cfg</span>.<span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>seconds_elapsed</span> <span style=color:#f92672>=</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> Number(<span style=color:#a6e22e>msg</span>.<span style=color:#a6e22e>content</span>.<span style=color:#a6e22e>toString</span>())) <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>locals</span>.<span style=color:#a6e22e>testResults</span>[<span style=color:#a6e22e>svc</span>] <span style=color:#f92672>=</span> <span style=color:#a6e22e>cfg</span>.<span style=color:#a6e22e>results</span>
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>ch</span>.<span style=color:#a6e22e>ackAll</span>()
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>cleanup</span>()
-</span></span><span style=display:flex><span>              })
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>          })
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>      })
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Pardon the first-pass code from a just-get-it-working
-hacking session now a couple years old&mldr; but even setting aside obvious smells,
+sounds, that mostly worked… mostly. I hit a roadblock with <a href="http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish">channel.publish</a>
+and <a href="http://www.squaremobius.net/amqp.node/channel_api.html#channel_consume">channel.consume</a> which
+weren’t willing to let me <code>await</code> as expected. Who says the machines aren’t in
+control?</p>
+<p>Stepping back a bit, this all started with the following callback hell (which
+also contained a number of other code smells we’ll address as we go along):</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-nx">middleware</span><span class="tok-p">.</span><span class="tok-nx">testRabbit</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">,</span> <span class="tok-nx">next</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">svc</span> <span class="tok-o">=</span> <span class="tok-nx">req</span><span class="tok-p">.</span><span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">locals</span><span class="tok-p">.</span><span class="tok-nx">conf</span><span class="tok-p">.</span><span class="tok-nx">rabbitInstance</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">cfg</span> <span class="tok-o">=</span> <span class="tok-nx">init</span><span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">,</span> <span class="tok-nx">svc</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">q</span> <span class="tok-o">=</span> <span class="tok-nx">randName</span><span class="tok-p">()</span>
+
+  <span class="tok-c1">// may be called before conn or ch are defined</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">cleanup</span> <span class="tok-o">=</span> <span class="tok-p">()</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+    <span class="tok-kd">const</span> <span class="tok-nx">finish</span> <span class="tok-o">=</span> <span class="tok-p">()</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+      <span class="tok-k">try</span> <span class="tok-p">{</span>
+        <span class="tok-nx">conn</span><span class="tok-p">.</span><span class="tok-nx">close</span><span class="tok-p">()</span>
+        <span class="tok-k">return</span> <span class="tok-nx">next</span><span class="tok-p">()</span>
+      <span class="tok-p">}</span> <span class="tok-k">catch</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+        <span class="tok-k">return</span> <span class="tok-nx">next</span><span class="tok-p">()</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>
+    <span class="tok-k">try</span> <span class="tok-p">{</span>
+      <span class="tok-nx">ch</span><span class="tok-p">.</span><span class="tok-nx">deleteQueue</span><span class="tok-p">(</span><span class="tok-nx">q</span><span class="tok-p">,</span> <span class="tok-p">{},</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">ok</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+        <span class="tok-nx">finish</span><span class="tok-p">()</span>
+      <span class="tok-p">})</span>
+    <span class="tok-p">}</span> <span class="tok-k">catch</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+      <span class="tok-nx">finish</span><span class="tok-p">()</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nx">rabbit</span><span class="tok-p">.</span><span class="tok-nx">connect</span><span class="tok-p">(</span>
+    <span class="tok-nx">cfg</span><span class="tok-p">.</span><span class="tok-nx">creds</span><span class="tok-p">.</span><span class="tok-nx">uri</span><span class="tok-p">,</span>
+    <span class="tok-p">{</span> <span class="tok-nx">noDelay</span><span class="tok-o">:</span> <span class="tok-kc">true</span> <span class="tok-p">},</span>
+    <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">conn</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+      <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+        <span class="tok-nx">handleErr</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">cfg</span><span class="tok-p">,</span> <span class="tok-nx">cleanup</span><span class="tok-p">)</span>
+      <span class="tok-p">}</span> <span class="tok-k">else</span> <span class="tok-p">{</span>
+        <span class="tok-nx">conn</span><span class="tok-p">.</span><span class="tok-nx">createChannel</span><span class="tok-p">((</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">ch</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+        <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+          <span class="tok-nx">handleErr</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">cfg</span><span class="tok-p">,</span> <span class="tok-nx">cleanup</span><span class="tok-p">)</span>
+        <span class="tok-p">}</span> <span class="tok-k">else</span> <span class="tok-p">{</span>
+          <span class="tok-nx">ch</span><span class="tok-p">.</span><span class="tok-nx">assertQueue</span><span class="tok-p">(</span><span class="tok-nx">q</span><span class="tok-p">,</span> <span class="tok-p">{</span> <span class="tok-nx">exclusive</span><span class="tok-o">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span> <span class="tok-nx">autoDelete</span><span class="tok-o">:</span> <span class="tok-kc">true</span> <span class="tok-p">},</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">ok</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+            <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+              <span class="tok-nx">handleErr</span><span class="tok-p">(</span><span class="tok-nx">err</span><span class="tok-p">,</span> <span class="tok-nx">cfg</span><span class="tok-p">,</span> <span class="tok-nx">cleanup</span><span class="tok-p">)</span>
+            <span class="tok-p">}</span> <span class="tok-k">else</span> <span class="tok-p">{</span>
+              <span class="tok-nx">ch</span><span class="tok-p">.</span><span class="tok-nx">sendToQueue</span><span class="tok-p">(</span><span class="tok-nx">q</span><span class="tok-p">,</span> <span class="tok-nx">Buffer</span><span class="tok-p">.</span><span class="tok-kr">from</span><span class="tok-p">(</span><span class="tok-nx">cfg</span><span class="tok-p">.</span><span class="tok-nx">time</span><span class="tok-p">.</span><span class="tok-nx">toString</span><span class="tok-p">()))</span>
+              <span class="tok-nx">ch</span><span class="tok-p">.</span><span class="tok-nx">consume</span><span class="tok-p">(</span><span class="tok-nx">q</span><span class="tok-p">,</span> <span class="tok-nx">msg</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+                <span class="tok-nx">cfg</span><span class="tok-p">.</span><span class="tok-nx">results</span><span class="tok-p">.</span><span class="tok-nx">seconds_elapsed</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-nb">Date</span><span class="tok-p">.</span><span class="tok-nx">now</span><span class="tok-p">()</span> <span class="tok-o">-</span> <span class="tok-nb">Number</span><span class="tok-p">(</span><span class="tok-nx">msg</span><span class="tok-p">.</span><span class="tok-nx">content</span><span class="tok-p">.</span><span class="tok-nx">toString</span><span class="tok-p">()))</span> <span class="tok-o">/</span> <span class="tok-mf">1000</span>
+                <span class="tok-nx">req</span><span class="tok-p">.</span><span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">locals</span><span class="tok-p">.</span><span class="tok-nx">testResults</span><span class="tok-p">[</span><span class="tok-nx">svc</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-nx">cfg</span><span class="tok-p">.</span><span class="tok-nx">results</span>
+                <span class="tok-nx">ch</span><span class="tok-p">.</span><span class="tok-nx">ackAll</span><span class="tok-p">()</span>
+                <span class="tok-nx">cleanup</span><span class="tok-p">()</span>
+              <span class="tok-p">})</span>
+            <span class="tok-p">}</span>
+          <span class="tok-p">})</span>
+        <span class="tok-p">}</span>
+      <span class="tok-p">})</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">})</span>
+<span class="tok-p">}</span></code></pre>
+<p>Pardon the first-pass code from a just-get-it-working
+hacking session now a couple years old… but even setting aside obvious smells,
 the never ending indentation makes my eyes gloss over. Worse, I wanted to make
 this test case (which simply used the default exchange) more realistic, adding
-even more callbacks!</p><p>How do we improve this? As stated above, a goal was refactoring these tests to
-use async/await. Let&rsquo;s take a naive first attempt at that by simply replacing
-nested callbacks with async/await goodness wrapped in try/catch:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>testRabbit</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>instance</span> =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>testState</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>init</span>(<span style=color:#a6e22e>instance</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>exchange</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>uuid</span>().<span style=color:#a6e22e>slice</span>(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>8</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>queue</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>uuid</span>().<span style=color:#a6e22e>slice</span>(<span style=color:#f92672>-</span><span style=color:#ae81ff>8</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>key</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;test&#39;</span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> { <span style=color:#a6e22e>connection</span>, <span style=color:#a6e22e>channel</span> } <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>dbConnect</span>(<span style=color:#a6e22e>getCreds</span>(<span style=color:#a6e22e>instance</span>))
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>assertExchange</span>(<span style=color:#a6e22e>exchange</span>, <span style=color:#e6db74>&#39;direct&#39;</span>, { <span style=color:#a6e22e>autoDelete</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span> })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>assertQueue</span>(<span style=color:#a6e22e>queue</span>, { <span style=color:#a6e22e>exclusive</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>autoDelete</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span> })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>bindQueue</span>(<span style=color:#a6e22e>queue</span>, <span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>publish</span>(<span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>Buffer</span>.<span style=color:#a6e22e>from</span>(<span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>toString</span>()))
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>time</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>consume</span>(<span style=color:#a6e22e>queue</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>time</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>secondsElapsed</span> <span style=color:#f92672>=</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> Number(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>toString</span>())) <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`ERROR - </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>stack</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>)
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span>
-</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>finally</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>channel</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>unbindQueue</span>(<span style=color:#a6e22e>queue</span>, <span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>)
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>deleteQueue</span>(<span style=color:#a6e22e>queue</span>)
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>deleteExchange</span>(<span style=color:#a6e22e>exchange</span>)
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>close</span>()
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>connection</span>) <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>connection</span>.<span style=color:#a6e22e>close</span>()
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>results</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Better, if it worked&mldr;To keep this article from being even longer, I combined
-several steps&mldr; I don&rsquo;t want to get too far into the weeds, but to follow along
-note that we&rsquo;ve:</p><ul><li>Refactored connection handling into a separate file</li><li>Started using a non-default exchange and binding our queue</li><li>Added more cleanup code</li><li>Refactored helper functions and simplified inputs</li></ul><p>Even with more functionality, the code is a lot easier to read.
-There is one problem: We can&rsquo;t actually <code>await</code> the calls
-to publish and consume. Even with <code>amqplib</code>&rsquo;s promise-friendly version (simply
+even more callbacks!</p>
+<p>How do we improve this? As stated above, a goal was refactoring these tests to
+use async/await. Let’s take a naive first attempt at that by simply replacing
+nested callbacks with async/await goodness wrapped in try/catch:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-kd">const</span> <span class="tok-nx">testRabbit</span> <span class="tok-o">=</span> <span class="tok-k">async</span> <span class="tok-nx">instance</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">testState</span> <span class="tok-o">=</span> <span class="tok-nx">init</span><span class="tok-p">(</span><span class="tok-nx">instance</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">exchange</span> <span class="tok-o">=</span> <span class="tok-nx">uuid</span><span class="tok-p">().</span><span class="tok-nx">slice</span><span class="tok-p">(</span><span class="tok-mf">0</span><span class="tok-p">,</span> <span class="tok-mf">8</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">queue</span> <span class="tok-o">=</span> <span class="tok-nx">uuid</span><span class="tok-p">().</span><span class="tok-nx">slice</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mf">8</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">key</span> <span class="tok-o">=</span> <span class="tok-s1">'test'</span>
+  <span class="tok-kd">const</span> <span class="tok-p">{</span> <span class="tok-nx">connection</span><span class="tok-p">,</span> <span class="tok-nx">channel</span> <span class="tok-p">}</span> <span class="tok-o">=</span> <span class="tok-k">await</span> <span class="tok-nx">dbConnect</span><span class="tok-p">(</span><span class="tok-nx">getCreds</span><span class="tok-p">(</span><span class="tok-nx">instance</span><span class="tok-p">))</span>
+
+  <span class="tok-k">try</span> <span class="tok-p">{</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">assertExchange</span><span class="tok-p">(</span><span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-s1">'direct'</span><span class="tok-p">,</span> <span class="tok-p">{</span> <span class="tok-nx">autoDelete</span><span class="tok-o">:</span> <span class="tok-kc">true</span> <span class="tok-p">})</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">assertQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-p">{</span> <span class="tok-nx">exclusive</span><span class="tok-o">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span> <span class="tok-nx">autoDelete</span><span class="tok-o">:</span> <span class="tok-kc">true</span> <span class="tok-p">})</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">bindQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">)</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">publish</span><span class="tok-p">(</span><span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">,</span> <span class="tok-nx">Buffer</span><span class="tok-p">.</span><span class="tok-kr">from</span><span class="tok-p">(</span><span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">time</span><span class="tok-p">.</span><span class="tok-nx">toString</span><span class="tok-p">()))</span>
+    <span class="tok-kd">const</span> <span class="tok-nx">time</span> <span class="tok-o">=</span> <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">consume</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">)</span>
+    <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">time</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+      <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">results</span><span class="tok-p">.</span><span class="tok-nx">secondsElapsed</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-nb">Date</span><span class="tok-p">.</span><span class="tok-nx">now</span><span class="tok-p">()</span> <span class="tok-o">-</span> <span class="tok-nb">Number</span><span class="tok-p">(</span><span class="tok-nx">time</span><span class="tok-p">.</span><span class="tok-nx">toString</span><span class="tok-p">()))</span> <span class="tok-o">/</span> <span class="tok-mf">1000</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span> <span class="tok-k">catch</span> <span class="tok-p">(</span><span class="tok-nx">error</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+    <span class="tok-nx">console</span><span class="tok-p">.</span><span class="tok-nx">log</span><span class="tok-p">(</span><span class="tok-sb">`ERROR - </span><span class="tok-si">${</span><span class="tok-nx">error</span><span class="tok-p">.</span><span class="tok-nx">stack</span><span class="tok-si">}</span><span class="tok-sb">`</span><span class="tok-p">)</span>
+    <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">results</span><span class="tok-p">.</span><span class="tok-nx">message</span> <span class="tok-o">=</span> <span class="tok-nx">error</span><span class="tok-p">.</span><span class="tok-nx">message</span>
+  <span class="tok-p">}</span> <span class="tok-k">finally</span> <span class="tok-p">{</span>
+    <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">channel</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">unbindQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">)</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">deleteQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">)</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">deleteExchange</span><span class="tok-p">(</span><span class="tok-nx">exchange</span><span class="tok-p">)</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">close</span><span class="tok-p">()</span>
+    <span class="tok-p">}</span>
+    <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">connection</span><span class="tok-p">)</span> <span class="tok-k">await</span> <span class="tok-nx">connection</span><span class="tok-p">.</span><span class="tok-nx">close</span><span class="tok-p">()</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-k">return</span> <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">results</span>
+<span class="tok-p">}</span></code></pre>
+<p>Better, if it worked…To keep this article from being even longer, I combined
+several steps… I don’t want to get too far into the weeds, but to follow along
+note that we’ve:</p>
+<ul><li>Refactored connection handling into a separate file</li><li>Started using a non-default exchange and binding our queue</li><li>Added more cleanup code</li><li>Refactored helper functions and simplified inputs</li></ul>
+<p>Even with more functionality, the code is a lot easier to read.
+There is one problem: We can’t actually <code>await</code> the calls
+to publish and consume. Even with <code>amqplib</code>’s promise-friendly version (simply
 doing <code>require('amqplib')</code> vs <code>require('amqplib/callback_api')</code>), support is not
-complete as expected. Perhaps by design, I&rsquo;m a lowly DevOps zealot that writes
+complete as expected. Perhaps by design, I’m a lowly DevOps zealot that writes
 code as a hobby vs a RabbitMQ expert. It feels like I am missing something, or
-perhaps they don&rsquo;t want to tightly couple publishers and consumers even though
-it&rsquo;s convenient for my use case.</p><blockquote><p>&ldquo;When you&rsquo;re going through hell, keep on going.&rdquo; —Winston Churchill</p></blockquote><p>One answer might be simply finding an alternate AMQP client library. Since
-<code>amqplib</code> is the <a href=https://www.npmjs.com/package/amqplib>most populuar option on NPM</a>
-and used in the <a href=https://www.rabbitmq.com/tutorials/tutorial-one-javascript.html>official tutorial</a>
+perhaps they don’t want to tightly couple publishers and consumers even though
+it’s convenient for my use case.</p>
+<blockquote><p>“When you’re going through hell, keep on going.” —Winston Churchill</p>
+</blockquote>
+<p>One answer might be simply finding an alternate AMQP client library. Since
+<code>amqplib</code> is the <a href="https://www.npmjs.com/package/amqplib">most populuar option on NPM</a>
+and used in the <a href="https://www.rabbitmq.com/tutorials/tutorial-one-javascript.html">official tutorial</a>
 (albeit with callbacks), I did a bit of research and decided to artistically borrow (read:
-steal) ideas found while <a href=https://www.manifold.co/blog/asynchronous-microservices-with-rabbitmq-and-node-js>Google Engineering</a>&mldr;
+steal) ideas found while <a href="https://www.manifold.co/blog/asynchronous-microservices-with-rabbitmq-and-node-js">Google Engineering</a>…
 Specifically, I wrapped the problematic functions in promises, forcing them
-to do my bidding:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#75715e>// promisfy message publishing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>publishMessage</span> <span style=color:#f92672>=</span> ({ <span style=color:#a6e22e>channel</span>, <span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>data</span> }) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Promise((<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>reject</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>publish</span>(<span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>Buffer</span>.<span style=color:#a6e22e>from</span>(<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>toString</span>()))
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>resolve</span>()
-</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>reject</span>(<span style=color:#a6e22e>error</span>)
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// promisfy message consumption
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>consumeMessage</span> <span style=color:#f92672>=</span> ({ <span style=color:#a6e22e>connection</span>, <span style=color:#a6e22e>channel</span>, <span style=color:#a6e22e>queue</span> }) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Promise((<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>reject</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>consume</span>(<span style=color:#a6e22e>queue</span>, <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>message</span> =&gt; {
-</span></span><span style=display:flex><span>      <span style=color:#75715e>// https://github.com/squaremo/amqp.node/issues/176
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>message</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>time</span> <span style=color:#f92672>=</span> Number(<span style=color:#a6e22e>message</span>.<span style=color:#a6e22e>content</span>.<span style=color:#a6e22e>toString</span>())
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>ack</span>(<span style=color:#a6e22e>message</span>)
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>resolve</span>(<span style=color:#a6e22e>time</span>)
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    })
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// handle connection closed
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>connection</span>.<span style=color:#a6e22e>on</span>(<span style=color:#e6db74>&#39;close&#39;</span>, <span style=color:#a6e22e>error</span> =&gt; {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>reject</span>(<span style=color:#a6e22e>error</span>)
-</span></span><span style=display:flex><span>    })
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// handle errors
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>connection</span>.<span style=color:#a6e22e>on</span>(<span style=color:#e6db74>&#39;error&#39;</span>, <span style=color:#a6e22e>error</span> =&gt; {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>reject</span>(<span style=color:#a6e22e>error</span>)
-</span></span><span style=display:flex><span>    })
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>testRabbit</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>instance</span> =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>testState</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>init</span>(<span style=color:#a6e22e>instance</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>exchange</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>uuid</span>().<span style=color:#a6e22e>slice</span>(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>8</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>queue</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>uuid</span>().<span style=color:#a6e22e>slice</span>(<span style=color:#f92672>-</span><span style=color:#ae81ff>8</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>key</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;test&#39;</span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> { <span style=color:#a6e22e>connection</span>, <span style=color:#a6e22e>channel</span> } <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>dbConnect</span>(<span style=color:#a6e22e>getCreds</span>(<span style=color:#a6e22e>instance</span>))
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>assertExchange</span>(<span style=color:#a6e22e>exchange</span>, <span style=color:#e6db74>&#39;direct&#39;</span>, { <span style=color:#a6e22e>autoDelete</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span> })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>assertQueue</span>(<span style=color:#a6e22e>queue</span>, { <span style=color:#a6e22e>exclusive</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>autoDelete</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span> })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>bindQueue</span>(<span style=color:#a6e22e>queue</span>, <span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>publishMessage</span>({ <span style=color:#a6e22e>channel</span>, <span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>data</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>time</span> })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>time</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>consumeMessage</span>({ <span style=color:#a6e22e>connection</span>, <span style=color:#a6e22e>channel</span>, <span style=color:#a6e22e>queue</span> })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>time</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>secondsElapsed</span> <span style=color:#f92672>=</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>time</span>) <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`ERROR - </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>stack</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>)
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span>
-</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>finally</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>channel</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>unbindQueue</span>(<span style=color:#a6e22e>queue</span>, <span style=color:#a6e22e>exchange</span>, <span style=color:#a6e22e>key</span>)
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>deleteQueue</span>(<span style=color:#a6e22e>queue</span>)
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>deleteExchange</span>(<span style=color:#a6e22e>exchange</span>)
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>channel</span>.<span style=color:#a6e22e>close</span>()
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>connection</span>) <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>connection</span>.<span style=color:#a6e22e>close</span>()
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>testState</span>.<span style=color:#a6e22e>results</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>This worked! I did a late-night dance around the living
+to do my bidding:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-c1">// promisfy message publishing</span>
+<span class="tok-kd">const</span> <span class="tok-nx">publishMessage</span> <span class="tok-o">=</span> <span class="tok-p">({</span> <span class="tok-nx">channel</span><span class="tok-p">,</span> <span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">,</span> <span class="tok-nx">data</span> <span class="tok-p">})</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-k">return</span> <span class="tok-ow">new</span> <span class="tok-nb">Promise</span><span class="tok-p">((</span><span class="tok-nx">resolve</span><span class="tok-p">,</span> <span class="tok-nx">reject</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+    <span class="tok-k">try</span> <span class="tok-p">{</span>
+      <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">publish</span><span class="tok-p">(</span><span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">,</span> <span class="tok-nx">Buffer</span><span class="tok-p">.</span><span class="tok-kr">from</span><span class="tok-p">(</span><span class="tok-nx">data</span><span class="tok-p">.</span><span class="tok-nx">toString</span><span class="tok-p">()))</span>
+      <span class="tok-nx">resolve</span><span class="tok-p">()</span>
+    <span class="tok-p">}</span> <span class="tok-k">catch</span> <span class="tok-p">(</span><span class="tok-nx">error</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+      <span class="tok-nx">reject</span><span class="tok-p">(</span><span class="tok-nx">error</span><span class="tok-p">)</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">})</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// promisfy message consumption</span>
+<span class="tok-kd">const</span> <span class="tok-nx">consumeMessage</span> <span class="tok-o">=</span> <span class="tok-p">({</span> <span class="tok-nx">connection</span><span class="tok-p">,</span> <span class="tok-nx">channel</span><span class="tok-p">,</span> <span class="tok-nx">queue</span> <span class="tok-p">})</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-k">return</span> <span class="tok-ow">new</span> <span class="tok-nb">Promise</span><span class="tok-p">((</span><span class="tok-nx">resolve</span><span class="tok-p">,</span> <span class="tok-nx">reject</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+    <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">consume</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-k">async</span> <span class="tok-nx">message</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+      <span class="tok-c1">// https://github.com/squaremo/amqp.node/issues/176</span>
+      <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">message</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+        <span class="tok-kd">const</span> <span class="tok-nx">time</span> <span class="tok-o">=</span> <span class="tok-nb">Number</span><span class="tok-p">(</span><span class="tok-nx">message</span><span class="tok-p">.</span><span class="tok-nx">content</span><span class="tok-p">.</span><span class="tok-nx">toString</span><span class="tok-p">())</span>
+        <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">ack</span><span class="tok-p">(</span><span class="tok-nx">message</span><span class="tok-p">)</span>
+        <span class="tok-nx">resolve</span><span class="tok-p">(</span><span class="tok-nx">time</span><span class="tok-p">)</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">})</span>
+
+    <span class="tok-c1">// handle connection closed</span>
+    <span class="tok-nx">connection</span><span class="tok-p">.</span><span class="tok-nx">on</span><span class="tok-p">(</span><span class="tok-s1">'close'</span><span class="tok-p">,</span> <span class="tok-nx">error</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+      <span class="tok-k">return</span> <span class="tok-nx">reject</span><span class="tok-p">(</span><span class="tok-nx">error</span><span class="tok-p">)</span>
+    <span class="tok-p">})</span>
+
+    <span class="tok-c1">// handle errors</span>
+    <span class="tok-nx">connection</span><span class="tok-p">.</span><span class="tok-nx">on</span><span class="tok-p">(</span><span class="tok-s1">'error'</span><span class="tok-p">,</span> <span class="tok-nx">error</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+      <span class="tok-k">return</span> <span class="tok-nx">reject</span><span class="tok-p">(</span><span class="tok-nx">error</span><span class="tok-p">)</span>
+    <span class="tok-p">})</span>
+  <span class="tok-p">})</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">const</span> <span class="tok-nx">testRabbit</span> <span class="tok-o">=</span> <span class="tok-k">async</span> <span class="tok-nx">instance</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">testState</span> <span class="tok-o">=</span> <span class="tok-nx">init</span><span class="tok-p">(</span><span class="tok-nx">instance</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">exchange</span> <span class="tok-o">=</span> <span class="tok-nx">uuid</span><span class="tok-p">().</span><span class="tok-nx">slice</span><span class="tok-p">(</span><span class="tok-mf">0</span><span class="tok-p">,</span> <span class="tok-mf">8</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">queue</span> <span class="tok-o">=</span> <span class="tok-nx">uuid</span><span class="tok-p">().</span><span class="tok-nx">slice</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mf">8</span><span class="tok-p">)</span>
+  <span class="tok-kd">const</span> <span class="tok-nx">key</span> <span class="tok-o">=</span> <span class="tok-s1">'test'</span>
+  <span class="tok-kd">const</span> <span class="tok-p">{</span> <span class="tok-nx">connection</span><span class="tok-p">,</span> <span class="tok-nx">channel</span> <span class="tok-p">}</span> <span class="tok-o">=</span> <span class="tok-k">await</span> <span class="tok-nx">dbConnect</span><span class="tok-p">(</span><span class="tok-nx">getCreds</span><span class="tok-p">(</span><span class="tok-nx">instance</span><span class="tok-p">))</span>
+
+  <span class="tok-k">try</span> <span class="tok-p">{</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">assertExchange</span><span class="tok-p">(</span><span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-s1">'direct'</span><span class="tok-p">,</span> <span class="tok-p">{</span> <span class="tok-nx">autoDelete</span><span class="tok-o">:</span> <span class="tok-kc">true</span> <span class="tok-p">})</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">assertQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-p">{</span> <span class="tok-nx">exclusive</span><span class="tok-o">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span> <span class="tok-nx">autoDelete</span><span class="tok-o">:</span> <span class="tok-kc">true</span> <span class="tok-p">})</span>
+    <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">bindQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">)</span>
+    <span class="tok-k">await</span> <span class="tok-nx">publishMessage</span><span class="tok-p">({</span> <span class="tok-nx">channel</span><span class="tok-p">,</span> <span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">,</span> <span class="tok-nx">data</span><span class="tok-o">:</span> <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">time</span> <span class="tok-p">})</span>
+    <span class="tok-kd">const</span> <span class="tok-nx">time</span> <span class="tok-o">=</span> <span class="tok-k">await</span> <span class="tok-nx">consumeMessage</span><span class="tok-p">({</span> <span class="tok-nx">connection</span><span class="tok-p">,</span> <span class="tok-nx">channel</span><span class="tok-p">,</span> <span class="tok-nx">queue</span> <span class="tok-p">})</span>
+    <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">time</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+      <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">results</span><span class="tok-p">.</span><span class="tok-nx">secondsElapsed</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-nb">Date</span><span class="tok-p">.</span><span class="tok-nx">now</span><span class="tok-p">()</span> <span class="tok-o">-</span> <span class="tok-nx">time</span><span class="tok-p">)</span> <span class="tok-o">/</span> <span class="tok-mf">1000</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span> <span class="tok-k">catch</span> <span class="tok-p">(</span><span class="tok-nx">error</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+    <span class="tok-nx">console</span><span class="tok-p">.</span><span class="tok-nx">log</span><span class="tok-p">(</span><span class="tok-sb">`ERROR - </span><span class="tok-si">${</span><span class="tok-nx">error</span><span class="tok-p">.</span><span class="tok-nx">stack</span><span class="tok-si">}</span><span class="tok-sb">`</span><span class="tok-p">)</span>
+    <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">results</span><span class="tok-p">.</span><span class="tok-nx">message</span> <span class="tok-o">=</span> <span class="tok-nx">error</span><span class="tok-p">.</span><span class="tok-nx">message</span>
+  <span class="tok-p">}</span> <span class="tok-k">finally</span> <span class="tok-p">{</span>
+    <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">channel</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">unbindQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">,</span> <span class="tok-nx">exchange</span><span class="tok-p">,</span> <span class="tok-nx">key</span><span class="tok-p">)</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">deleteQueue</span><span class="tok-p">(</span><span class="tok-nx">queue</span><span class="tok-p">)</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">deleteExchange</span><span class="tok-p">(</span><span class="tok-nx">exchange</span><span class="tok-p">)</span>
+      <span class="tok-k">await</span> <span class="tok-nx">channel</span><span class="tok-p">.</span><span class="tok-nx">close</span><span class="tok-p">()</span>
+    <span class="tok-p">}</span>
+    <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nx">connection</span><span class="tok-p">)</span> <span class="tok-k">await</span> <span class="tok-nx">connection</span><span class="tok-p">.</span><span class="tok-nx">close</span><span class="tok-p">()</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-k">return</span> <span class="tok-nx">testState</span><span class="tok-p">.</span><span class="tok-nx">results</span>
+<span class="tok-p">}</span></code></pre>
+<p>This worked! I did a late-night dance around the living
 room, and patted myself on the back for being so good at stealing (read:
-adopting) the work of others. There are at least two problems here. First, it&rsquo;s
+adopting) the work of others. There are at least two problems here. First, it’s
 ugly. In all the other tests I refactored, moving to async/await not only
-reduced indentation but also lines of code. This time we&rsquo;ve added complexity
+reduced indentation but also lines of code. This time we’ve added complexity
 with our helper functions, which sent me scurrying back to Google. To my
-surprise, I found simply rolling your own promises is <a href=http://bluebirdjs.com/docs/anti-patterns.html#the-explicit-construction-anti-pattern>a common anti-pattern</a>.</p><p>It seemed clear after more reading that I needed a better solution if I wanted
+surprise, I found simply rolling your own promises is <a href="http://bluebirdjs.com/docs/anti-patterns.html#the-explicit-construction-anti-pattern">a common anti-pattern</a>.</p>
+<p>It seemed clear after more reading that I needed a better solution if I wanted
 to fit in with the cool kids that really know how to code. Luckily, the same
-site discussing the anti-pattern also built a <a href=http://bluebirdjs.com/docs/working-with-callbacks.html#working-with-callback-apis-using-the-node-convention>solution</a>
-(which has >18k stars on GitHub and supportive if not aged <a href=https://stackoverflow.com/questions/34960886/are-there-still-reasons-to-use-promise-libraries-like-q-or-bluebird-now-that-we>Stack Overflow threads</a>.</p><p>Given my goal of building a lightweight test framework vs something more complex
-where <a href=http://bluebirdjs.com/docs/why-bluebird.html>Bluebird&rsquo;s advanced features</a>
+site discussing the anti-pattern also built a <a href="http://bluebirdjs.com/docs/working-with-callbacks.html#working-with-callback-apis-using-the-node-convention">solution</a>
+(which has &gt;18k stars on GitHub and supportive if not aged <a href="https://stackoverflow.com/questions/34960886/are-there-still-reasons-to-use-promise-libraries-like-q-or-bluebird-now-that-we">Stack Overflow threads</a>.</p>
+<p>Given my goal of building a lightweight test framework vs something more complex
+where <a href="http://bluebirdjs.com/docs/why-bluebird.html">Bluebird’s advanced features</a>
 might be an obvious win, I had
-concerns over using a sledgehammer to drive a tack nail&mldr; Since my refactoring
+concerns over using a sledgehammer to drive a tack nail… Since my refactoring
 effort included moving to Node 12.13 (LTS as of writing) and native promises
-have seen a lot of improvements, I considered giving <a href=https://nodejs.org/api/util.html#util_util_promisify_original>util.promisfy</a>
+have seen a lot of improvements, I considered giving <a href="https://nodejs.org/api/util.html#util_util_promisify_original">util.promisfy</a>
 a chance. After
 thinking that through, I would end up with an extra import (although of minimal
 native code), <code>promisfy</code> wrappers, and some edge cases (not all functions support
 error-first callbacks). For those reasons, I decided to leave well enough
-alone&mldr;  for now.</p><p>What would you have done here? Is there an obviously better way to approach
+alone…  for now.</p>
+<p>What would you have done here? Is there an obviously better way to approach
 this, or simply different options depending on context? Would reverting to the
 <code>callback_api</code> and <code>promisfying</code> everything have been a cleaner route? Is the fact
-I&rsquo;m even thinking about this for such a simple use case proof that premature
-optimization really is the root of all evil?</p></div></section></body></html>
+I’m even thinking about this for such a simple use case proof that premature
+optimization really is the root of all evil?</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/dev/">dev(7)</a>
+              <a href="/blog/tags/nodejs/">nodejs(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/node-health-checks/">Node Health Checks</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/observability-in-node-js/">Observability in Node.js</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">October 29, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

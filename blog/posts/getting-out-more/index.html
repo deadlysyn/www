@@ -1,130 +1,214 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Getting Out More</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Getting Out More</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>Clone the companion project to follow along&mldr;</a></p><p>In a past <a href=/blog/posts/terraforming-aws-part-i>series</a> we used Terraform to
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the companion project to follow along…">
+    <meta name="date" content="2019-11-23">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>Getting Out More — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/getting-out-more/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Getting Out More</h1>
+            <p class="meta"><time datetime="2019-11-23">November 23, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">Clone the companion project to follow along…</a></p>
+<p>In a past <a href="/blog/posts/terraforming-aws-part-i/">series</a> we used Terraform to
 provision public and private subnets in a custom VPC within a configurable AWS
-region. In AWS terms, the difference between &ldquo;public&rdquo; and &ldquo;private&rdquo; subnets is
+region. In AWS terms, the difference between “public” and “private” subnets is
 simply that public subnets are connected to the Internet. That connection is
-made through an <a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html>Internet Gateway</a>
-(IGW). Along with provisioning the IGW itself, we add <a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html>Route Tables</a>
-and <a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html#route-table-assocation>Route Table Associations</a>
-to tie our public subnets to an IGW.</p><p>In our <a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>simple N-tier project</a>,
-we used public subnets to house an <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html>ALB</a>
+made through an <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html">Internet Gateway</a>
+(IGW). Along with provisioning the IGW itself, we add <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html">Route Tables</a>
+and <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html#route-table-assocation">Route Table Associations</a>
+to tie our public subnets to an IGW.</p>
+<p>In our <a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">simple N-tier project</a>,
+we used public subnets to house an <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">ALB</a>
 which directed HTTP traffic to EC2 instances within our private subnets. To keep
-things simple, we started a BusyBox process via custom <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html>User Data</a>
-that listened on port 80 and served our static content.</p><p>To take a small step toward making this more real-world, let&rsquo;s use <a href=https://www.nginx.com>NGINX</a>
-instead&mldr; Aside from being a capable and
+things simple, we started a BusyBox process via custom <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html">User Data</a>
+that listened on port 80 and served our static content.</p>
+<p>To take a small step toward making this more real-world, let’s use <a href="https://www.nginx.com">NGINX</a>
+instead… Aside from being a capable and
 highly-performant HTTP proxy, this presents an opportunity to learn about more
-AWS network plumbing. Specifically, we&rsquo;ll need to configure <a href=https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html>NAT gateways</a> (NGWs)
-so our private subnets can reach the Internet to run <a href=https://help.ubuntu.com/lts/serverguide/apt.html>APT</a> commands.</p><h2 id=gathering-the-pieces>Gathering the Pieces</h2><p>Much like an IGW, putting a NGW to good use requires a few parts carefully wired
-together. As it turns out, we&rsquo;ll usually want multiple NGWs – one per AZ. You
+AWS network plumbing. Specifically, we’ll need to configure <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html">NAT gateways</a> (NGWs)
+so our private subnets can reach the Internet to run <a href="https://help.ubuntu.com/lts/serverguide/apt.html">APT</a> commands.</p>
+<h3 id="gathering-the-pieces">Gathering the Pieces</h3>
+<p>Much like an IGW, putting a NGW to good use requires a few parts carefully wired
+together. As it turns out, we’ll usually want multiple NGWs – one per AZ. You
 can route all traffic through a single NGW, but if a single AZ goes down all
 traffic can be impacted. By placing a NGW in each region hosting private
 subnets, we not only provide better HA but also mitigate key scaling factors
-(bandwidth and session count) by better distributing traffic.</p><p>We also need an <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html%5D>Elastic IP</a>
-(EIP) for each NGW (the addresses through which we&rsquo;ll masquerade), and route
+(bandwidth and session count) by better distributing traffic.</p>
+<p>We also need an <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html%5D">Elastic IP</a>
+(EIP) for each NGW (the addresses through which we’ll masquerade), and route
 tables that let our private subnets know how get to the Internet using our shiny
-new NGWs. Last but not least, we&rsquo;ll want to tweak <code>userdata.sh</code> to use NGINX vs
-BusyBox&mldr;which will be cleaner and set us up for future improvements!</p><h2 id=putting-it-together>Putting it Together</h2><p>Now that we know what&rsquo;s needed, time to code&mldr;</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_nat_gateway&#34; &#34;ngw&#34;</span> {
-</span></span><span style=display:flex><span>  count         <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  subnet_id     <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_subnet</span>.<span style=color:#66d9ef>public_subnets</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  allocation_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_eip</span>.<span style=color:#66d9ef>nat_eip</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  depends_on    <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_internet_gateway</span>.<span style=color:#66d9ef>igw</span>]
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-ngw-${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_eip&#34; &#34;nat_eip&#34;</span> {
-</span></span><span style=display:flex><span>  count      <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc        <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  depends_on <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_internet_gateway</span>.<span style=color:#66d9ef>igw</span>]
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-nat-eip-${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route_table&#34; &#34;private_route&#34;</span> {
-</span></span><span style=display:flex><span>  count  <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>route</span> {
-</span></span><span style=display:flex><span>    cidr_block     <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>
-</span></span><span style=display:flex><span>    nat_gateway_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_nat_gateway</span>.<span style=color:#66d9ef>ngw</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-private-route-${count.index}&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_route_table_association&#34; &#34;private_rta&#34;</span> {
-</span></span><span style=display:flex><span>  count          <span style=color:#f92672>=</span> <span style=color:#66d9ef>length</span>(<span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_availability_zones</span>.<span style=color:#66d9ef>available</span>.<span style=color:#66d9ef>names</span>)
-</span></span><span style=display:flex><span>  subnet_id      <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_subnet</span>.<span style=color:#66d9ef>private_subnets</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>  route_table_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>element</span>(<span style=color:#66d9ef>aws_route_table</span>.<span style=color:#66d9ef>private_route</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>, <span style=color:#66d9ef>count</span>.<span style=color:#66d9ef>index</span>)
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Wiring up a NGW is very similar to an IGW&mldr;If you&rsquo;ve read through the original <a href=https://www.grandma-dna.com/terraforming-aws-part-i>series</a>,
+new NGWs. Last but not least, we’ll want to tweak <code>userdata.sh</code> to use NGINX vs
+BusyBox…which will be cleaner and set us up for future improvements!</p>
+<h3 id="putting-it-together">Putting it Together</h3>
+<p>Now that we know what’s needed, time to code…</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_nat_gateway"</span> <span class="tok-nv">"ngw"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>         <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span>
+  <span class="tok-na">subnet_id</span>     <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_subnet.public_subnets</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">allocation_id</span> <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_eip.nat_eip</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">depends_on</span>    <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_internet_gateway.igw</span><span class="tok-p">]</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-ngw-${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_eip"</span> <span class="tok-nv">"nat_eip"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>      <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc</span>        <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-na">depends_on</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_internet_gateway.igw</span><span class="tok-p">]</span>
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-nat-eip-${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route_table"</span> <span class="tok-nv">"private_route"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>  <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+
+  <span class="tok-nb">route</span> <span class="tok-p">{</span>
+    <span class="tok-na">cidr_block</span>     <span class="tok-o">=</span> <span class="tok-s2">"0.0.0.0/0"</span>
+    <span class="tok-na">nat_gateway_id</span> <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_nat_gateway.ngw</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-private-route-${count.index}"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_route_table_association"</span> <span class="tok-nv">"private_rta"</span> <span class="tok-p">{</span>
+  <span class="tok-na">count</span>          <span class="tok-o">=</span> <span class="tok-nf">length</span><span class="tok-p">(</span><span class="tok-nv">data.aws_availability_zones.available.names</span><span class="tok-p">)</span>
+  <span class="tok-na">subnet_id</span>      <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_subnet.private_subnets</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+  <span class="tok-na">route_table_id</span> <span class="tok-o">=</span> <span class="tok-nf">element</span><span class="tok-p">(</span><span class="tok-nv">aws_route_table.private_route</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id<span class="tok-p">,</span> <span class="tok-nv">count.index</span><span class="tok-p">)</span>
+<span class="tok-p">}</span></code></pre>
+<p>Wiring up a NGW is very similar to an IGW…If you’ve read through the original <a href="https://www.grandma-dna.com/terraforming-aws-part-i">series</a>,
 the tricks we use to spin up NGWs on
-our public subnets in each AZ will be familiar. New here, we&rsquo;ve established an
+our public subnets in each AZ will be familiar. New here, we’ve established an
 explicit dependency between our NGWs and our IGW. This is best practice from the
 Terraform documentation. We do the same for our EIPs, and specify these are to
-be placed in a VPC.</p><p>The last two steps are connecting our private subnets to appropriate NGWs using
+be placed in a VPC.</p>
+<p>The last two steps are connecting our private subnets to appropriate NGWs using
 a new routing table, and are almost identical to previous steps for wiring up
 our public subnets to the IGW. It is perhaps subtle, but one gotcha to pay
 attention to is ensuring any route tables directing traffic to NGWs use
 <code>nat_gateway_id</code> vs <code>gateway_id</code>. Terraform will plan and apply either way, but the
-configuration will never fully converge in the latter case. If you&rsquo;re working on
+configuration will never fully converge in the latter case. If you’re working on
 something similar and keep noticing route table changes, this is a likely
-culprit.</p><p>Recall that we had already configured a <a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html>Launch Configuration</a>
-which injected our custom user data into EC2 instances:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_launch_configuration&#34; &#34;lc&#34;</span> {<span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # avoid static name so resource can be updated
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  name_prefix     <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-lc-&#34;</span>
-</span></span><span style=display:flex><span>  image_id        <span style=color:#f92672>=</span> <span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_ami</span>.<span style=color:#66d9ef>ubuntu</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  instance_type   <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_instance_type</span>
-</span></span><span style=display:flex><span>  security_groups <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_security_group</span>.<span style=color:#66d9ef>http_ingress_instance</span>.<span style=color:#66d9ef>id</span>]
-</span></span><span style=display:flex><span>  user_data <span style=color:#f92672>=</span> <span style=color:#66d9ef>templatefile</span>(<span style=color:#e6db74>&#34;userdata.sh&#34;</span>, {
-</span></span><span style=display:flex><span>    web_port    <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_port</span>,
-</span></span><span style=display:flex><span>    web_message <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_message</span>,
-</span></span><span style=display:flex><span>    db_endpoint <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>endpoint</span>,
-</span></span><span style=display:flex><span>    db_name     <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>name</span>,
-</span></span><span style=display:flex><span>    db_username <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>username</span>,
-</span></span><span style=display:flex><span>    db_status   <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>status</span>
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>To get NGINX up and running,
-we simply adjust userdata.sh as needed:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e>#!/bin/bash
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>DEBIAN_FRONTEND<span style=color:#f92672>=</span>noninteractive apt update
-</span></span><span style=display:flex><span>DEBIAN_FRONTEND<span style=color:#f92672>=</span>noninteractive apt install nginx -y
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>cat &gt;/var/www/html/index.html <span style=color:#e6db74>&lt;&lt;EOF
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;html&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;head&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;title&gt;Success!&lt;/title&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/head&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;body&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;h1&gt;${web_message}&lt;/h1&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;ul&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;RDS endpoint:&lt;/b&gt; ${db_endpoint}&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database name:&lt;/b&gt; ${db_name}&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database user:&lt;/b&gt; ${db_username}&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database password:&lt;/b&gt; Yeah right! :-)&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database status:&lt;/b&gt; ${db_status}&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;/ul&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;pre&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    $(systemctl status nginx)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;/pre&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/body&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/html&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
-</span></span></code></pre></div><h2 id=next-steps>Next Steps</h2><p>Now we are starting to get a more respectable web cluster, with the ability to
+culprit.</p>
+<p>Recall that we had already configured a <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html">Launch Configuration</a>
+which injected our custom user data into EC2 instances:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_launch_configuration"</span> <span class="tok-nv">"lc"</span> <span class="tok-p">{</span>
+<span class="tok-c1">  # avoid static name so resource can be updated</span>
+  <span class="tok-na">name_prefix</span>     <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-lc-"</span>
+  <span class="tok-na">image_id</span>        <span class="tok-o">=</span> <span class="tok-nv">data.aws_ami.ubuntu.id</span>
+  <span class="tok-na">instance_type</span>   <span class="tok-o">=</span> <span class="tok-nv">var.web_instance_type</span>
+  <span class="tok-na">security_groups</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_security_group.http_ingress_instance.id</span><span class="tok-p">]</span>
+  <span class="tok-na">user_data</span> <span class="tok-o">=</span> <span class="tok-nf">templatefile</span><span class="tok-p">(</span><span class="tok-s2">"userdata.sh"</span><span class="tok-p">,</span> <span class="tok-p">{</span>
+    <span class="tok-na">web_port</span>    <span class="tok-o">=</span> <span class="tok-nv">var.web_port</span><span class="tok-p">,</span>
+    <span class="tok-na">web_message</span> <span class="tok-o">=</span> <span class="tok-nv">var.web_message</span><span class="tok-p">,</span>
+    <span class="tok-na">db_endpoint</span> <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.endpoint</span><span class="tok-p">,</span>
+    <span class="tok-na">db_name</span>     <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.name</span><span class="tok-p">,</span>
+    <span class="tok-na">db_username</span> <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.username</span><span class="tok-p">,</span>
+    <span class="tok-na">db_status</span>   <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.status</span>
+  <span class="tok-p">})</span>
+<span class="tok-p">}</span></code></pre>
+<p>To get NGINX up and running,
+we simply adjust userdata.sh as needed:</p>
+<pre tabindex="0"><code class="language-bash"><span class="tok-ch">#!/bin/bash</span>
+
+<span class="tok-nv">DEBIAN_FRONTEND</span><span class="tok-o">=</span>noninteractive apt update
+<span class="tok-nv">DEBIAN_FRONTEND</span><span class="tok-o">=</span>noninteractive apt install nginx -y
+
+cat &gt;/var/www/html/index.html <span class="tok-s">&lt;&lt;EOF</span>
+<span class="tok-s">&lt;html&gt;</span>
+<span class="tok-s">&lt;head&gt;</span>
+<span class="tok-s">  &lt;title&gt;Success!&lt;/title&gt;</span>
+<span class="tok-s">&lt;/head&gt;</span>
+<span class="tok-s">&lt;body&gt;</span>
+<span class="tok-s">  &lt;h1&gt;${web_message}&lt;/h1&gt;</span>
+<span class="tok-s">  &lt;ul&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;RDS endpoint:&lt;/b&gt; ${db_endpoint}&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database name:&lt;/b&gt; ${db_name}&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database user:&lt;/b&gt; ${db_username}&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database password:&lt;/b&gt; Yeah right! :-)&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database status:&lt;/b&gt; ${db_status}&lt;/li&gt;</span>
+<span class="tok-s">  &lt;/ul&gt;</span>
+<span class="tok-s">  &lt;pre&gt;</span>
+<span class="tok-s">    $(systemctl status nginx)</span>
+<span class="tok-s">  &lt;/pre&gt;</span>
+<span class="tok-s">&lt;/body&gt;</span>
+<span class="tok-s">&lt;/html&gt;</span>
+<span class="tok-s">EOF</span></code></pre>
+<h3 id="next-steps">Next Steps</h3>
+<p>Now we are starting to get a more respectable web cluster, with the ability to
 install custom packages or other updates on instances living in our private
 subnets. NAT alone is not a security mechanism, but when combined with our
-<a href=https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html>Security Groups</a>
-this is shaping up.</p><p>The next goal will be leveraging <a href=https://aws.amazon.com/certificate-manager>ACM</a>
-and <a href=https://aws.amazon.com/route53>Route53</a> to get our ALB accepting TLS traffic on port
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html">Security Groups</a>
+this is shaping up.</p>
+<p>The next goal will be leveraging <a href="https://aws.amazon.com/certificate-manager">ACM</a>
+and <a href="https://aws.amazon.com/route53">Route53</a> to get our ALB accepting TLS traffic on port
 443 and using a friendly DNS name. Be sure to check back for the continued
-evolution of our Terraforming AWS experiment!</p></div></section></body></html>
+evolution of our Terraforming AWS experiment!</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/squashing-bugs/">Squashing Bugs</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/aws-dns-and-tls/">AWS and DNS and TLS, Oh My!</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">November 23, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

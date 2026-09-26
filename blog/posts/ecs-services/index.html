@@ -1,78 +1,183 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>ECS Services</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">ECS Services</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://github.com/deadlysyn/node-aws-ecs>Clone the project repo to follow along&mldr;</a></p><p>In the first three parts of this series on shipping containerized Node apps
-using the <a href=https://aws.amazon.com/ecs>Elastic Container Service</a>, we looked at
-how to Dockerize our app, get it ready to ship by using the <a href=https://aws.amazon.com/ecr>Elastic Container Registry</a>,
-and explored <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html>Task Definitions</a>.</p><p>Along the way we learned key concepts, delved into copious amounts of
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the project repo to follow along…">
+    <meta name="date" content="2020-04-11">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>ECS Services — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/ecs-services/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">ECS Services</h1>
+            <p class="meta"><time datetime="2020-04-11">April 11, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://github.com/deadlysyn/node-aws-ecs">Clone the project repo to follow along…</a></p>
+<p>In the first three parts of this series on shipping containerized Node apps
+using the <a href="https://aws.amazon.com/ecs">Elastic Container Service</a>, we looked at
+how to Dockerize our app, get it ready to ship by using the <a href="https://aws.amazon.com/ecr">Elastic Container Registry</a>,
+and explored <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">Task Definitions</a>.</p>
+<p>Along the way we learned key concepts, delved into copious amounts of
 documentation (keep those links handy!), and used the UI and CLI to accomplish
-our goals. In the next article we&rsquo;ll review manual tasks, converting them to
+our goals. In the next article we’ll review manual tasks, converting them to
 Terraform for a fully automated solution (Infrastructure as Code). Before we can
 do that, we need to spend more time with the console to understand all of the
-pieces we need to succeed.</p><p>In this article we use the UI to examine the building blocks of any ECS based
-app – <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html>Clusters</a>,
-<a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html>Services</a>
-and <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html>Tasks</a>.
-Sticking to console a bit longer, we&rsquo;ll successfully deploy our Node.js app to
-the cloud. By connecting these dots, we&rsquo;ll have enough understanding to begin
-automating.</p><h2 id=launch-types>Launch Types</h2><p>We&rsquo;ve already referenced <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html>Fargate</a>
-when defining our Task Definition. I&rsquo;m not going to drill into launch types much
+pieces we need to succeed.</p>
+<p>In this article we use the UI to examine the building blocks of any ECS based
+app – <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html">Clusters</a>,
+<a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html">Services</a>
+and <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">Tasks</a>.
+Sticking to console a bit longer, we’ll successfully deploy our Node.js app to
+the cloud. By connecting these dots, we’ll have enough understanding to begin
+automating.</p>
+<h3 id="launch-types">Launch Types</h3>
+<p>We’ve already referenced <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html">Fargate</a>
+when defining our Task Definition. I’m not going to drill into launch types much
 further here, but understanding them is part of building clusters. Just remember
-that you have two choices – <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-ecs-ec2.html>EC2</a>
-or <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-fargate.html>Fargate</a>.</p><p>If you need to manage your own container hosts, the EC2 launch type supports
-that. You can use <a href=https://aws.amazon.com/amazon-linux-ami>Amazon Linux AMIs</a> to
-minimize setup tasks (e.g. installing and keeping the <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_agent.html>Container Agent</a>
+that you have two choices – <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-ecs-ec2.html">EC2</a>
+or <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-fargate.html">Fargate</a>.</p>
+<p>If you need to manage your own container hosts, the EC2 launch type supports
+that. You can use <a href="https://aws.amazon.com/amazon-linux-ami">Amazon Linux AMIs</a> to
+minimize setup tasks (e.g. installing and keeping the <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_agent.html">Container Agent</a>
 up to date), or build atop your own image for complete control. This is typically
 only a good option if you have specific requirements which prevent the use of
 shared infrastructure, or the Fargate launch type is not available in your
-region.</p><p>If you prefer letting your IaaS do as much heavy lifting as possible, Fargate is
-your friend. For our simple use case (or any time I can), we&rsquo;ll be using the
-Fargate launch type since it&rsquo;s both easier to get started and maintain in the
-long run.</p><h2 id=clusters>Clusters</h2><p>As the highest level abstraction, clusters have relatively few moving parts. You
-can&rsquo;t do anything useful without one, but the good news is they are easy to
-configure&mldr; whether in console, or later as we&rsquo;ll see with Terraform.</p><ul><li>Login to the AWS web console as a non-root admin user</li><li>Go to Services > Elastic Container Service > Clusters > Create Cluster</li><li>Select Networking only (Fargate) then Next</li><li>Enter a cluster name (e.g. test-cluster)</li><li>Use your default VPC (easiest, you can also create a new one)</li><li>Click Create then View Cluster</li></ul><p>With just a few clicks and barely touching the keyboard you&rsquo;ve got a cluster at your disposal.
-At first you will have zero services and tasks&mldr; let&rsquo;s fix that!</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-1.png?raw=true" alt="ECS Cluster"></p><h2 id=tasks>Tasks</h2><p>Clusters are a nice corral for our herd of tasks&mldr; Luckily, we already worked
-through the grunt work of building a task definition for our <a href=/blog/posts/ecs-task-definitions>simple service</a>.
-If you don&rsquo;t remember, refer to the sample in our <a href=https://gitlab.com/deadlysyn/node-aws-ecs/-/blob/master/ecs/task-definition.json>project repo</a>
-. With that handy, we can load our task definition in the console:</p><ul><li>Go to Task Definitions > Create new task Definition > Fargate > Next step</li><li>Ignore everything, scroll down and click Configure via JSON</li><li>Paste <a href=https://gitlab.com/deadlysyn/node-aws-ecs/-/blob/master/ecs/task-definition.json>task-definition.json</a>
-contents into the text field</li><li>Create</li><li>You should see &ldquo;succeeded&rdquo; - click View task definition</li></ul><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-2.png?raw=true" alt="ECS Cluster"></p><h2 id=services>Services</h2><p>Now that we have a cluster to host them and tasks to compose them, we are ready
-to define the real workhorse&mldr; an ECS service. Services have a lot of moving
+region.</p>
+<p>If you prefer letting your IaaS do as much heavy lifting as possible, Fargate is
+your friend. For our simple use case (or any time I can), we’ll be using the
+Fargate launch type since it’s both easier to get started and maintain in the
+long run.</p>
+<h3 id="clusters">Clusters</h3>
+<p>As the highest level abstraction, clusters have relatively few moving parts. You
+can’t do anything useful without one, but the good news is they are easy to
+configure… whether in console, or later as we’ll see with Terraform.</p>
+<ul><li>Login to the AWS web console as a non-root admin user</li><li>Go to Services &gt; Elastic Container Service &gt; Clusters &gt; Create Cluster</li><li>Select Networking only (Fargate) then Next</li><li>Enter a cluster name (e.g. test-cluster)</li><li>Use your default VPC (easiest, you can also create a new one)</li><li>Click Create then View Cluster</li></ul>
+<p>With just a few clicks and barely touching the keyboard you’ve got a cluster at your disposal.
+At first you will have zero services and tasks… let’s fix that!</p>
+<p><img alt="ECS Cluster" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-1.png?raw=true"/></p>
+<h3 id="tasks">Tasks</h3>
+<p>Clusters are a nice corral for our herd of tasks… Luckily, we already worked
+through the grunt work of building a task definition for our <a href="/blog/posts/ecs-task-definitions/">simple service</a>.
+If you don’t remember, refer to the sample in our <a href="https://gitlab.com/deadlysyn/node-aws-ecs/-/blob/master/ecs/task-definition.json">project repo</a>
+. With that handy, we can load our task definition in the console:</p>
+<ul><li>Go to Task Definitions &gt; Create new task Definition &gt; Fargate &gt; Next step</li><li>Ignore everything, scroll down and click Configure via JSON</li><li>Paste <a href="https://gitlab.com/deadlysyn/node-aws-ecs/-/blob/master/ecs/task-definition.json">task-definition.json</a>
+contents into the text field</li><li>Create</li><li>You should see “succeeded” - click View task definition</li></ul>
+<p><img alt="ECS Cluster" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-2.png?raw=true"/></p>
+<h3 id="services">Services</h3>
+<p>Now that we have a cluster to host them and tasks to compose them, we are ready
+to define the real workhorse… an ECS service. Services have a lot of moving
 parts, from integrating with clusters, to pulling together tasks, along with
-network and deployment orchestration concepts.</p><p>As usual in blogs, we&rsquo;re walking the simplest path – a single task, directly
+network and deployment orchestration concepts.</p>
+<p>As usual in blogs, we’re walking the simplest path – a single task, directly
 exposed to the world. This utilizes the major ECS components, but brushes over
 several things such as load balancing, DNS, TLS, volume management and
 integration with other services (real-world dependencies). That allows us to see
-key concepts without turning into an encyclopedia&mldr; but take your time when
+key concepts without turning into an encyclopedia… but take your time when
 exploring the UI. Building familiarity while experimenting will make converting
-to Terraform easier!</p><p>Let&rsquo;s get our simple service exposed to the world:</p><ul><li>Go to Clusters (Services tab) > select cluster name > Create</li><li>For Launch type select FARGATE</li><li>Select Task Definition family created above</li><li>Select cluster name (test-cluster)</li><li>Type a service name (test-service)</li><li>Service type should be REPLICA</li><li>Number of tasks: 1</li><li>Minimum healthy percent: 100</li><li>Maximum percent: 200 (this allows scaling up to deploy)</li><li>Deployment type should be Rolling update</li><li>AZ Balanced Spread (doesn&rsquo;t matter when only running one task!)</li><li>Next step</li><li>Select Cluster VPC</li><li>Select subnet(s) (if running multiple tasks, use multiple subnets for HA)</li><li>Edit the auto-created security group (give meaningful name, replace 80/TCP
-with Custom TCP 8080)</li><li>Save</li><li>Leave Auto-assign public IP ENABLED</li><li>Load balancer type can be None (simple test without ALB)</li><li>Deselect Enable service discovery integration</li><li>Next step</li><li>For auto scaling, just use &ldquo;Do not adjust&rdquo; since we&rsquo;re testing</li><li>Next step</li><li>Create Service</li><li>View Service</li></ul><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-3.png?raw=true" alt="ECS Service"></p><p>Click on the Tasks tab, then wait for the task to move from
+to Terraform easier!</p>
+<p>Let’s get our simple service exposed to the world:</p>
+<ul><li>Go to Clusters (Services tab) &gt; select cluster name &gt; Create</li><li>For Launch type select FARGATE</li><li>Select Task Definition family created above</li><li>Select cluster name (test-cluster)</li><li>Type a service name (test-service)</li><li>Service type should be REPLICA</li><li>Number of tasks: 1</li><li>Minimum healthy percent: 100</li><li>Maximum percent: 200 (this allows scaling up to deploy)</li><li>Deployment type should be Rolling update</li><li>AZ Balanced Spread (doesn’t matter when only running one task!)</li><li>Next step</li><li>Select Cluster VPC</li><li>Select subnet(s) (if running multiple tasks, use multiple subnets for HA)</li><li>Edit the auto-created security group (give meaningful name, replace 80/TCP
+with Custom TCP 8080)</li><li>Save</li><li>Leave Auto-assign public IP ENABLED</li><li>Load balancer type can be None (simple test without ALB)</li><li>Deselect Enable service discovery integration</li><li>Next step</li><li>For auto scaling, just use “Do not adjust” since we’re testing</li><li>Next step</li><li>Create Service</li><li>View Service</li></ul>
+<p><img alt="ECS Service" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-3.png?raw=true"/></p>
+<p>Click on the Tasks tab, then wait for the task to move from
 PROVISIONING to RUNNING indicating it has pulled the image from ECR and finished
-starting:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-4.png?raw=true" alt="Healthy ECS Task"></p><p>You can click the task GUID for more details. Beside a green
+starting:</p>
+<p><img alt="Healthy ECS Task" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-4.png?raw=true"/></p>
+<p>You can click the task GUID for more details. Beside a green
 ACTIVE status, we should also see HEALTHY indicating the health checks have
 passed. Copy the Public IP from the Network section and visit $PUBLIC_IP:8080 in
-a browser&mldr; you will see &ldquo;Hello World&rdquo; returned from our simple Node.js
-service!</p><p>Now click the Logs tab. You should see our app&rsquo;s startup message (&ldquo;Listening
-on&mldr;&rdquo;), and several web requests. Each time the root URL is visited, a &ldquo;Said
-hello&mldr;&rdquo; message is logged. You will see one from your IP, and several from
-127.0.0.1. Those are the health checks running from within the container.</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-5.png?raw=true" alt="ECS Task Logs"></p><h2 id=updating-services>Updating Services</h2><p>We&rsquo;ve built a simple service and it&rsquo;s delighting everyone that finds it through
-an unabashed ability to talk to strangers, but real services don&rsquo;t get shipped
-once. There&rsquo;s a lifecycle, and the real magic happens when we continuously
-iterate and ship furiously! Luckily, we&rsquo;re managing a containerized app that
-makes deployment easy.</p><p>Let&rsquo;s see how easy&mldr; Make a small change to server.js (give a different
-greeting or modify the log format slightly &ndash; something you&rsquo;ll notice so you can
-verify your change is live), and rebuild the container image.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>docker build -t hello-world .
-</span></span><span style=display:flex><span>./scripts/ecr-push-image hello-world
-</span></span></code></pre></div><p>Note the sha256 string returned after pushing the image (we&rsquo;ll use it later)&mldr;
-Back in the ECS console:</p><ul><li>Go to Clusters > select service name > Update</li><li>Force new deployment > Next step > Next step > Next step > Update Service</li><li>View Service > Tasks</li><li>A new task will be provisioned, and old task torn down</li><li>Click the new task GUID</li><li>Verify sha256 matches what we saw when pushing</li></ul><p>Now visit the $PUBLIC_IP:8080 and verify your change (without an ALB, the IP
-will change each time a task restarts). You&rsquo;ve just updated your ECS app!</p><h2 id=final-thoughts>Final Thoughts</h2><p>That&rsquo;s a lot of bullets, but wasn&rsquo;t difficult&mldr; With a little time in the
+a browser… you will see “Hello World” returned from our simple Node.js
+service!</p>
+<p>Now click the Logs tab. You should see our app’s startup message (“Listening
+on…”), and several web requests. Each time the root URL is visited, a “Said
+hello…” message is logged. You will see one from your IP, and several from
+127.0.0.1. Those are the health checks running from within the container.</p>
+<p><img alt="ECS Task Logs" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/ecs-services-5.png?raw=true"/></p>
+<h3 id="updating-services">Updating Services</h3>
+<p>We’ve built a simple service and it’s delighting everyone that finds it through
+an unabashed ability to talk to strangers, but real services don’t get shipped
+once. There’s a lifecycle, and the real magic happens when we continuously
+iterate and ship furiously! Luckily, we’re managing a containerized app that
+makes deployment easy.</p>
+<p>Let’s see how easy… Make a small change to server.js (give a different
+greeting or modify the log format slightly – something you’ll notice so you can
+verify your change is live), and rebuild the container image.</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">docker build -t hello-world .</span>
+<span class="tok-go">./scripts/ecr-push-image hello-world</span></code></pre>
+<p>Note the sha256 string returned after pushing the image (we’ll use it later)…
+Back in the ECS console:</p>
+<ul><li>Go to Clusters &gt; select service name &gt; Update</li><li>Force new deployment &gt; Next step &gt; Next step &gt; Next step &gt; Update Service</li><li>View Service &gt; Tasks</li><li>A new task will be provisioned, and old task torn down</li><li>Click the new task GUID</li><li>Verify sha256 matches what we saw when pushing</li></ul>
+<p>Now visit the $PUBLIC_IP:8080 and verify your change (without an ALB, the IP
+will change each time a task restarts). You’ve just updated your ECS app!</p>
+<h3 id="final-thoughts">Final Thoughts</h3>
+<p>That’s a lot of bullets, but wasn’t difficult… With a little time in the
 console we have fully managed container hosting infrastructure running our
 Node.js app, and an easy way to make future updates. By leveraging Fargate, we
 can focus on our value proposition and not get bogged down managing container
-hosts.</p><p>Of course, it would be nice if we could automate all that clicking&mldr; It would
+hosts.</p>
+<p>Of course, it would be nice if we could automate all that clicking… It would
 not only make the initial setup easier, but give us peace of mind (consistency
-if building parallel environments, easy DR). That&rsquo;s where we&rsquo;ll pick up next
-time. You won&rsquo;t want to miss the final episode in this series where we take what
-we&rsquo;ve learned about ECS and convert everything to Terraform for a fully
-automated build. See you next time!</p></div></section></body></html>
+if building parallel environments, easy DR). That’s where we’ll pick up next
+time. You won’t want to miss the final episode in this series where we take what
+we’ve learned about ECS and convert everything to Terraform for a fully
+automated build. See you next time!</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/ecs-task-definitions/">ECS Task Definitions</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/automating-ecs/">Automating ECS</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">April 11, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

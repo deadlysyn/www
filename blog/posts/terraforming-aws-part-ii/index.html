@@ -1,278 +1,374 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Terraforming AWS: Part II</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Terraforming AWS: Part II</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>Clone the companion project to follow along&mldr;</a></p><p>In Part I of this series [/blog/posts/terraforming-aws-part-i], we worked
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the companion project to follow along…">
+    <meta name="date" content="2019-11-13">
+    <meta name="keywords" content="aws, iac, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>Terraforming AWS: Part II — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/terraforming-aws-part-ii/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Terraforming AWS: Part II</h1>
+            <p class="meta"><time datetime="2019-11-13">November 13, 2019</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">Clone the companion project to follow along…</a></p>
+<p>In Part I of this series [/blog/posts/terraforming-aws-part-i], we worked
 through a lot of AWS fundamentals and bootstrapped a network including custom
 VPC, public and private subnets and route tables. Thanks to that foundation,
 this and subsequent parts will be able to focus on more condensed
-code and make quicker progress.</p><p>In this tutorial, we can move onto something more exciting: <a href=https://aws.amazon.com/ec2>EC2</a>
-(Elastic Compute Cloud) and <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html>ALB</a>
-(Application Load Balancing). If these are new concepts, don&rsquo;t worry! We&rsquo;ll give
+code and make quicker progress.</p>
+<p>In this tutorial, we can move onto something more exciting: <a href="https://aws.amazon.com/ec2">EC2</a>
+(Elastic Compute Cloud) and <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">ALB</a>
+(Application Load Balancing). If these are new concepts, don’t worry! We’ll give
 a quick intro before we dive into provisioning resources with Terraform. First,
-let&rsquo;s recall the diagram of our simple project:</p><p><img src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-ii-1.png?raw=true" alt="Our Goal"></p><h2 id=concepts>Concepts</h2><p>Our goal is to create a couple load balanced Linux servers. As AWS&rsquo; &ldquo;VM as a
-Service&rdquo; offering, a natural starting point might seem like creating EC2
+let’s recall the diagram of our simple project:</p>
+<p><img alt="Our Goal" decoding="async" loading="lazy" src="https://github.com/deadlysyn/www/blob/main/img/terraforming-aws-part-ii-1.png?raw=true"/></p>
+<h3 id="concepts">Concepts</h3>
+<p>Our goal is to create a couple load balanced Linux servers. As AWS’ “VM as a
+Service” offering, a natural starting point might seem like creating EC2
 instances. Terraform does make that very easy (I am not repeating steps such as
-<a href=https://www.terraform.io/docs/providers/index.html>provider configuration</a>
-covered in <a href=/blog/posts/terraforming-aws-part-i>Part I</a>,
-refer to <a href=https://gitlab.com/deadlysyn/terraform-lamp-aws>the sample project</a>
-as needed):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_instance&#34; &#34;example&#34;</span> {
-</span></span><span style=display:flex><span>  ami           <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>aws_ami</span>
-</span></span><span style=display:flex><span>  instance_type <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;t2.micro&#34;</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>With just a few lines, we could spin up a VM&mldr; then
+<a href="https://www.terraform.io/docs/providers/index.html">provider configuration</a>
+covered in <a href="/blog/posts/terraforming-aws-part-i/">Part I</a>,
+refer to <a href="https://gitlab.com/deadlysyn/terraform-lamp-aws">the sample project</a>
+as needed):</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_instance"</span> <span class="tok-nv">"example"</span> <span class="tok-p">{</span>
+  <span class="tok-na">ami</span>           <span class="tok-o">=</span> <span class="tok-nv">var.aws_ami</span>
+  <span class="tok-na">instance_type</span> <span class="tok-o">=</span> <span class="tok-s2">"t2.micro"</span>
+<span class="tok-p">}</span></code></pre>
+<p>With just a few lines, we could spin up a VM… then
 simply use <code>count</code> or copy/paste to add as many instances as needed. As you can
 imagine, there are a few challenges with this approach. In this simple example,
-we&rsquo;ve hard-coded the instance type which reduces flexibility. We pass in an AMI
-<a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html>Amazon Machine Image</a>, how EC2
+we’ve hard-coded the instance type which reduces flexibility. We pass in an AMI
+<a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html">Amazon Machine Image</a>, how EC2
 instances consume operating systems) as a variable, but this would be brittle
 because AMIs can vary across regions. Lastly, even though the iterative approach
 with <code>count</code> would be DRYer, it would still be static configuration requiring hand
-edits to scale beyond initial capacity and doing nothing to address HA.</p><p>To solve those challenges, we need to incorporate auto scaling and load
+edits to scale beyond initial capacity and doing nothing to address HA.</p>
+<p>To solve those challenges, we need to incorporate auto scaling and load
 balancing. These concepts allow us to shrink and expand EC2 instances and
 distribute traffic amongst them. Historically, load balancing consisted solely
 of ELB (Elastic Load Balancing), but has evolved into NLB (Network Load
 Balancing) and ALB (Application Load Balancing). The original incantation is
 lesser used, and often referred to as Classic Load Balancing. For newer
 environments, you will want ALB (Layer 7) or NLB (Layer 4), since they offer
-more features and better performance. <a href=https://aws.amazon.com/elasticloadbalancing>Refer to the documentatoin for a full comparison</a>.</p><p>With EC2 instances, AMIs and an ALB, we are almost ready to begin spinning up
-our simple web cluster&mldr; The one other primitive we need to understand is the
-<a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html>Security Group</a>.
+more features and better performance. <a href="https://aws.amazon.com/elasticloadbalancing">Refer to the documentatoin for a full comparison</a>.</p>
+<p>With EC2 instances, AMIs and an ALB, we are almost ready to begin spinning up
+our simple web cluster… The one other primitive we need to understand is the
+<a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html">Security Group</a>.
 Security groups can be associated with VPCs or EC2 instances, and act as virtual
-firewalls (think <a href=https://en.wikipedia.org/wiki/Iptables>iptables</a> rules).
+firewalls (think <a href="https://en.wikipedia.org/wiki/Iptables">iptables</a> rules).
 Mentioned briefly in Part I but repeated here since it is a common source of
 confusion, by default AWS requires you to specifically allow ingress traffic but
 allows all egress. However, Terraform takes a more secure stance and removes the
 default egress rule. This means you need to explicitly configure both ingress
-and egress rules for any resources managed by Terraform.</p><h2 id=putting-it-together>Putting it Together</h2><p>To get our instances up and running, we need to select an AMI for them to run.
-In production, this could be a custom image built with <a href=https://www.packer.io/intro/index.html>HashiCorp&rsquo;s Packer</a>,
+and egress rules for any resources managed by Terraform.</p>
+<h3 id="putting-it-together">Putting it Together</h3>
+<p>To get our instances up and running, we need to select an AMI for them to run.
+In production, this could be a custom image built with <a href="https://www.packer.io/intro/index.html">HashiCorp’s Packer</a>,
 but AWS provides a number of pre-baked
 images for common distributions. The problem is, these images can vary across
 regions. If we want to use a public image while ensuring it remains up to date
-and works consistently, we can leverage a data source:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>data</span> <span style=color:#e6db74>&#34;aws_ami&#34; &#34;ubuntu&#34;</span> {
-</span></span><span style=display:flex><span>  most_recent <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>filter</span> {
-</span></span><span style=display:flex><span>    name   <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;name&#34;</span>
-</span></span><span style=display:flex><span>    values <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>filter</span> {
-</span></span><span style=display:flex><span>    name   <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;virtualization-type&#34;</span>
-</span></span><span style=display:flex><span>    values <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;hvm&#34;</span>]
-</span></span><span style=display:flex><span>  }<span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # Canonical
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  owners <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;099720109477&#34;</span>]
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>This is a powerful concept&mldr; You can tweak or expand the
+and works consistently, we can leverage a data source:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">data</span> <span class="tok-nc">"aws_ami"</span> <span class="tok-nv">"ubuntu"</span> <span class="tok-p">{</span>
+  <span class="tok-na">most_recent</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+
+  <span class="tok-nb">filter</span> <span class="tok-p">{</span>
+    <span class="tok-na">name</span>   <span class="tok-o">=</span> <span class="tok-s2">"name"</span>
+    <span class="tok-na">values</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">filter</span> <span class="tok-p">{</span>
+    <span class="tok-na">name</span>   <span class="tok-o">=</span> <span class="tok-s2">"virtualization-type"</span>
+    <span class="tok-na">values</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"hvm"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-c1">  # Canonical</span>
+  <span class="tok-na">owners</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"099720109477"</span><span class="tok-p">]</span>
+<span class="tok-p">}</span></code></pre>
+<p>This is a powerful concept… You can tweak or expand the
 filters as needed to get the desired result. For our simple case, this selects
-the latest Ubuntu AMI.</p><p>We said we were going to avoid provisioning explicit EC2 instances and let AWS
+the latest Ubuntu AMI.</p>
+<p>We said we were going to avoid provisioning explicit EC2 instances and let AWS
 handle that for us via auto scaling. As we saw with networking, building larger
 things with AWS involves bolting many smaller pieces together. The first thing
-we need is a <a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html>Launch Configuration</a>.
+we need is a <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html">Launch Configuration</a>.
 In Terraform, <code>aws_launch_configuration</code> is configured very similarly to
-<code>aws_instance</code> since it manages EC2 instances for us. Let&rsquo;s see an example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_security_group&#34; &#34;http_ingress_instance&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>ingress</span> {
-</span></span><span style=display:flex><span>    from_port   <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_port</span>
-</span></span><span style=display:flex><span>    to_port     <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_port</span>
-</span></span><span style=display:flex><span>    protocol    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;tcp&#34;</span>
-</span></span><span style=display:flex><span>    cidr_blocks <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>egress</span> {
-</span></span><span style=display:flex><span>    from_port   <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>    to_port     <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>    protocol    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;-1&#34;</span>
-</span></span><span style=display:flex><span>    cidr_blocks <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-http-ingress-instance-sg&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_launch_configuration&#34; &#34;lc&#34;</span> {<span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # avoid static name so resource can be updated
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  name_prefix     <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-&#34;</span>
-</span></span><span style=display:flex><span>  image_id        <span style=color:#f92672>=</span> <span style=color:#66d9ef>data</span>.<span style=color:#66d9ef>aws_ami</span>.<span style=color:#66d9ef>ubuntu</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  instance_type   <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_instance_type</span>
-</span></span><span style=display:flex><span>  security_groups <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_security_group</span>.<span style=color:#66d9ef>http_ingress_instance</span>.<span style=color:#66d9ef>id</span>]
-</span></span><span style=display:flex><span>  user_data <span style=color:#f92672>=</span> <span style=color:#66d9ef>templatefile</span>(<span style=color:#e6db74>&#34;userdata.sh&#34;</span>, {
-</span></span><span style=display:flex><span>    web_port    <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_port</span>,
-</span></span><span style=display:flex><span>    web_message <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_message</span>,
-</span></span><span style=display:flex><span>    db_endpoint <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>endpoint</span>,
-</span></span><span style=display:flex><span>    db_name     <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>name</span>,
-</span></span><span style=display:flex><span>    db_username <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>username</span>,
-</span></span><span style=display:flex><span>    db_status   <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_db_instance</span>.<span style=color:#66d9ef>rds</span>.<span style=color:#66d9ef>status</span>
-</span></span><span style=display:flex><span>  })
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>The launch configuration will
+<code>aws_instance</code> since it manages EC2 instances for us. Let’s see an example:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_security_group"</span> <span class="tok-nv">"http_ingress_instance"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+
+  <span class="tok-nb">ingress</span> <span class="tok-p">{</span>
+    <span class="tok-na">from_port</span>   <span class="tok-o">=</span> <span class="tok-nv">var.web_port</span>
+    <span class="tok-na">to_port</span>     <span class="tok-o">=</span> <span class="tok-nv">var.web_port</span>
+    <span class="tok-na">protocol</span>    <span class="tok-o">=</span> <span class="tok-s2">"tcp"</span>
+    <span class="tok-na">cidr_blocks</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"0.0.0.0/0"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">egress</span> <span class="tok-p">{</span>
+    <span class="tok-na">from_port</span>   <span class="tok-o">=</span> <span class="tok-m">0</span>
+    <span class="tok-na">to_port</span>     <span class="tok-o">=</span> <span class="tok-m">0</span>
+    <span class="tok-na">protocol</span>    <span class="tok-o">=</span> <span class="tok-s2">"-1"</span>
+    <span class="tok-na">cidr_blocks</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"0.0.0.0/0"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-http-ingress-instance-sg"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_launch_configuration"</span> <span class="tok-nv">"lc"</span> <span class="tok-p">{</span>
+<span class="tok-c1">  # avoid static name so resource can be updated</span>
+  <span class="tok-na">name_prefix</span>     <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-"</span>
+  <span class="tok-na">image_id</span>        <span class="tok-o">=</span> <span class="tok-nv">data.aws_ami.ubuntu.id</span>
+  <span class="tok-na">instance_type</span>   <span class="tok-o">=</span> <span class="tok-nv">var.web_instance_type</span>
+  <span class="tok-na">security_groups</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_security_group.http_ingress_instance.id</span><span class="tok-p">]</span>
+  <span class="tok-na">user_data</span> <span class="tok-o">=</span> <span class="tok-nf">templatefile</span><span class="tok-p">(</span><span class="tok-s2">"userdata.sh"</span><span class="tok-p">,</span> <span class="tok-p">{</span>
+    <span class="tok-na">web_port</span>    <span class="tok-o">=</span> <span class="tok-nv">var.web_port</span><span class="tok-p">,</span>
+    <span class="tok-na">web_message</span> <span class="tok-o">=</span> <span class="tok-nv">var.web_message</span><span class="tok-p">,</span>
+    <span class="tok-na">db_endpoint</span> <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.endpoint</span><span class="tok-p">,</span>
+    <span class="tok-na">db_name</span>     <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.name</span><span class="tok-p">,</span>
+    <span class="tok-na">db_username</span> <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.username</span><span class="tok-p">,</span>
+    <span class="tok-na">db_status</span>   <span class="tok-o">=</span> <span class="tok-nv">aws_db_instance.rds.status</span>
+  <span class="tok-p">})</span>
+<span class="tok-p">}</span></code></pre>
+<p>The launch configuration will
 attach specified security groups to instances it provisions to control access,
 so we create <code>http_ingress_instance</code> and associate it to our VPC (without
-specifying <code>vpc_id</code>, it would be associated with the project&rsquo;s default VPC). The
+specifying <code>vpc_id</code>, it would be associated with the project’s default VPC). The
 security group just allows traffic on <code>var.web_port</code> (in <code>variables.tf</code>). The egress
 rule with <code>from_port</code> and <code>to_port</code> set to <code>0</code> and <code>protocol = "-1"</code> is an idiom
-to allow all ports and protocols (you can&rsquo;t use <code>any</code> with Terraform).</p><p>Important to note, we avoid using <code>name</code> for <code>aws_launch_configuration</code>. This is
+to allow all ports and protocols (you can’t use <code>any</code> with Terraform).</p>
+<p>Important to note, we avoid using <code>name</code> for <code>aws_launch_configuration</code>. This is
 because our goal is high availability. If we were to specify a static <code>name</code>, the
 resource could be replaced (vs updated) by Terraform in the future after scaling
-events and cause outages. This combined with the <code>lifecycle</code> block we&rsquo;ll see later
+events and cause outages. This combined with the <code>lifecycle</code> block we’ll see later
 ensures Terraform spins up new instances and migrates traffic to them before
-tearing down existing resources.</p><p><code>image_id</code> points to our AMI, which is conveniently provided by our data source.
-Within the OS image, a <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html>User Data</a>
+tearing down existing resources.</p>
+<p><code>image_id</code> points to our AMI, which is conveniently provided by our data source.
+Within the OS image, a <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html">User Data</a>
 script is used for configuration. You could provide a pre-baked image as a means of
 configuration, but user data can be useful for small tweaks or configuration of
 public images. The <code>templatefile</code> function lets us substitute content we provide
-via variables into template strings within our script:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e>#!/bin/bash
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>cat &gt;index.html <span style=color:#e6db74>&lt;&lt;EOF
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;html&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;head&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;title&gt;Welcome Page&lt;/title&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/head&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;body&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;h1&gt;${web_message}&lt;/h1&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;ul&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;RDS endpoint:&lt;/b&gt; &lt;pre&gt;${db_endpoint}&lt;/pre&gt;&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database name:&lt;/b&gt; &lt;pre&gt;${db_name}&lt;/pre&gt;&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database user:&lt;/b&gt; &lt;pre&gt;${db_username}&lt;/pre&gt;&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database password:&lt;/b&gt; &lt;pre&gt;Yeah right! :-)&lt;/pre&gt;&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &lt;li&gt;&lt;b&gt;Database status:&lt;/b&gt; &lt;pre&gt;${db_status}&lt;/pre&gt;&lt;/li&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &lt;/ul&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/body&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/html&gt;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>nohup busybox httpd -f -p <span style=color:#e6db74>${</span>web_port<span style=color:#e6db74>}</span> &amp;
-</span></span></code></pre></div><p>To avoid needing to access the Internet and
+via variables into template strings within our script:</p>
+<pre tabindex="0"><code class="language-bash"><span class="tok-ch">#!/bin/bash</span>
+
+cat &gt;index.html <span class="tok-s">&lt;&lt;EOF</span>
+<span class="tok-s">&lt;html&gt;</span>
+<span class="tok-s">&lt;head&gt;</span>
+<span class="tok-s">  &lt;title&gt;Welcome Page&lt;/title&gt;</span>
+<span class="tok-s">&lt;/head&gt;</span>
+<span class="tok-s">&lt;body&gt;</span>
+<span class="tok-s">  &lt;h1&gt;${web_message}&lt;/h1&gt;</span>
+<span class="tok-s">  &lt;ul&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;RDS endpoint:&lt;/b&gt; &lt;pre&gt;${db_endpoint}&lt;/pre&gt;&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database name:&lt;/b&gt; &lt;pre&gt;${db_name}&lt;/pre&gt;&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database user:&lt;/b&gt; &lt;pre&gt;${db_username}&lt;/pre&gt;&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database password:&lt;/b&gt; &lt;pre&gt;Yeah right! :-)&lt;/pre&gt;&lt;/li&gt;</span>
+<span class="tok-s">    &lt;li&gt;&lt;b&gt;Database status:&lt;/b&gt; &lt;pre&gt;${db_status}&lt;/pre&gt;&lt;/li&gt;</span>
+<span class="tok-s">  &lt;/ul&gt;</span>
+<span class="tok-s">&lt;/body&gt;</span>
+<span class="tok-s">&lt;/html&gt;</span>
+<span class="tok-s">EOF</span>
+
+nohup busybox httpd -f -p <span class="tok-si">${</span><span class="tok-nv">web_port</span><span class="tok-si">}</span> <span class="tok-p">&amp;</span></code></pre>
+<p>To avoid needing to access the Internet and
 install dependencies in our starter project (which would necessitate route table
-associations for our private subnets), we simply fire up <a href=https://www.busybox.net>BusyBox</a>
-to serve our content. We&rsquo;ll see where the <a href=https://aws.amazon.com/rds>RDS</a>
-details come from in a later article.</p><p>Now that we have a working launch config, we can build an <a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/AutoScalingGroup.html>Auto Scaling Group</a>
+associations for our private subnets), we simply fire up <a href="https://www.busybox.net">BusyBox</a>
+to serve our content. We’ll see where the <a href="https://aws.amazon.com/rds">RDS</a>
+details come from in a later article.</p>
+<p>Now that we have a working launch config, we can build an <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/AutoScalingGroup.html">Auto Scaling Group</a>
 (ASG) to leverage it. This is where the real magic begins, letting us specify
 minimum and maximum instance counts to control our dynamic cluster. We also need
 to link the ASG to the private subnets we created in Part I, letting it know
-where to create resources (note the <code>*</code> or &ldquo;splat&rdquo; syntax since we created
-several subnets spanning all AZs in our region):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_autoscaling_group&#34; &#34;asg&#34;</span> {<span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # Avoid static name so resource can be updated.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  name_prefix               <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-asg-&#34;</span>
-</span></span><span style=display:flex><span>  min_size                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_count_min</span>
-</span></span><span style=display:flex><span>  max_size                  <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_count_max</span>
-</span></span><span style=display:flex><span>  desired_capacity          <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_count_min</span>
-</span></span><span style=display:flex><span>  default_cooldown          <span style=color:#f92672>=</span> <span style=color:#ae81ff>60</span>
-</span></span><span style=display:flex><span>  health_check_grace_period <span style=color:#f92672>=</span> <span style=color:#ae81ff>120</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  launch_configuration <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_launch_configuration</span>.<span style=color:#66d9ef>lc</span>.<span style=color:#66d9ef>name</span>
-</span></span><span style=display:flex><span>  vpc_zone_identifier  <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_subnet</span>.<span style=color:#66d9ef>private_subnets</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  target_group_arns     <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_lb_target_group</span>.<span style=color:#66d9ef>tg</span>.<span style=color:#66d9ef>arn</span>]
-</span></span><span style=display:flex><span>  health_check_type     <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;ELB&#34;</span>
-</span></span><span style=display:flex><span>  wait_for_elb_capacity <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>lifecycle</span> {
-</span></span><span style=display:flex><span>    create_before_destroy <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>tag</span> {
-</span></span><span style=display:flex><span>    key                 <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Name&#34;</span>
-</span></span><span style=display:flex><span>    value               <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-instance&#34;</span>
-</span></span><span style=display:flex><span>    propagate_at_launch <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><blockquote><p>Be careful with <code>default_cooldown</code> and <code>health_check_grace_period</code> – setting a value
-that is too low for <a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/Cooldown.html>auto scaling cooldown</a>
-can make you scale too early, while a value that is too low for the <a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html>health check grace period</a>
+where to create resources (note the <code>*</code> or “splat” syntax since we created
+several subnets spanning all AZs in our region):</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_autoscaling_group"</span> <span class="tok-nv">"asg"</span> <span class="tok-p">{</span>
+<span class="tok-c1">  # Avoid static name so resource can be updated.</span>
+  <span class="tok-na">name_prefix</span>               <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-asg-"</span>
+  <span class="tok-na">min_size</span>                  <span class="tok-o">=</span> <span class="tok-nv">var.web_count_min</span>
+  <span class="tok-na">max_size</span>                  <span class="tok-o">=</span> <span class="tok-nv">var.web_count_max</span>
+  <span class="tok-na">desired_capacity</span>          <span class="tok-o">=</span> <span class="tok-nv">var.web_count_min</span>
+  <span class="tok-na">default_cooldown</span>          <span class="tok-o">=</span> <span class="tok-m">60</span>
+  <span class="tok-na">health_check_grace_period</span> <span class="tok-o">=</span> <span class="tok-m">120</span>
+
+  <span class="tok-na">launch_configuration</span> <span class="tok-o">=</span> <span class="tok-nv">aws_launch_configuration.lc.name</span>
+  <span class="tok-na">vpc_zone_identifier</span>  <span class="tok-o">=</span> <span class="tok-nv">aws_subnet.private_subnets</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id
+
+  <span class="tok-na">target_group_arns</span>     <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_lb_target_group.tg.arn</span><span class="tok-p">]</span>
+  <span class="tok-na">health_check_type</span>     <span class="tok-o">=</span> <span class="tok-s2">"ELB"</span>
+  <span class="tok-na">wait_for_elb_capacity</span> <span class="tok-o">=</span> <span class="tok-m">1</span>
+
+  <span class="tok-nb">lifecycle</span> <span class="tok-p">{</span>
+    <span class="tok-na">create_before_destroy</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">tag</span> <span class="tok-p">{</span>
+    <span class="tok-na">key</span>                 <span class="tok-o">=</span> <span class="tok-s2">"Name"</span>
+    <span class="tok-na">value</span>               <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-instance"</span>
+    <span class="tok-na">propagate_at_launch</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<blockquote><p>Be careful with <code>default_cooldown</code> and <code>health_check_grace_period</code> – setting a value
+that is too low for <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/Cooldown.html">auto scaling cooldown</a>
+can make you scale too early, while a value that is too low for the <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html">health check grace period</a>
 may cause additional instances to be created while waiting on bootstrapping.
-Either of these will increase your costs!</p></blockquote><p>We mentioned <code>lifecycle above</code>, a <a href=https://www.terraform.io/docs/configuration/resources.html#lifecycle-lifecycle-customizations>meta block</a>
-which ensures all instances are not torn down at once during updates. <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html>Target Groups</a>
+Either of these will increase your costs!</p>
+</blockquote>
+<p>We mentioned <code>lifecycle above</code>, a <a href="https://www.terraform.io/docs/configuration/resources.html#lifecycle-lifecycle-customizations">meta block</a>
+which ensures all instances are not torn down at once during updates. <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html">Target Groups</a>
 are a new concept we still need to configure, but as the name implies it simply
 specifies a set of targets to handle traffic. You can use default AWS instance
-<a href=https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html>health checks</a>
-to enable routing of traffic, but leveraging ELB&rsquo;s higher-level checks is more
+<a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html">health checks</a>
+to enable routing of traffic, but leveraging ELB’s higher-level checks is more
 flexible and provides better user experience. We also ensure at least one
 instance in the target group is passing health checks before routing traffic.
-Let&rsquo;s see the target group:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_lb_target_group&#34; &#34;tg&#34;</span> {
-</span></span><span style=display:flex><span>  vpc_id   <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>  port     <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_port</span>
-</span></span><span style=display:flex><span>  protocol <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;HTTP&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>health_check</span> {
-</span></span><span style=display:flex><span>    path    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;/&#34;</span>
-</span></span><span style=display:flex><span>    port    <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>web_port</span>
-</span></span><span style=display:flex><span>    matcher <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;200&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>lifecycle</span> {
-</span></span><span style=display:flex><span>    create_before_destroy <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-web-lb-tg&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Here you see the potential of
+Let’s see the target group:</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_lb_target_group"</span> <span class="tok-nv">"tg"</span> <span class="tok-p">{</span>
+  <span class="tok-na">vpc_id</span>   <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+  <span class="tok-na">port</span>     <span class="tok-o">=</span> <span class="tok-nv">var.web_port</span>
+  <span class="tok-na">protocol</span> <span class="tok-o">=</span> <span class="tok-s2">"HTTP"</span>
+
+  <span class="tok-nb">health_check</span> <span class="tok-p">{</span>
+    <span class="tok-na">path</span>    <span class="tok-o">=</span> <span class="tok-s2">"/"</span>
+    <span class="tok-na">port</span>    <span class="tok-o">=</span> <span class="tok-nv">var.web_port</span>
+    <span class="tok-na">matcher</span> <span class="tok-o">=</span> <span class="tok-s2">"200"</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">lifecycle</span> <span class="tok-p">{</span>
+    <span class="tok-na">create_before_destroy</span> <span class="tok-o">=</span> <span class="tok-no">true</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-web-lb-tg"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>Here you see the potential of
 custom health checks! We can add additional blocks, adjust paths and ports as
 needed, look for additional status codes (e.g. <code>matcher = "200,201"</code>), and
 customize thresholds (by default three failed probes are considered failure, and
 three successful probes are required to bring resources in service). In our
-simple case (and for stateless cloud-native applications), we don&rsquo;t need to
+simple case (and for stateless cloud-native applications), we don’t need to
 worry about sticky sessions. If you do, refer to the documentation for details
-on the <a href=https://www.terraform.io/docs/providers/aws/r/lb_target_group.html>stickiness block</a>.</p><p>Now we just need to configure the ALB itself. Defining the ALB resource is
-simple, but we also need a <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html>listener</a>
+on the <a href="https://www.terraform.io/docs/providers/aws/r/lb_target_group.html">stickiness block</a>.</p>
+<p>Now we just need to configure the ALB itself. Defining the ALB resource is
+simple, but we also need a <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html">listener</a>
 and another security group. Earlier we defined a security group which is
 attached to instances directly. This one will allow traffic into the ALB itself.
 Since ALBs are often exposed to the public Internet, they do not pass any
-traffic unless explicitly configured to do so (secure by default).</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_lb&#34; &#34;alb&#34;</span> {
-</span></span><span style=display:flex><span>  load_balancer_type <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;application&#34;</span>
-</span></span><span style=display:flex><span>  internal           <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>
-</span></span><span style=display:flex><span>  security_groups    <span style=color:#f92672>=</span> [<span style=color:#66d9ef>aws_security_group</span>.<span style=color:#66d9ef>http_ingress_lb</span>.<span style=color:#66d9ef>id</span>]
-</span></span><span style=display:flex><span>  subnets            <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_subnet</span>.<span style=color:#66d9ef>public_subnets</span>[<span style=color:#960050;background-color:#1e0010>*</span>].<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  tags <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>    &#34;Name&#34; <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-web-lb&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_lb_listener&#34; &#34;listener&#34;</span> {
-</span></span><span style=display:flex><span>  load_balancer_arn <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_lb</span>.<span style=color:#66d9ef>alb</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>  port              <span style=color:#f92672>=</span> <span style=color:#ae81ff>80</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>default_action</span> {
-</span></span><span style=display:flex><span>    target_group_arn <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_lb_target_group</span>.<span style=color:#66d9ef>tg</span>.<span style=color:#66d9ef>arn</span>
-</span></span><span style=display:flex><span>    type             <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;forward&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;aws_security_group&#34; &#34;http_ingress_lb&#34;</span> {
-</span></span><span style=display:flex><span>  name   <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;${var.env_name}-http-ingress-lb-sg&#34;</span>
-</span></span><span style=display:flex><span>  vpc_id <span style=color:#f92672>=</span> <span style=color:#66d9ef>aws_vpc</span>.<span style=color:#66d9ef>vpc</span>.<span style=color:#66d9ef>id</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>ingress</span> {
-</span></span><span style=display:flex><span>    from_port   <span style=color:#f92672>=</span> <span style=color:#ae81ff>80</span>
-</span></span><span style=display:flex><span>    to_port     <span style=color:#f92672>=</span> <span style=color:#ae81ff>80</span>
-</span></span><span style=display:flex><span>    protocol    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;tcp&#34;</span>
-</span></span><span style=display:flex><span>    cidr_blocks <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>egress</span> {
-</span></span><span style=display:flex><span>    from_port   <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>    to_port     <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>    protocol    <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;-1&#34;</span>
-</span></span><span style=display:flex><span>    cidr_blocks <span style=color:#f92672>=</span> [<span style=color:#e6db74>&#34;0.0.0.0/0&#34;</span>]
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Using the now familiar splat syntax, we associate
+traffic unless explicitly configured to do so (secure by default).</p>
+<pre tabindex="0"><code class="language-hcl"><span class="tok-kr">resource</span> <span class="tok-nc">"aws_lb"</span> <span class="tok-nv">"alb"</span> <span class="tok-p">{</span>
+  <span class="tok-na">load_balancer_type</span> <span class="tok-o">=</span> <span class="tok-s2">"application"</span>
+  <span class="tok-na">internal</span>           <span class="tok-o">=</span> <span class="tok-no">false</span>
+  <span class="tok-na">security_groups</span>    <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">aws_security_group.http_ingress_lb.id</span><span class="tok-p">]</span>
+  <span class="tok-na">subnets</span>            <span class="tok-o">=</span> <span class="tok-nv">aws_subnet.public_subnets</span><span class="tok-p">[</span>*<span class="tok-p">].</span>id
+
+  <span class="tok-nb">tags</span> <span class="tok-o">=</span> <span class="tok-p">{</span>
+    <span class="tok-s2">"Name"</span> <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-web-lb"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_lb_listener"</span> <span class="tok-nv">"listener"</span> <span class="tok-p">{</span>
+  <span class="tok-na">load_balancer_arn</span> <span class="tok-o">=</span> <span class="tok-nv">aws_lb.alb.arn</span>
+  <span class="tok-na">port</span>              <span class="tok-o">=</span> <span class="tok-m">80</span>
+
+  <span class="tok-nb">default_action</span> <span class="tok-p">{</span>
+    <span class="tok-na">target_group_arn</span> <span class="tok-o">=</span> <span class="tok-nv">aws_lb_target_group.tg.arn</span>
+    <span class="tok-na">type</span>             <span class="tok-o">=</span> <span class="tok-s2">"forward"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kr">resource</span> <span class="tok-nc">"aws_security_group"</span> <span class="tok-nv">"http_ingress_lb"</span> <span class="tok-p">{</span>
+  <span class="tok-na">name</span>   <span class="tok-o">=</span> <span class="tok-s2">"${var.env_name}-http-ingress-lb-sg"</span>
+  <span class="tok-na">vpc_id</span> <span class="tok-o">=</span> <span class="tok-nv">aws_vpc.vpc.id</span>
+
+  <span class="tok-nb">ingress</span> <span class="tok-p">{</span>
+    <span class="tok-na">from_port</span>   <span class="tok-o">=</span> <span class="tok-m">80</span>
+    <span class="tok-na">to_port</span>     <span class="tok-o">=</span> <span class="tok-m">80</span>
+    <span class="tok-na">protocol</span>    <span class="tok-o">=</span> <span class="tok-s2">"tcp"</span>
+    <span class="tok-na">cidr_blocks</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"0.0.0.0/0"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nb">egress</span> <span class="tok-p">{</span>
+    <span class="tok-na">from_port</span>   <span class="tok-o">=</span> <span class="tok-m">0</span>
+    <span class="tok-na">to_port</span>     <span class="tok-o">=</span> <span class="tok-m">0</span>
+    <span class="tok-na">protocol</span>    <span class="tok-o">=</span> <span class="tok-s2">"-1"</span>
+    <span class="tok-na">cidr_blocks</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-s2">"0.0.0.0/0"</span><span class="tok-p">]</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>Using the now familiar splat syntax, we associate
 our ALB with our public subnets. The listener configuration exposes port 80 and
 uses a default action to forward traffic to our target group. This is another
 powerful construct, since you can specify multiple action blocks for great
-flexibility in traffic routing.</p><h2 id=almost-there>Almost There</h2><p>We are getting very close to the target environment in our diagram above&mldr; We
+flexibility in traffic routing.</p>
+<h3 id="almost-there">Almost There</h3>
+<p>We are getting very close to the target environment in our diagram above… We
 now have a dynamic and scalable cluster of EC2 instances, leveraging AMIs in a
 portable way with custom user data, and high availability controlled via
-flexible health checks.</p><p>Next time we&rsquo;ll jump into DBaaS with AWS&rsquo; <a href=https://aws.amazon.com/rds>Relational Database Service</a>.
-We&rsquo;ll spin up a lightweight multi-AZ instance
+flexible health checks.</p>
+<p>Next time we’ll jump into DBaaS with AWS’ <a href="https://aws.amazon.com/rds">Relational Database Service</a>.
+We’ll spin up a lightweight multi-AZ instance
 fitting into the free tier, but also discuss considerations for hosting
 production databases. Be sure to keep an eye out for Part III, where we will
-wrap up our simple project with a fully functional website backed by MySQL.</p><p>Thanks for reading!</p></div></section></body></html>
+wrap up our simple project with a fully functional website backed by MySQL.</p>
+<p>Thanks for reading!</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/terraforming-aws-part-i/">Terraforming AWS: Part I</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/terraforming-aws-part-iii/">Terraforming AWS: Part III</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">November 13, 2019</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

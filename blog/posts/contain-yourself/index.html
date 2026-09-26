@@ -1,191 +1,293 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Contain Yourself</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Contain Yourself</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/containers>containers</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://github.com/deadlysyn/node-aws-ecs>Clone the project repo to follow along&mldr;</a></p><p>In <a href=/blog/posts/thinking-inside-the-box>part one of this series</a> we walked
-through using Docker to containerize a simple <a href=https://nodejs.org>Node.js</a> app
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the project repo to follow along…">
+    <meta name="date" content="2020-03-14">
+    <meta name="keywords" content="aws, containers">
+    <meta name="theme-color" content="#15130f">
+    <title>Contain Yourself — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/contain-yourself/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Contain Yourself</h1>
+            <p class="meta"><time datetime="2020-03-14">March 14, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://github.com/deadlysyn/node-aws-ecs">Clone the project repo to follow along…</a></p>
+<p>In <a href="/blog/posts/thinking-inside-the-box/">part one of this series</a> we walked
+through using Docker to containerize a simple <a href="https://nodejs.org">Node.js</a> app
 and verified our shiny new container worked as expected. Unfortunately,
-containers aren&rsquo;t much use if we can&rsquo;t get them deployed to start delighting
-users with the sheer awesomeness of our brilliant code.</p><p>In the container world, the path to production involves some sort of registry&mldr;
-While it sounds fancy, a registry isn&rsquo;t much different from the simple web
+containers aren’t much use if we can’t get them deployed to start delighting
+users with the sheer awesomeness of our brilliant code.</p>
+<p>In the container world, the path to production involves some sort of registry…
+While it sounds fancy, a registry isn’t much different from the simple web
 servers you historically used to host RPMs or DEBs (essentially just another
-tool to help you maintain the ITIL concept of a <a href=https://en.wikipedia.org/wiki/Definitive_software_library>Definitive Software Library</a>.
+tool to help you maintain the ITIL concept of a <a href="https://en.wikipedia.org/wiki/Definitive_software_library">Definitive Software Library</a>.
 At their heart
 they are still highly scalable web servers, conveniently tweaked to work with
 the Docker tool chain. You have a lot of choices when choosing a registry, and
-the right choice will depend on your requirements.</p><p>If you just want to get started quickly, the publicly hosted <a href=https://hub.docker.com>Docker Hub</a>
+the right choice will depend on your requirements.</p>
+<p>If you just want to get started quickly, the publicly hosted <a href="https://hub.docker.com">Docker Hub</a>
 is a common starting point. Even when self-hosting, you
 will often pull a lot of starter images from Docker Hub. When you need more
 control over where your images are stored and integration with custom tooling,
-commercial offerings such as <a href=https://www.sonatype.com/product-nexus-repository>Sonatype&rsquo;s Nexus Repository</a>
+commercial offerings such as <a href="https://www.sonatype.com/product-nexus-repository">Sonatype’s Nexus Repository</a>
 are available (full disclosure, I work there!). If already
-plugged into the AWS ecosystem, <a href=https://aws.amazon.com/ecr>Elastic Container Registry</a>
-(ECR) is a natural pairing for <a href=https://aws.amazon.com/ecs>Elastic Container Service</a>
+plugged into the AWS ecosystem, <a href="https://aws.amazon.com/ecr">Elastic Container Registry</a>
+(ECR) is a natural pairing for <a href="https://aws.amazon.com/ecs">Elastic Container Service</a>
 (ECS) apps. Since this series is focussed
-on shipping containerized apps atop ECS, let&rsquo;s walk through using ECR.</p><h2 id=detour>Detour</h2><p>Working with containers, the cloud, or most anything in a post <a href=https://12factor.net>Twelve-Factor App</a>
+on shipping containerized apps atop ECS, let’s walk through using ECR.</p>
+<h3 id="detour">Detour</h3>
+<p>Working with containers, the cloud, or most anything in a post <a href="https://12factor.net">Twelve-Factor App</a>
 world involves a lot of environmental manipulation. While
 not strictly related to AWS or ECR, I wanted to take a minute to briefly show
 how I reduce the effort it takes to maintain per-project environment settings.
-In the end this slight detour will be useful in our tour of ECR, since we&rsquo;ll use
-several convenience scripts which rely on environment variables.</p><p>There are several tools that can help us here&mldr; You might have used <a href=https://github.com/inishchith/autoenv%5D>autoenv</a>,
-be familiar with Node.js&rsquo; <code>.env</code> files (similar idea in different context), or
+In the end this slight detour will be useful in our tour of ECR, since we’ll use
+several convenience scripts which rely on environment variables.</p>
+<p>There are several tools that can help us here… You might have used <a href="https://github.com/inishchith/autoenv%5D">autoenv</a>,
+be familiar with Node.js’ <code>.env</code> files (similar idea in different context), or
 even have a custom setup letting you skip this entire section. In this project
-we&rsquo;ll use <a href=https://direnv.net>direnv</a>.
+we’ll use <a href="https://direnv.net">direnv</a>.
 The concept is very simple, but will save us a lot of time. A shell hook (read
-<a href=https://direnv.net/docs/hook.html>the installation docs</a> to get this right for
+<a href="https://direnv.net/docs/hook.html">the installation docs</a> to get this right for
 your specific shell) automatically sources configuration files as we change into
 directories, and unloads any exported variables when we leave those directories.
 This means we can save per-project settings in <code>.envrc</code> files and not have to
-remember all these details or waste time exporting them again and again!</p><p>Since this is an aside, I&rsquo;m not going to re-cover how to configure or use direnv
+remember all these details or waste time exporting them again and again!</p>
+<p>Since this is an aside, I’m not going to re-cover how to configure or use direnv
 – their site has good documentation you can follow for that. I only want to
 point out two things. First, as soon as you create a <code>.envrc</code>, you should also
-<code>echo .envrc >> .gitignore</code>. While everything in <code>.envrc</code> isn&rsquo;t necessarily secret,
-secrets often reside there. You want to be sure it&rsquo;s never committed to source
-control!</p><p>Last but not least, things which are truly secret may not need to reside
+<code>echo .envrc &gt;&gt; .gitignore</code>. While everything in <code>.envrc</code> isn’t necessarily secret,
+secrets often reside there. You want to be sure it’s never committed to source
+control!</p>
+<p>Last but not least, things which are truly secret may not need to reside
 directly in <code>.envrc</code>. For example, you could have truly sensitive things stored in
-something like <a href=https://docs.ansible.com/ansible/latest/user_guide/vault.html>Ansible Vault</a>,
+something like <a href="https://docs.ansible.com/ansible/latest/user_guide/vault.html">Ansible Vault</a>,
 then include
 commands in your direnv configuration to pull directly from Vault when exporting
 into the environment (and conveniently removing those bits when you leave the
-project&rsquo;s work directory).</p><p>For now, it&rsquo;s enough to know some of the &ldquo;magic&rdquo; you&rsquo;ll see happening below is
-thanks to direnv&mldr;</p><h2 id=pre-reqs>Pre-Reqs</h2><p>Similar to other AWS services, there are <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html>a few prerequisites needed before you
+project’s work directory).</p>
+<p>For now, it’s enough to know some of the “magic” you’ll see happening below is
+thanks to direnv…</p>
+<h3 id="pre-reqs">Pre-Reqs</h3>
+<p>Similar to other AWS services, there are <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html">a few prerequisites needed before you
 can interact with ECS or ECR</a>.
-I&rsquo;m not going to detail all of those here. For one thing, you probably already
-know them if you&rsquo;re reading this. For another, it would make this more of a book
-than a blog post. In case it&rsquo;s useful, I wanted to be explicit on a few things
-you&rsquo;ll need.</p><p>Aside from an AWS account, you should have an <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html#create-an-iam-user>IAM user or assumed role with administrator access</a>.
+I’m not going to detail all of those here. For one thing, you probably already
+know them if you’re reading this. For another, it would make this more of a book
+than a blog post. In case it’s useful, I wanted to be explicit on a few things
+you’ll need.</p>
+<p>Aside from an AWS account, you should have an <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html#create-an-iam-user">IAM user or assumed role with administrator access</a>.
 If you want to get more advanced and lock things down more than that, you can
 use the linked doc to specifically grant the permissions required to interact
 with ECS and ECR. The important thing is to adhere to the best practice of not
 using your root account, and being aware that whatever user you do use needs
-permission to access ECR (or nothing we try below will work).</p><p>If you&rsquo;re using <a href=https://docs.aws.amazon.com/ec2/index.html>EC2</a> for other
-things, you may already have a <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html>Key Pair</a>
-allowing you to SSH into instances. You won&rsquo;t have to worry about key pairs in
-this series, because we&rsquo;re going to ship our ECS app using <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html>the Fargate launch type</a>
+permission to access ECR (or nothing we try below will work).</p>
+<p>If you’re using <a href="https://docs.aws.amazon.com/ec2/index.html">EC2</a> for other
+things, you may already have a <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html">Key Pair</a>
+allowing you to SSH into instances. You won’t have to worry about key pairs in
+this series, because we’re going to ship our ECS app using <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html">the Fargate launch type</a>
 (leveraging AWS-managed shared infrastructure). If you decide to use the EC2
 launch type (hosting your containers on EC2 instances you manage), you will need
-an associated key pair for administrative tasks.</p><p>From a network perspective, you&rsquo;ll need a <a href=https://docs.aws.amazon.com/vpc/index.html>VPC</a>
-and <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html>Security Group</a>.
-For experimentation, assuming you haven&rsquo;t deleted it, you can just use the
-default VPC. For production services you&rsquo;ll likely want to create a dedicated
+an associated key pair for administrative tasks.</p>
+<p>From a network perspective, you’ll need a <a href="https://docs.aws.amazon.com/vpc/index.html">VPC</a>
+and <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html">Security Group</a>.
+For experimentation, assuming you haven’t deleted it, you can just use the
+default VPC. For production services you’ll likely want to create a dedicated
 VPC. Our container instances will need a security group which grants access to
 any ports we wish to expose. In our example this will just be HTTP over port
-80/tcp.</p><p>Since we&rsquo;re going to use some scripts which wrap the AWS CLI, you also need that
-<a href=https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html>installed</a>
+80/tcp.</p>
+<p>Since we’re going to use some scripts which wrap the AWS CLI, you also need that
+<a href="https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html">installed</a>
 and
-<a href=https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html>configured</a>.
-If you&rsquo;re on a Mac, the prior is as simple as <code>brew install awscli</code>. For the latter,
-just run <code>aws configure</code> and follow the prompts.</p><h2 id=interacting-with-ecr>Interacting with ECR</h2><p>Finally, the good stuff! Let&rsquo;s get the [app we containerized last time](/blog/posts/thinking-inside-the-box]
-pushed into ECR. Unfortunately we can&rsquo;t
-just <code>docker push</code>, since we&rsquo;ll need to figure out the right registry and how to
-authenticate&mldr; Luckily AWS makes this easy!</p><p>The default registry associated with a region and account can be be derived from
+<a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html">configured</a>.
+If you’re on a Mac, the prior is as simple as <code>brew install awscli</code>. For the latter,
+just run <code>aws configure</code> and follow the prompts.</p>
+<h3 id="interacting-with-ecr">Interacting with ECR</h3>
+<p>Finally, the good stuff! Let’s get the [app we containerized last time](/blog/posts/thinking-inside-the-box]
+pushed into ECR. Unfortunately we can’t
+just <code>docker push</code>, since we’ll need to figure out the right registry and how to
+authenticate… Luckily AWS makes this easy!</p>
+<p>The default registry associated with a region and account can be be derived from
 the account ID and region name. The AWS CLI provides a <code>get-login-password</code>
-command we can use to authenticate with the docker CLI.</p><p>Our <a href=https://gitlab.com/deadlysyn/node-aws-ecs>project repo</a> provides
+command we can use to authenticate with the docker CLI.</p>
+<p>Our <a href="https://gitlab.com/deadlysyn/node-aws-ecs">project repo</a> provides
 convenience scripts wrapping the requisite AWS commands. These rely on a few
-environment variables. As mentioned above, I&rsquo;ll be using direnv to auto-export
-needed bits. Here&rsquo;s my .envrc:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>export PROFILE<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;personal&#34;</span>
-</span></span><span style=display:flex><span>export REGION<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;us-east-2&#34;</span>
-</span></span><span style=display:flex><span>export AWS_ACCOUNT_ID<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;012345678901&#34;</span>
-</span></span><span style=display:flex><span>export REPO_URI<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world&#34;</span>
-</span></span></code></pre></div><p>If it&rsquo;s the first time you&rsquo;ve configured <code>.envrc</code>, you&rsquo;ll need to <code>direnv allow</code> to
+environment variables. As mentioned above, I’ll be using direnv to auto-export
+needed bits. Here’s my .envrc:</p>
+<pre tabindex="0"><code class="language-bash"><span class="tok-nb">export</span> <span class="tok-nv">PROFILE</span><span class="tok-o">=</span><span class="tok-s2">"personal"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">REGION</span><span class="tok-o">=</span><span class="tok-s2">"us-east-2"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">AWS_ACCOUNT_ID</span><span class="tok-o">=</span><span class="tok-s2">"012345678901"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">REPO_URI</span><span class="tok-o">=</span><span class="tok-s2">"012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world"</span></code></pre>
+<p>If it’s the first time you’ve configured <code>.envrc</code>, you’ll need to <code>direnv allow</code> to
 enable exporting its contents. This ensures random (untrusted) projects which
-include <code>.envrc</code> files can&rsquo;t easily pwn you! Once allowed, future exports will be
-automatic until the file contents change.</p><p>Don&rsquo;t worry, we&rsquo;ll see how to get the <code>REPO_URI</code>&mldr; but notice how the location of
+include <code>.envrc</code> files can’t easily pwn you! Once allowed, future exports will be
+automatic until the file contents change.</p>
+<p>Don’t worry, we’ll see how to get the <code>REPO_URI</code>… but notice how the location of
 our default registry is easily derived from our account ID and region? The
 provided <code>ecs-login</code> script simply wraps <code>get-login-password</code> and <code>docker login</code>
-(along with bits provided by <code>.envrc</code>) to simplify authentication:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ ./scripts/ecr-login
-</span></span><span style=display:flex><span>Login Succeeded
-</span></span></code></pre></div><p>Once authenticated, we&rsquo;re still not ready to push our image.
+(along with bits provided by <code>.envrc</code>) to simplify authentication:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ ./scripts/ecr-login</span>
+<span class="tok-go">Login Succeeded</span></code></pre>
+<p>Once authenticated, we’re still not ready to push our image.
 First, we need to create a repository to hold our image. This is similar to
 Docker Hub or other registries, where you have per-project or service-related
 repositories to keep images organized and appropriately secured. The <code>ecr</code>
 sub-command of the AWS CLI has a create-repository option for this. Since that
-requires a few arguments we don&rsquo;t want to remember each time, another wrapper
-helps&mldr; simply provide the name of the repository to create:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ ./scripts/ecr-create-repo hello-world
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    &#34;repository&#34;: {
-</span></span><span style=display:flex><span>        &#34;repositoryArn&#34;: &#34;arn:aws:ecr:us-east-2:012345678901:repository/hello-world&#34;,
-</span></span><span style=display:flex><span>        &#34;registryId&#34;: &#34;012345678901&#34;,
-</span></span><span style=display:flex><span>        &#34;repositoryName&#34;: &#34;hello-world&#34;,
-</span></span><span style=display:flex><span>        &#34;repositoryUri&#34;: &#34;012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world&#34;,
-</span></span><span style=display:flex><span>        &#34;createdAt&#34;: &#34;2020-03-14T20:35:54-04:00&#34;,
-</span></span><span style=display:flex><span>        &#34;imageTagMutability&#34;: &#34;MUTABLE&#34;,
-</span></span><span style=display:flex><span>        &#34;imageScanningConfiguration&#34;: {
-</span></span><span style=display:flex><span>            &#34;scanOnPush&#34;: true
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Now you see where we got <code>REPO_URI</code> – take the value of <code>repositoryUri</code> and add it
+requires a few arguments we don’t want to remember each time, another wrapper
+helps… simply provide the name of the repository to create:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ ./scripts/ecr-create-repo hello-world</span>
+<span class="tok-go">{</span>
+<span class="tok-go">    "repository": {</span>
+<span class="tok-go">        "repositoryArn": "arn:aws:ecr:us-east-2:012345678901:repository/hello-world",</span>
+<span class="tok-go">        "registryId": "012345678901",</span>
+<span class="tok-go">        "repositoryName": "hello-world",</span>
+<span class="tok-go">        "repositoryUri": "012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world",</span>
+<span class="tok-go">        "createdAt": "2020-03-14T20:35:54-04:00",</span>
+<span class="tok-go">        "imageTagMutability": "MUTABLE",</span>
+<span class="tok-go">        "imageScanningConfiguration": {</span>
+<span class="tok-go">            "scanOnPush": true</span>
+<span class="tok-go">        }</span>
+<span class="tok-go">    }</span>
+<span class="tok-go">}</span></code></pre>
+<p>Now you see where we got <code>REPO_URI</code> – take the value of <code>repositoryUri</code> and add it
 to your <code>.envrc</code> (as you saw above in mine). Be sure to <code>direnv allow</code> so <code>REPO_URI</code>
-can be used by our scripts below.</p><p>Now that we&rsquo;ve authenticated and have a repository created, the actual push is
+can be used by our scripts below.</p>
+<p>Now that we’ve authenticated and have a repository created, the actual push is
 entirely handled by Docker. I almost always end up getting the tag format wrong
-at least once or having to refer to <a href=https://docs.docker.com/engine/reference/commandline/image_tag>the documentation</a>
+at least once or having to refer to <a href="https://docs.docker.com/engine/reference/commandline/image_tag">the documentation</a>
 so use another script. This one takes a little longer to run since it has to transfer our image
 contents over the network, and takes the image name to push (remember how we
-created <code>node-aws-ecs-app</code> in <a href=/blog/posts/thinking-inside-the-box>the last part of this series</a>
-using <code>docker build</code>?):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ ./scripts/ecr-push-image node-aws-ecs-app
-</span></span><span style=display:flex><span>The push refers to repository [012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world]
-</span></span><span style=display:flex><span>41578a476644: Pushed
-</span></span><span style=display:flex><span>c0f1bc56f021: Pushed
-</span></span><span style=display:flex><span>a2790008003b: Pushed
-</span></span><span style=display:flex><span>6149ccf9029b: Pushed
-</span></span><span style=display:flex><span>45dee76bb180: Pushed
-</span></span><span style=display:flex><span>d8511336706e: Pushed
-</span></span><span style=display:flex><span>5280d2327565: Pushed
-</span></span><span style=display:flex><span>77d806cfa004: Pushed
-</span></span><span style=display:flex><span>930c8bc01816: Pushed
-</span></span><span style=display:flex><span>5216338b40a7: Pushed
-</span></span><span style=display:flex><span>latest: digest: sha256:bfa585daf12805676876acd680b82f7c090f82c468b0ddb3b58d368d6d52277b size: 2409
-</span></span></code></pre></div><p>By default the script just uses the <code>latest</code> tag, but you can provide a tag name
-as the second argument if you want to push a different version. Since it&rsquo;s only
+created <code>node-aws-ecs-app</code> in <a href="/blog/posts/thinking-inside-the-box/">the last part of this series</a>
+using <code>docker build</code>?):</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ ./scripts/ecr-push-image node-aws-ecs-app</span>
+<span class="tok-go">The push refers to repository [012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world]</span>
+<span class="tok-go">41578a476644: Pushed</span>
+<span class="tok-go">c0f1bc56f021: Pushed</span>
+<span class="tok-go">a2790008003b: Pushed</span>
+<span class="tok-go">6149ccf9029b: Pushed</span>
+<span class="tok-go">45dee76bb180: Pushed</span>
+<span class="tok-go">d8511336706e: Pushed</span>
+<span class="tok-go">5280d2327565: Pushed</span>
+<span class="tok-go">77d806cfa004: Pushed</span>
+<span class="tok-go">930c8bc01816: Pushed</span>
+<span class="tok-go">5216338b40a7: Pushed</span>
+<span class="tok-go">latest: digest: sha256:bfa585daf12805676876acd680b82f7c090f82c468b0ddb3b58d368d6d52277b size: 2409</span></code></pre>
+<p>By default the script just uses the <code>latest</code> tag, but you can provide a tag name
+as the second argument if you want to push a different version. Since it’s only
 a single command and the registry/image name (and more often done by a remote
-service – ECS in our case), I haven&rsquo;t wrapped <code>docker pull</code>. However, if you want
+service – ECS in our case), I haven’t wrapped <code>docker pull</code>. However, if you want
 to verify the image you just pushed is actually available (trust but verify!),
-you can:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ docker pull ${REPO_URI}:latest
-</span></span><span style=display:flex><span>latest: Pulling from hello-world
-</span></span><span style=display:flex><span>Digest: sha256:bfa585daf12805676876acd680b82f7c090f82c468b0ddb3b58d368d6d52277b
-</span></span><span style=display:flex><span>Status: Image is up to date for 012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest
-</span></span><span style=display:flex><span>012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest
-</span></span></code></pre></div><p>We&rsquo;ve officially published our sample app to ECR, so it
+you can:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ docker pull ${REPO_URI}:latest</span>
+<span class="tok-go">latest: Pulling from hello-world</span>
+<span class="tok-go">Digest: sha256:bfa585daf12805676876acd680b82f7c090f82c468b0ddb3b58d368d6d52277b</span>
+<span class="tok-go">Status: Image is up to date for 012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest</span>
+<span class="tok-go">012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest</span></code></pre>
+<p>We’ve officially published our sample app to ECR, so it
 can be pulled by ECS tasks to provide a real-world service! To clean things up
-and avoid any financial impact, we can easily remove our image and repository:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ ./scripts/ecr-delete-image hello-world
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    &#34;imageIds&#34;: [
-</span></span><span style=display:flex><span>        {
-</span></span><span style=display:flex><span>            &#34;imageDigest&#34;: &#34;sha256:bfa585daf12805676876acd680b82f7c090f82c468b0ddb3b58d368d6d52277b&#34;,
-</span></span><span style=display:flex><span>            &#34;imageTag&#34;: &#34;latest&#34;
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    ],
-</span></span><span style=display:flex><span>    &#34;failures&#34;: []
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ ./scripts/ecr-delete-repo hello-world
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    &#34;repository&#34;: {
-</span></span><span style=display:flex><span>        &#34;repositoryArn&#34;: &#34;arn:aws:ecr:us-east-2:012345678901:repository/hello-world&#34;,
-</span></span><span style=display:flex><span>        &#34;registryId&#34;: &#34;012345678901&#34;,
-</span></span><span style=display:flex><span>        &#34;repositoryName&#34;: &#34;hello-world&#34;,
-</span></span><span style=display:flex><span>        &#34;repositoryUri&#34;: &#34;012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world&#34;,
-</span></span><span style=display:flex><span>        &#34;createdAt&#34;: &#34;2020-03-14T20:35:54-04:00&#34;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>A note on our cleanup scripts&mldr; they are
+and avoid any financial impact, we can easily remove our image and repository:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ ./scripts/ecr-delete-image hello-world</span>
+<span class="tok-go">{</span>
+<span class="tok-go">    "imageIds": [</span>
+<span class="tok-go">        {</span>
+<span class="tok-go">            "imageDigest": "sha256:bfa585daf12805676876acd680b82f7c090f82c468b0ddb3b58d368d6d52277b",</span>
+<span class="tok-go">            "imageTag": "latest"</span>
+<span class="tok-go">        }</span>
+<span class="tok-go">    ],</span>
+<span class="tok-go">    "failures": []</span>
+<span class="tok-go">}</span>
+
+<span class="tok-go">❯ ./scripts/ecr-delete-repo hello-world</span>
+<span class="tok-go">{</span>
+<span class="tok-go">    "repository": {</span>
+<span class="tok-go">        "repositoryArn": "arn:aws:ecr:us-east-2:012345678901:repository/hello-world",</span>
+<span class="tok-go">        "registryId": "012345678901",</span>
+<span class="tok-go">        "repositoryName": "hello-world",</span>
+<span class="tok-go">        "repositoryUri": "012345678901.dkr.ecr.us-east-2.amazonaws.com/hello-world",</span>
+<span class="tok-go">        "createdAt": "2020-03-14T20:35:54-04:00"</span>
+<span class="tok-go">    }</span>
+<span class="tok-go">}</span></code></pre>
+<p>A note on our cleanup scripts… they are
 more liberal than you probably want to be in production. On the one hand, this
-is because we&rsquo;re testing in a sandbox. On the other, it&rsquo;s a good lesson to
-always read scripts before running them!</p><p>You can pass in a tag as the second argument to <code>ecr-delete-image</code>, but it
+is because we’re testing in a sandbox. On the other, it’s a good lesson to
+always read scripts before running them!</p>
+<p>You can pass in a tag as the second argument to <code>ecr-delete-image</code>, but it
 defaults to <code>latest</code> and uses <code>batch-delete-image</code> and <code>--image-ids</code> (maybe you want
 to require a tag name). <code>ecr-delete-repo</code> uses <code>--force</code>. This means the delete
 image step was technically not necessary, since the delete repo script would
 wipe out the repo even if it contained images (thankfully not default behavior).
-This makes for easy cleanup while experimenting, but might not be what you want.</p><p>The point of these wrappers was not so you could copy/paste. I&rsquo;d like you to be
+This makes for easy cleanup while experimenting, but might not be what you want.</p>
+<p>The point of these wrappers was not so you could copy/paste. I’d like you to be
 mindful of the wrapped commands, take time to understand how they work, and then
 tune them for your environment. The point is whether you use shell scripts,
-Ansible, Terraform or some other tool&mldr; Once you figure out how to solve a
+Ansible, Terraform or some other tool… Once you figure out how to solve a
 problem with the AWS console or CLI, you can automate the minutia to reduce
 future effort. Hopefully these give you a good starting point for your own
-scripts – just be aware of what they contain.</p><h2 id=next-steps>Next Steps</h2><p>With only a few commands we&rsquo;ve managed to push our sample app into the cloud.
-While not serving users just yet, we&rsquo;ve got our code in a container registry
-(ECR) accessible by ECS. In the next installment of this series we&rsquo;ll look at
-preparing the <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html>Task Definitions</a>
+scripts – just be aware of what they contain.</p>
+<h3 id="next-steps">Next Steps</h3>
+<p>With only a few commands we’ve managed to push our sample app into the cloud.
+While not serving users just yet, we’ve got our code in a container registry
+(ECR) accessible by ECS. In the next installment of this series we’ll look at
+preparing the <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">Task Definitions</a>
 which are used to define container instances we can expose as a bonafide
-service. Be sure to check back next time as we continue our ECS journey!</p><p>References</p><ul><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html>Setting Up with Amazon ECS</a></li><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_Console_Repositories.html>Amazon ECR Repositories</a></li><li><a href=https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html>Getting Started with Amazon ECR using the AWS CLI</a></li></ul></div></section></body></html>
+service. Be sure to check back next time as we continue our ECS journey!</p>
+<p>References</p>
+<ul><li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html">Setting Up with Amazon ECS</a></li><li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_Console_Repositories.html">Amazon ECR Repositories</a></li><li><a href="https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html">Getting Started with Amazon ECR using the AWS CLI</a></li></ul>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/containers/">containers(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/thinking-inside-the-box/">Thinking Inside the Box</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/lock-down/">Lock Down</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">March 14, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

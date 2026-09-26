@@ -1,37 +1,109 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>AWS WAF Module</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">AWS WAF Module</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/iac>iac</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/terraform>terraform</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><strong>NOTE:</strong> This includes <code>AWSManagedRulesKnownBadInputsRuleSet</code> by default,
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="NOTE: This includes AWSManagedRulesKnownBadInputsRuleSet by default, which AWS updated to mitigate the recent Log4j issue (CVE-2021-44228).">
+    <meta name="date" content="2021-12-10">
+    <meta name="keywords" content="aws, iac, oss, terraform">
+    <meta name="theme-color" content="#15130f">
+    <title>AWS WAF Module — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/aws-waf-module/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">AWS WAF Module</h1>
+            <p class="meta"><time datetime="2021-12-10">December 10, 2021</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><strong>NOTE:</strong> This includes <code>AWSManagedRulesKnownBadInputsRuleSet</code> by default,
 which AWS updated to mitigate the recent Log4j issue
-(<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228">CVE-2021-44228</a>).</p><p>Just released <a href=https://github.com/deadlysyn/terraform-aws-waf>a Terraform module</a>
-for <a href=https://docs.aws.amazon.com/waf>AWS WAF</a>. If you host &ldquo;standard&rdquo; web
+(<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228">CVE-2021-44228</a>).</p>
+<p>Just released <a href="https://github.com/deadlysyn/terraform-aws-waf">a Terraform module</a>
+for <a href="https://docs.aws.amazon.com/waf">AWS WAF</a>. If you host “standard” web
 services (atop something Linux-like), this takes an opinionated approach
-to save you time while providing enough flexibility for common use cases.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-terraform data-lang=terraform><span style=display:flex><span><span style=color:#66d9ef>module</span> <span style=color:#e6db74>&#34;waf&#34;</span> {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>source</span>                  = <span style=color:#e6db74>&#34;git::ssh://git@github.com/sonatype/terraform-aws-waf.git?ref=v0.0.1&#34;</span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>association_arns</span>        = [module.<span style=color:#a6e22e>foo</span>.<span style=color:#a6e22e>alb_arn</span>]
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>environment</span>             = var.<span style=color:#a6e22e>environment</span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span>                    = var.<span style=color:#a6e22e>name</span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>namespace</span>               = var.<span style=color:#a6e22e>namespace</span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>tags</span>                    = var.<span style=color:#a6e22e>tags</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>  # these have caused problems for legitimate queries, YMMV
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>common_ruleset_excludes</span> = [
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;GenericRFI_QUERYARGUMENTS&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;EC2MetaDataSSRF_QUERYARGUMENTS&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;EC2MetaDataSSRF_BODY&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;SizeRestrictions_BODY&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;CrossSiteScripting_QUERYARGUMENTS&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;NoUserAgent_HEADER&#34;</span>
-</span></span><span style=display:flex><span>  ]
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Associate your ALB, API Gateway, etc. ARNs (typical WAF-enabled resources),
+to save you time while providing enough flexibility for common use cases.</p>
+<pre tabindex="0"><code class="language-terraform"><span class="tok-kr">module</span> <span class="tok-nv">"waf"</span> <span class="tok-p">{</span>
+  <span class="tok-na">source</span>                  <span class="tok-o">=</span> <span class="tok-s2">"git::ssh://git@github.com/sonatype/terraform-aws-waf.git?ref=v0.0.1"</span>
+  <span class="tok-na">association_arns</span>        <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-nv">module.foo.alb_arn</span><span class="tok-p">]</span>
+  <span class="tok-na">environment</span>             <span class="tok-o">=</span> <span class="tok-nv">var.environment</span>
+  <span class="tok-na">name</span>                    <span class="tok-o">=</span> <span class="tok-nv">var.name</span>
+  <span class="tok-na">namespace</span>               <span class="tok-o">=</span> <span class="tok-nv">var.namespace</span>
+  <span class="tok-na">tags</span>                    <span class="tok-o">=</span> <span class="tok-nv">var.tags</span>
+
+<span class="tok-c1">  # these have caused problems for legitimate queries, YMMV</span>
+  <span class="tok-na">common_ruleset_excludes</span> <span class="tok-o">=</span> <span class="tok-p">[</span>
+    <span class="tok-s2">"GenericRFI_QUERYARGUMENTS"</span><span class="tok-p">,</span>
+    <span class="tok-s2">"EC2MetaDataSSRF_QUERYARGUMENTS"</span><span class="tok-p">,</span>
+    <span class="tok-s2">"EC2MetaDataSSRF_BODY"</span><span class="tok-p">,</span>
+    <span class="tok-s2">"SizeRestrictions_BODY"</span><span class="tok-p">,</span>
+    <span class="tok-s2">"CrossSiteScripting_QUERYARGUMENTS"</span><span class="tok-p">,</span>
+    <span class="tok-s2">"NoUserAgent_HEADER"</span>
+  <span class="tok-p">]</span>
+<span class="tok-p">}</span></code></pre>
+<p>Associate your ALB, API Gateway, etc. ARNs (typical WAF-enabled resources),
 generate test traffic, watch the WAF console for unexpected blocks,
-and <a href=https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html>adjust excludes as needed</a>.</p><p>This was a spike to flesh out adding modular web firewalling to
-<a href=https://github.com/deadlysyn/terraform-keycloak-aws>terraform-keycloak-aws</a>.
+and <a href="https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html">adjust excludes as needed</a>.</p>
+<p>This was a spike to flesh out adding modular web firewalling to
+<a href="https://github.com/deadlysyn/terraform-keycloak-aws">terraform-keycloak-aws</a>.
 As part of that, additional improvements will be added along with more
 real-world testing. If you have feature requests or find bugs,
-<a href=https://github.com/deadlysyn/terraform-aws-waf>browse the project repo</a>
-and feel free to submit PRs or open issues.</p></div></section></body></html>
+<a href="https://github.com/deadlysyn/terraform-aws-waf">browse the project repo</a>
+and feel free to submit PRs or open issues.</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/iac/">iac(7)</a>
+              <a href="/blog/tags/oss/">oss(7)</a>
+              <a href="/blog/tags/terraform/">terraform(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/retriever/">Introducing Retriever</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/beware-of-shadows/">Beware of Shadows</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">December 10, 2021</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

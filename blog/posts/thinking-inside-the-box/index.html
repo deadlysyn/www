@@ -1,241 +1,334 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Thinking Inside the Box</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Thinking Inside the Box</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/containers>containers</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/nodejs>nodejs</a></span></div></section><section class=section><div class="container is-max-desktop content"><p><a href=https://github.com/deadlysyn/node-aws-ecs>Clone the project repo to follow along&mldr;</a></p><p>This is going to be another multi-part series&mldr; I don&rsquo;t want to get too far
-ahead of myself, but the end goal is shipping a <a href=https://nodejs.org>Node.js</a> app
-using Amazon Web Service&rsquo;s <a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html>Elastic Container Service</a>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clone the project repo to follow along…">
+    <meta name="date" content="2020-03-08">
+    <meta name="keywords" content="aws, containers, nodejs">
+    <meta name="theme-color" content="#15130f">
+    <title>Thinking Inside the Box — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/thinking-inside-the-box/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Thinking Inside the Box</h1>
+            <p class="meta"><time datetime="2020-03-08">March 8, 2020</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p><a href="https://github.com/deadlysyn/node-aws-ecs">Clone the project repo to follow along…</a></p>
+<p>This is going to be another multi-part series… I don’t want to get too far
+ahead of myself, but the end goal is shipping a <a href="https://nodejs.org">Node.js</a> app
+using Amazon Web Service’s <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html">Elastic Container Service</a>
 (ECS). We have to crawl before we can walk (or run an app), so this first
 article will cover the basics of getting a simple Node app containerized (feel
-free to plug in whatever app you want).</p><p>If you haven&rsquo;t spent much time with containers, don&rsquo;t worry – we&rsquo;ll walk through
-everything you need to get started. By the end of this article we&rsquo;ll have a
-shiny new container we can use for our ECS experiments.</p><h2 id=test-app>Test App</h2><p>Since our focus is learning about ECS, we&rsquo;ll keep our Node app as simple as
-possible so it doesn&rsquo;t become a distraction. We&rsquo;ll use the popular <a href=https://expressjs.com>Express</a>
-framework, but any app should work similarly&mldr; Larger
-apps with more dependencies will just require additional steps (maybe we&rsquo;ll go
+free to plug in whatever app you want).</p>
+<p>If you haven’t spent much time with containers, don’t worry – we’ll walk through
+everything you need to get started. By the end of this article we’ll have a
+shiny new container we can use for our ECS experiments.</p>
+<h3 id="test-app">Test App</h3>
+<p>Since our focus is learning about ECS, we’ll keep our Node app as simple as
+possible so it doesn’t become a distraction. We’ll use the popular <a href="https://expressjs.com">Express</a>
+framework, but any app should work similarly… Larger
+apps with more dependencies will just require additional steps (maybe we’ll go
 over some of those in later articles). Of course we could create such a simple
 app without a framework, but having at least one dependency is more
-representative of a typical app and lets us show how to handle <code>package.json</code>.</p><p>For now, all we need from a Node perspective is a <code>package.json</code> describing our
+representative of a typical app and lets us show how to handle <code>package.json</code>.</p>
+<p>For now, all we need from a Node perspective is a <code>package.json</code> describing our
 project and a <code>server.js</code> with a single endpoint we can use for testing. If you
 cloned the project repo to follow along, you can just change into the cloned
 directory and <code>npm install</code>. Otherwise, create a new directory to keep things
-organized, then create the requisite files:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;node-aws-ecs&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;0.0.1&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;description&#34;</span>: <span style=color:#e6db74>&#34;Node.js on AWS ECS&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;author&#34;</span>: <span style=color:#e6db74>&#34;Mike Hoskins &lt;me@deadlysyn.com&gt;&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;license&#34;</span>: <span style=color:#e6db74>&#34;MIT&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;repository&#34;</span>: {
-</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;git&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;url&#34;</span>: <span style=color:#e6db74>&#34;git@gitlab.com:deadlysyn/node-aws-ecs.git&#34;</span>
-</span></span><span style=display:flex><span>  },
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;main&#34;</span>: <span style=color:#e6db74>&#34;server.js&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;scripts&#34;</span>: {
-</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;start&#34;</span>: <span style=color:#e6db74>&#34;node server.js&#34;</span>
-</span></span><span style=display:flex><span>  },
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;dependencies&#34;</span>: {
-</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;express&#34;</span>: <span style=color:#e6db74>&#34;^4.17.1&#34;</span>
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Once you create and save <code>package.json</code>, run <code>npm i</code> to initialize the project and
+organized, then create the requisite files:</p>
+<pre tabindex="0"><code class="language-json"><span class="tok-p">{</span>
+  <span class="tok-nt">"name"</span><span class="tok-p">:</span> <span class="tok-s2">"node-aws-ecs"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"version"</span><span class="tok-p">:</span> <span class="tok-s2">"0.0.1"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"description"</span><span class="tok-p">:</span> <span class="tok-s2">"Node.js on AWS ECS"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"author"</span><span class="tok-p">:</span> <span class="tok-s2">"Mike Hoskins &lt;me@deadlysyn.com&gt;"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"license"</span><span class="tok-p">:</span> <span class="tok-s2">"MIT"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"repository"</span><span class="tok-p">:</span> <span class="tok-p">{</span>
+    <span class="tok-nt">"type"</span><span class="tok-p">:</span> <span class="tok-s2">"git"</span><span class="tok-p">,</span>
+    <span class="tok-nt">"url"</span><span class="tok-p">:</span> <span class="tok-s2">"git@gitlab.com:deadlysyn/node-aws-ecs.git"</span>
+  <span class="tok-p">},</span>
+  <span class="tok-nt">"main"</span><span class="tok-p">:</span> <span class="tok-s2">"server.js"</span><span class="tok-p">,</span>
+  <span class="tok-nt">"scripts"</span><span class="tok-p">:</span> <span class="tok-p">{</span>
+    <span class="tok-nt">"start"</span><span class="tok-p">:</span> <span class="tok-s2">"node server.js"</span>
+  <span class="tok-p">},</span>
+  <span class="tok-nt">"dependencies"</span><span class="tok-p">:</span> <span class="tok-p">{</span>
+    <span class="tok-nt">"express"</span><span class="tok-p">:</span> <span class="tok-s2">"^4.17.1"</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+<p>Once you create and save <code>package.json</code>, run <code>npm i</code> to initialize the project and
 install our one lonely dependency.  With that, create <code>server.js</code> which will
-handle web requests with a static response:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#e6db74>&#39;use strict&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>express</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;express&#39;</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// Constants
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>PORT</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>8080</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>HOST</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;0.0.0.0&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// App
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>app</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>express</span>();
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>get</span>(<span style=color:#e6db74>&#39;/&#39;</span>, (<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>res</span>) =&gt; {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>send</span>(<span style=color:#e6db74>&#39;Hello World&#39;</span>);
-</span></span><span style=display:flex><span>});
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>app</span>.<span style=color:#a6e22e>listen</span>(<span style=color:#a6e22e>PORT</span>, <span style=color:#a6e22e>HOST</span>);
-</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Running on http://</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>HOST</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>PORT</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
-</span></span></code></pre></div><p>To test, just run <code>npm start</code> and then make sure you see <code>Hello World</code> when sending
-HTTP requests to <code>localhost:8080</code> (I&rsquo;m using <a href=https://httpie.org>HTTPie</a>, but feel
-free to use your favorite request generator such as curl or Postman):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ npm start
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>&gt; node-aws-ecs@0.0.1 start /Users/mhoskins/src/node-aws-ecs
-</span></span><span style=display:flex><span>&gt; node server.js
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>Running on http://0.0.0.0:8080
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span># ...
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ http -v :8080
-</span></span><span style=display:flex><span>GET / HTTP/1.1
-</span></span><span style=display:flex><span>Accept: */*
-</span></span><span style=display:flex><span>Accept-Encoding: gzip, deflate
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Host: localhost:8080
-</span></span><span style=display:flex><span>User-Agent: HTTPie/2.0.0
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>HTTP/1.1 200 OK
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Content-Length: 11
-</span></span><span style=display:flex><span>Content-Type: text/html; charset=utf-8
-</span></span><span style=display:flex><span>Date: Sun, 08 Mar 2020 20:40:01 GMT
-</span></span><span style=display:flex><span>ETag: W/&#34;b-Ck1VqNd45QIvq3AZd8XYQLvEhtA&#34;
-</span></span><span style=display:flex><span>X-Powered-By: Express
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>Hello World
-</span></span></code></pre></div><h2 id=container-definition>Container Definition</h2><p>Since it&rsquo;s 2020, I&rsquo;m not going to spend much time covering the ins and outs of
+handle web requests with a static response:</p>
+<pre tabindex="0"><code class="language-javascript"><span class="tok-s1">'use strict'</span><span class="tok-p">;</span>
+
+<span class="tok-kd">const</span> <span class="tok-nx">express</span> <span class="tok-o">=</span> <span class="tok-nx">require</span><span class="tok-p">(</span><span class="tok-s1">'express'</span><span class="tok-p">);</span>
+
+<span class="tok-c1">// Constants</span>
+<span class="tok-kd">const</span> <span class="tok-nx">PORT</span> <span class="tok-o">=</span> <span class="tok-mf">8080</span><span class="tok-p">;</span>
+<span class="tok-kd">const</span> <span class="tok-nx">HOST</span> <span class="tok-o">=</span> <span class="tok-s1">'0.0.0.0'</span><span class="tok-p">;</span>
+
+<span class="tok-c1">// App</span>
+<span class="tok-kd">const</span> <span class="tok-nx">app</span> <span class="tok-o">=</span> <span class="tok-nx">express</span><span class="tok-p">();</span>
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">get</span><span class="tok-p">(</span><span class="tok-s1">'/'</span><span class="tok-p">,</span> <span class="tok-p">(</span><span class="tok-nx">req</span><span class="tok-p">,</span> <span class="tok-nx">res</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">{</span>
+  <span class="tok-nx">res</span><span class="tok-p">.</span><span class="tok-nx">send</span><span class="tok-p">(</span><span class="tok-s1">'Hello World'</span><span class="tok-p">);</span>
+<span class="tok-p">});</span>
+
+<span class="tok-nx">app</span><span class="tok-p">.</span><span class="tok-nx">listen</span><span class="tok-p">(</span><span class="tok-nx">PORT</span><span class="tok-p">,</span> <span class="tok-nx">HOST</span><span class="tok-p">);</span>
+<span class="tok-nx">console</span><span class="tok-p">.</span><span class="tok-nx">log</span><span class="tok-p">(</span><span class="tok-sb">`Running on http://</span><span class="tok-si">${</span><span class="tok-nx">HOST</span><span class="tok-si">}</span><span class="tok-sb">:</span><span class="tok-si">${</span><span class="tok-nx">PORT</span><span class="tok-si">}</span><span class="tok-sb">`</span><span class="tok-p">);</span></code></pre>
+<p>To test, just run <code>npm start</code> and then make sure you see <code>Hello World</code> when sending
+HTTP requests to <code>localhost:8080</code> (I’m using <a href="https://httpie.org">HTTPie</a>, but feel
+free to use your favorite request generator such as curl or Postman):</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ npm start</span>
+
+<span class="tok-go">&gt; node-aws-ecs@0.0.1 start /Users/mhoskins/src/node-aws-ecs</span>
+<span class="tok-go">&gt; node server.js</span>
+
+<span class="tok-go">Running on http://0.0.0.0:8080</span>
+
+<span class="tok-gp"># </span>...
+
+<span class="tok-go">❯ http -v :8080</span>
+<span class="tok-go">GET / HTTP/1.1</span>
+<span class="tok-go">Accept: */*</span>
+<span class="tok-go">Accept-Encoding: gzip, deflate</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Host: localhost:8080</span>
+<span class="tok-go">User-Agent: HTTPie/2.0.0</span>
+
+<span class="tok-go">HTTP/1.1 200 OK</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Content-Length: 11</span>
+<span class="tok-go">Content-Type: text/html; charset=utf-8</span>
+<span class="tok-go">Date: Sun, 08 Mar 2020 20:40:01 GMT</span>
+<span class="tok-go">ETag: W/"b-Ck1VqNd45QIvq3AZd8XYQLvEhtA"</span>
+<span class="tok-go">X-Powered-By: Express</span>
+
+<span class="tok-go">Hello World</span></code></pre>
+<h3 id="container-definition">Container Definition</h3>
+<p>Since it’s 2020, I’m not going to spend much time covering the ins and outs of
 containers. There are already reams of documentation for that. Suffice to say, a
 container is kind of like a virtual box housing your application along with
-dependencies it needs to run. In our case we&rsquo;ll build our container using
-Docker, but keep in mind this is just <a href=https://containerjournal.com/topics/container-ecosystems/5-container-alternatives-to-docker>one option</a>.
-Docker isn&rsquo;t containers, it&rsquo;s just one of the more popular tools available!</p><p>To define Docker containers, we need a Dockerfile. Refer to the documentation
-for all the <a href=https://docs.docker.com/engine/reference/builder>gory details</a>, but
+dependencies it needs to run. In our case we’ll build our container using
+Docker, but keep in mind this is just <a href="https://containerjournal.com/topics/container-ecosystems/5-container-alternatives-to-docker">one option</a>.
+Docker isn’t containers, it’s just one of the more popular tools available!</p>
+<p>To define Docker containers, we need a Dockerfile. Refer to the documentation
+for all the <a href="https://docs.docker.com/engine/reference/builder">gory details</a>, but
 we only need a few lines to build something useful. The main keywords you
 routinely see are <code>FROM</code> which specifies a starting point to build upon (often
 another container image including a runtime environment), <code>RUN</code> for executing
 commands inside our container (useful for things like installing dependencies),
-<code>COPY</code> (how we&rsquo;ll get our source code into the container), <code>EXPOSE</code> (which, oddly
+<code>COPY</code> (how we’ll get our source code into the container), <code>EXPOSE</code> (which, oddly
 enough, EXPOSEs container ports to the outside world) and <code>CMD</code> (the command ran
-inside the container to serve our content).</p><p>Often, you will see <code>ENTRYPOINT</code> used as well. I&rsquo;m not going on a tangent about
-the differences between <a href=https://docs.docker.com/engine/reference/builder/#cmd>CMD</a>
-and <a href=https://docs.docker.com/engine/reference/builder/#entrypoint>ENTRYPOINT</a>
-since it&rsquo;s not relevant here, but be aware of how they interact.</p><p>Let&rsquo;s start with a working example, then explain a bit more:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Dockerfile data-lang=Dockerfile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> node:lts-alpine</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>LABEL</span> maintainer<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;me@deadlysyn.com&#34;</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Dependencies</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> apk update <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>      apk upgrade <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>      apk add curl<span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> NODE_ENV production<span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /app</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Ensure we get package-lock.json and take advantage of cache</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> package*.json ./<span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> npm ci --only<span style=color:#f92672>=</span>production<span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> --chown<span style=color:#f92672>=</span>999:999 src ./src<span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>USER</span><span style=color:#e6db74> node</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>EXPOSE</span><span style=color:#e6db74> 8080</span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>CMD</span> [ <span style=color:#e6db74>&#34;node&#34;</span>, <span style=color:#e6db74>&#34;./src/server.js&#34;</span> ]<span style=color:#960050;background-color:#1e0010>
-</span></span></span></code></pre></div><p>Our <code>FROM</code> pulls in the <a href=https://nodejs.org/en/about/releases>LTS version of Node</a>
-wrapped in <a href=https://www.alpinelinux.org>Alpine Linux</a> from <a href=https://hub.docker.com/_/node>Docker Hub</a>.
-This is a lightweight Linux distribution I&rsquo;m
-sure you&rsquo;ve heard of. You can use other variations, especially when testing, but
-less bloat means faster load times and Alpine is battle tested. Just as we&rsquo;d do
-with other variants, we pull in updates with the <code>apk</code> commands.</p><p>The next few lines configure <code>NODE_ENV</code> (a common trick allowing your app to
+inside the container to serve our content).</p>
+<p>Often, you will see <code>ENTRYPOINT</code> used as well. I’m not going on a tangent about
+the differences between <a href="https://docs.docker.com/engine/reference/builder/#cmd">CMD</a>
+and <a href="https://docs.docker.com/engine/reference/builder/#entrypoint">ENTRYPOINT</a>
+since it’s not relevant here, but be aware of how they interact.</p>
+<p>Let’s start with a working example, then explain a bit more:</p>
+<pre tabindex="0"><code class="language-dockerfile"><span class="tok-k">FROM</span> <span class="tok-s">node:lts-alpine</span>
+<span class="tok-k">LABEL</span> <span class="tok-nv">maintainer</span><span class="tok-o">=</span><span class="tok-s2">"me@deadlysyn.com"</span>
+
+<span class="tok-c"># Dependencies</span>
+<span class="tok-k">RUN</span> apk update <span class="tok-o">&amp;&amp;</span> <span class="tok-se">\</span>
+      apk upgrade <span class="tok-o">&amp;&amp;</span> <span class="tok-se">\</span>
+      apk add curl
+
+<span class="tok-k">ENV</span> NODE_ENV production
+<span class="tok-k">WORKDIR</span> <span class="tok-s">/app</span>
+
+<span class="tok-c"># Ensure we get package-lock.json and take advantage of cache</span>
+<span class="tok-k">COPY</span> package*.json ./
+
+<span class="tok-c"># https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable</span>
+<span class="tok-k">RUN</span> npm ci --only<span class="tok-o">=</span>production
+
+<span class="tok-k">COPY</span> --chown<span class="tok-o">=</span><span class="tok-m">999</span>:999 src ./src
+
+<span class="tok-k">USER</span> <span class="tok-s">node</span>
+
+<span class="tok-k">EXPOSE</span> <span class="tok-s">8080</span>
+<span class="tok-k">CMD</span> <span class="tok-p">[</span> <span class="tok-s2">"node"</span><span class="tok-p">,</span> <span class="tok-s2">"./src/server.js"</span> <span class="tok-p">]</span></code></pre>
+<p>Our <code>FROM</code> pulls in the <a href="https://nodejs.org/en/about/releases">LTS version of Node</a>
+wrapped in <a href="https://www.alpinelinux.org">Alpine Linux</a> from <a href="https://hub.docker.com/_/node">Docker Hub</a>.
+This is a lightweight Linux distribution I’m
+sure you’ve heard of. You can use other variations, especially when testing, but
+less bloat means faster load times and Alpine is battle tested. Just as we’d do
+with other variants, we pull in updates with the <code>apk</code> commands.</p>
+<p>The next few lines configure <code>NODE_ENV</code> (a common trick allowing your app to
 respond differently in production than it does in test environments), sets up a
 work directory, and copies <code>package.json</code> for installing dependencies. Be sure to
 also include <code>package-lock.json</code>, and rather than simply doing <code>npm i</code> as we did
-above use <code>npm ci</code> which can be <a href=https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable>a lot faster and is generally more reliable</a>.</p><p>Since containers use a <a href=https://medium.com/@jessgreb01/digging-into-docker-layers-c22f948ed612>layered filesystem</a>,
+above use <code>npm ci</code> which can be <a href="https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable">a lot faster and is generally more reliable</a>.</p>
+<p>Since containers use a <a href="https://medium.com/@jessgreb01/digging-into-docker-layers-c22f948ed612">layered filesystem</a>,
 the order of operations is important. We carefully keep the copying of source code
 after installing dependencies or other things less likely to change to leverage
 caching when rebuilding the container (something you do a lot during development
-so saved time adds up).</p><p>Lastly, we take advantage of the fact Node images include a non-root node user
+so saved time adds up).</p>
+<p>Lastly, we take advantage of the fact Node images include a non-root node user
 (UID and GID 999). A couple more lines to adjust the user and group of our
 source code and define <code>USER</code> lets us drop root privileges before spawning our
 app. Remember not to place the <code>USER</code> line too early, since things like <code>apk</code> that
-adjust OS-level packages require root privileges!</p><h2 id=building-the-container>Building the Container</h2><p>With our <code>Dockerfile</code> ready, we just need a couple more things&mldr; First, similar
+adjust OS-level packages require root privileges!</p>
+<h3 id="building-the-container">Building the Container</h3>
+<p>With our <code>Dockerfile</code> ready, we just need a couple more things… First, similar
 to a <code>.gitignore</code>, you generally want a <code>.dockerignore</code> file at the top level of
-your project to avoid copying things you don&rsquo;t need into your container. For
-example, we don&rsquo;t want to include <code>node_modules</code> since we install dependencies
-using npm.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>node_modules
-</span></span><span style=display:flex><span># Extend as needed...
-</span></span></code></pre></div><p>Now we can use docker build to turn our definition into a container:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ docker build -t node-aws-ecs-app .
-</span></span><span style=display:flex><span>Sending build context to Docker daemon    105kB
-</span></span><span style=display:flex><span>Step 1/12 : FROM node:lts-alpine
-</span></span><span style=display:flex><span> ---&gt; b0dc3a5e5e9e
-</span></span><span style=display:flex><span>Step 2/12 : LABEL maintainer=&#34;mrh@devopsdreams.io&#34;
-</span></span><span style=display:flex><span> ---&gt; Running in 0a34cecb1b9a
-</span></span><span style=display:flex><span>Removing intermediate container 0a34cecb1b9a
-</span></span><span style=display:flex><span> ---&gt; 5443cc852fc9
-</span></span><span style=display:flex><span>Step 3/12 : RUN apk update &amp;&amp; apk upgrade
-</span></span><span style=display:flex><span> ---&gt; Running in bfc166bf526b
-</span></span><span style=display:flex><span>fetch http://dl-cdn.alpinelinux.org/alpine/v3.11/main/x86_64/APKINDEX.tar.gz
-</span></span><span style=display:flex><span>fetch http://dl-cdn.alpinelinux.org/alpine/v3.11/community/x86_64/APKINDEX.tar.gz
-</span></span><span style=display:flex><span>v3.11.3-113-g5cfecee709 [http://dl-cdn.alpinelinux.org/alpine/v3.11/main]
-</span></span><span style=display:flex><span>v3.11.3-112-gbfe51f74f3 [http://dl-cdn.alpinelinux.org/alpine/v3.11/community]
-</span></span><span style=display:flex><span>OK: 11268 distinct packages available
-</span></span><span style=display:flex><span>(1/3) Upgrading musl (1.1.24-r0 -&gt; 1.1.24-r1)
-</span></span><span style=display:flex><span>(2/3) Upgrading ca-certificates-cacert (20191127-r0 -&gt; 20191127-r1)
-</span></span><span style=display:flex><span>(3/3) Upgrading musl-utils (1.1.24-r0 -&gt; 1.1.24-r1)
-</span></span><span style=display:flex><span>Executing busybox-1.31.1-r9.trigger
-</span></span><span style=display:flex><span>OK: 7 MiB in 16 packages
-</span></span><span style=display:flex><span>Removing intermediate container bfc166bf526b
-</span></span><span style=display:flex><span> ---&gt; 62270f989cd6
-</span></span><span style=display:flex><span>Step 4/12 : ENV NODE_ENV production
-</span></span><span style=display:flex><span> ---&gt; Running in acb7b5990adb
-</span></span><span style=display:flex><span>Removing intermediate container acb7b5990adb
-</span></span><span style=display:flex><span> ---&gt; 841ce91f153b
-</span></span><span style=display:flex><span>Step 5/12 : WORKDIR /app
-</span></span><span style=display:flex><span> ---&gt; Running in b1386e718137
-</span></span><span style=display:flex><span>Removing intermediate container b1386e718137
-</span></span><span style=display:flex><span> ---&gt; a9c85df95276
-</span></span><span style=display:flex><span>Step 6/12 : COPY package*.json ./
-</span></span><span style=display:flex><span> ---&gt; af2ea783c184
-</span></span><span style=display:flex><span>Step 7/12 : RUN npm ci --only=production
-</span></span><span style=display:flex><span> ---&gt; Running in 24e173dc19ba
-</span></span><span style=display:flex><span>added 50 packages in 1.145s
-</span></span><span style=display:flex><span>Removing intermediate container 24e173dc19ba
-</span></span><span style=display:flex><span> ---&gt; 2047a8958f2f
-</span></span><span style=display:flex><span>Step 8/12 : RUN mkdir -p ./src
-</span></span><span style=display:flex><span> ---&gt; Running in 072a3271b2dd
-</span></span><span style=display:flex><span>Removing intermediate container 072a3271b2dd
-</span></span><span style=display:flex><span> ---&gt; 0e8289224623
-</span></span><span style=display:flex><span>Step 9/12 : COPY --chown=999:999 server.js ./src
-</span></span><span style=display:flex><span> ---&gt; 8dba9af96dd0
-</span></span><span style=display:flex><span>Step 10/12 : USER node
-</span></span><span style=display:flex><span> ---&gt; Running in bab5f0735af1
-</span></span><span style=display:flex><span>Removing intermediate container bab5f0735af1
-</span></span><span style=display:flex><span> ---&gt; f83e6959644f
-</span></span><span style=display:flex><span>Step 11/12 : EXPOSE 8080
-</span></span><span style=display:flex><span> ---&gt; Running in 1256f013b1cf
-</span></span><span style=display:flex><span>Removing intermediate container 1256f013b1cf
-</span></span><span style=display:flex><span> ---&gt; 27d3adce4758
-</span></span><span style=display:flex><span>Step 12/12 : CMD [ &#34;node&#34;, &#34;./src/server.js&#34; ]
-</span></span><span style=display:flex><span> ---&gt; Running in 52b0dc7f311f
-</span></span><span style=display:flex><span>Removing intermediate container 52b0dc7f311f
-</span></span><span style=display:flex><span> ---&gt; abfe310d5708
-</span></span><span style=display:flex><span>Successfully built abfe310d5708
-</span></span><span style=display:flex><span>Successfully tagged node-aws-ecs-app:latest
-</span></span></code></pre></div><p>That gave us a working instance of our test app consuming
-less than 100MB. Let&rsquo;s take a look, and fire it up to test:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ docker images|grep node-aws-ecs-app
-</span></span><span style=display:flex><span>node-aws-ecs-app        latest               abfe310d5708        2 minutes ago       90MB
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ docker run -p 8080:8080 -d node-aws-ecs-app
-</span></span><span style=display:flex><span>2ed68ceedaf73cecb7637ca74e03e2b260312108ff94ef58df6cd172d490ff8c
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ docker ps|grep node-aws-ecs-app
-</span></span><span style=display:flex><span>2ed68ceedaf7        node-aws-ecs-app    &#34;docker-entrypoint.s…&#34;   18 seconds ago      Up 18 seconds       0.0.0.0:8080-&gt;8080/tcp   wizardly_aryabhata
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ docker logs 2ed68ceedaf7
-</span></span><span style=display:flex><span>Running on http://0.0.0.0:8080
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>❯ http -v :8080
-</span></span><span style=display:flex><span>GET / HTTP/1.1
-</span></span><span style=display:flex><span>Accept: */*
-</span></span><span style=display:flex><span>Accept-Encoding: gzip, deflate
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Host: localhost:8080
-</span></span><span style=display:flex><span>User-Agent: HTTPie/2.0.0
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>HTTP/1.1 200 OK
-</span></span><span style=display:flex><span>Connection: keep-alive
-</span></span><span style=display:flex><span>Content-Length: 11
-</span></span><span style=display:flex><span>Content-Type: text/html; charset=utf-8
-</span></span><span style=display:flex><span>Date: Sun, 08 Mar 2020 21:46:28 GMT
-</span></span><span style=display:flex><span>ETag: W/&#34;b-Ck1VqNd45QIvq3AZd8XYQLvEhtA&#34;
-</span></span><span style=display:flex><span>X-Powered-By: Express
-</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
-</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>Hello World
-</span></span></code></pre></div><h2 id=next-steps>Next Steps</h2><p>Now that we have our test application containerized, we&rsquo;re ready to focus on AWS
-specifics. In the next article we&rsquo;ll look at how to push our container image to
-Amazon&rsquo;s <a href=https://aws.amazon.com/ecr>Elastic Container Registry</a> (ECR). Similar
+your project to avoid copying things you don’t need into your container. For
+example, we don’t want to include <code>node_modules</code> since we install dependencies
+using npm.</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">node_modules</span>
+<span class="tok-gp"># </span>Extend as needed...</code></pre>
+<p>Now we can use docker build to turn our definition into a container:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ docker build -t node-aws-ecs-app .</span>
+<span class="tok-go">Sending build context to Docker daemon    105kB</span>
+<span class="tok-go">Step 1/12 : FROM node:lts-alpine</span>
+<span class="tok-go"> ---&gt; b0dc3a5e5e9e</span>
+<span class="tok-go">Step 2/12 : LABEL maintainer="mrh@devopsdreams.io"</span>
+<span class="tok-go"> ---&gt; Running in 0a34cecb1b9a</span>
+<span class="tok-go">Removing intermediate container 0a34cecb1b9a</span>
+<span class="tok-go"> ---&gt; 5443cc852fc9</span>
+<span class="tok-go">Step 3/12 : RUN apk update &amp;&amp; apk upgrade</span>
+<span class="tok-go"> ---&gt; Running in bfc166bf526b</span>
+<span class="tok-go">fetch http://dl-cdn.alpinelinux.org/alpine/v3.11/main/x86_64/APKINDEX.tar.gz</span>
+<span class="tok-go">fetch http://dl-cdn.alpinelinux.org/alpine/v3.11/community/x86_64/APKINDEX.tar.gz</span>
+<span class="tok-go">v3.11.3-113-g5cfecee709 [http://dl-cdn.alpinelinux.org/alpine/v3.11/main]</span>
+<span class="tok-go">v3.11.3-112-gbfe51f74f3 [http://dl-cdn.alpinelinux.org/alpine/v3.11/community]</span>
+<span class="tok-go">OK: 11268 distinct packages available</span>
+<span class="tok-gp tok-gp-VirtualEnv">(1/3)</span> <span class="tok-go">Upgrading musl (1.1.24-r0 -&gt; 1.1.24-r1)</span>
+<span class="tok-gp tok-gp-VirtualEnv">(2/3)</span> <span class="tok-go">Upgrading ca-certificates-cacert (20191127-r0 -&gt; 20191127-r1)</span>
+<span class="tok-gp tok-gp-VirtualEnv">(3/3)</span> <span class="tok-go">Upgrading musl-utils (1.1.24-r0 -&gt; 1.1.24-r1)</span>
+<span class="tok-go">Executing busybox-1.31.1-r9.trigger</span>
+<span class="tok-go">OK: 7 MiB in 16 packages</span>
+<span class="tok-go">Removing intermediate container bfc166bf526b</span>
+<span class="tok-go"> ---&gt; 62270f989cd6</span>
+<span class="tok-go">Step 4/12 : ENV NODE_ENV production</span>
+<span class="tok-go"> ---&gt; Running in acb7b5990adb</span>
+<span class="tok-go">Removing intermediate container acb7b5990adb</span>
+<span class="tok-go"> ---&gt; 841ce91f153b</span>
+<span class="tok-go">Step 5/12 : WORKDIR /app</span>
+<span class="tok-go"> ---&gt; Running in b1386e718137</span>
+<span class="tok-go">Removing intermediate container b1386e718137</span>
+<span class="tok-go"> ---&gt; a9c85df95276</span>
+<span class="tok-go">Step 6/12 : COPY package*.json ./</span>
+<span class="tok-go"> ---&gt; af2ea783c184</span>
+<span class="tok-go">Step 7/12 : RUN npm ci --only=production</span>
+<span class="tok-go"> ---&gt; Running in 24e173dc19ba</span>
+<span class="tok-go">added 50 packages in 1.145s</span>
+<span class="tok-go">Removing intermediate container 24e173dc19ba</span>
+<span class="tok-go"> ---&gt; 2047a8958f2f</span>
+<span class="tok-go">Step 8/12 : RUN mkdir -p ./src</span>
+<span class="tok-go"> ---&gt; Running in 072a3271b2dd</span>
+<span class="tok-go">Removing intermediate container 072a3271b2dd</span>
+<span class="tok-go"> ---&gt; 0e8289224623</span>
+<span class="tok-go">Step 9/12 : COPY --chown=999:999 server.js ./src</span>
+<span class="tok-go"> ---&gt; 8dba9af96dd0</span>
+<span class="tok-go">Step 10/12 : USER node</span>
+<span class="tok-go"> ---&gt; Running in bab5f0735af1</span>
+<span class="tok-go">Removing intermediate container bab5f0735af1</span>
+<span class="tok-go"> ---&gt; f83e6959644f</span>
+<span class="tok-go">Step 11/12 : EXPOSE 8080</span>
+<span class="tok-go"> ---&gt; Running in 1256f013b1cf</span>
+<span class="tok-go">Removing intermediate container 1256f013b1cf</span>
+<span class="tok-go"> ---&gt; 27d3adce4758</span>
+<span class="tok-go">Step 12/12 : CMD [ "node", "./src/server.js" ]</span>
+<span class="tok-go"> ---&gt; Running in 52b0dc7f311f</span>
+<span class="tok-go">Removing intermediate container 52b0dc7f311f</span>
+<span class="tok-go"> ---&gt; abfe310d5708</span>
+<span class="tok-go">Successfully built abfe310d5708</span>
+<span class="tok-go">Successfully tagged node-aws-ecs-app:latest</span></code></pre>
+<p>That gave us a working instance of our test app consuming
+less than 100MB. Let’s take a look, and fire it up to test:</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ docker images|grep node-aws-ecs-app</span>
+<span class="tok-go">node-aws-ecs-app        latest               abfe310d5708        2 minutes ago       90MB</span>
+
+<span class="tok-go">❯ docker run -p 8080:8080 -d node-aws-ecs-app</span>
+<span class="tok-go">2ed68ceedaf73cecb7637ca74e03e2b260312108ff94ef58df6cd172d490ff8c</span>
+
+<span class="tok-go">❯ docker ps|grep node-aws-ecs-app</span>
+<span class="tok-go">2ed68ceedaf7        node-aws-ecs-app    "docker-entrypoint.s…"   18 seconds ago      Up 18 seconds       0.0.0.0:8080-&gt;8080/tcp   wizardly_aryabhata</span>
+
+<span class="tok-go">❯ docker logs 2ed68ceedaf7</span>
+<span class="tok-go">Running on http://0.0.0.0:8080</span>
+
+<span class="tok-go">❯ http -v :8080</span>
+<span class="tok-go">GET / HTTP/1.1</span>
+<span class="tok-go">Accept: */*</span>
+<span class="tok-go">Accept-Encoding: gzip, deflate</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Host: localhost:8080</span>
+<span class="tok-go">User-Agent: HTTPie/2.0.0</span>
+
+<span class="tok-go">HTTP/1.1 200 OK</span>
+<span class="tok-go">Connection: keep-alive</span>
+<span class="tok-go">Content-Length: 11</span>
+<span class="tok-go">Content-Type: text/html; charset=utf-8</span>
+<span class="tok-go">Date: Sun, 08 Mar 2020 21:46:28 GMT</span>
+<span class="tok-go">ETag: W/"b-Ck1VqNd45QIvq3AZd8XYQLvEhtA"</span>
+<span class="tok-go">X-Powered-By: Express</span>
+
+<span class="tok-go">Hello World</span></code></pre>
+<h3 id="next-steps">Next Steps</h3>
+<p>Now that we have our test application containerized, we’re ready to focus on AWS
+specifics. In the next article we’ll look at how to push our container image to
+Amazon’s <a href="https://aws.amazon.com/ecr">Elastic Container Registry</a> (ECR). Similar
 to Docker Hub, this is a container repository we can use to make our images
 available to the ECS infrastructure responsible for running instances of our
-image. Check back next time to continue following along!</p><p>References</p><ul><li><a href=https://nodejs.org/en/docs/guides/nodejs-docker-webapp>Dockerizing a Node.js web app</a></li><li><a href=https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md>Docker and Node.js Best Practices</a></li><li><a href=https://docs.docker.com>Docker Documentation</a></li><li><a href=https://hub.docker.com/_/node>Official Node.js Docker Images</a></li><li><a href=https://www.alpinelinux.org>Alpine Linux</a></li></ul></div></section></body></html>
+image. Check back next time to continue following along!</p>
+<p>References</p>
+<ul><li><a href="https://nodejs.org/en/docs/guides/nodejs-docker-webapp">Dockerizing a Node.js web app</a></li><li><a href="https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md">Docker and Node.js Best Practices</a></li><li><a href="https://docs.docker.com">Docker Documentation</a></li><li><a href="https://hub.docker.com/_/node">Official Node.js Docker Images</a></li><li><a href="https://www.alpinelinux.org">Alpine Linux</a></li></ul>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/containers/">containers(7)</a>
+              <a href="/blog/tags/nodejs/">nodejs(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/aws-dns-and-tls/">AWS and DNS and TLS, Oh My!</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/contain-yourself/">Contain Yourself</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">March 8, 2020</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,76 +1,161 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Safely Expose Credentials</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Safely Expose Credentials</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/security>security</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>If you&rsquo;re juggling STS credentials while wrangling more AWS accounts than you
-can count, you&rsquo;ve likely heard of
-<a href=https://github.com/99designs/aws-vault>aws-vault</a>. Aside from the convenience
-factor, it&rsquo;s also good for security (keep plain-text credentials off disk).</p><p>Similarly, it&rsquo;s obvious you don&rsquo;t want to commit credentials. Depending how far
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="If you’re juggling STS credentials while wrangling more AWS accounts than you can count, you’ve likely heard of aws-vault. Aside from the convenience…">
+    <meta name="date" content="2022-03-10">
+    <meta name="keywords" content="aws, security">
+    <meta name="theme-color" content="#15130f">
+    <title>Safely Expose Credentials — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/safely-expose-credentials/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Safely Expose Credentials</h1>
+            <p class="meta"><time datetime="2022-03-10">March 10, 2022</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>If you’re juggling STS credentials while wrangling more AWS accounts than you
+can count, you’ve likely heard of
+<a href="https://github.com/99designs/aws-vault">aws-vault</a>. Aside from the convenience
+factor, it’s also good for security (keep plain-text credentials off disk).</p>
+<p>Similarly, it’s obvious you don’t want to commit credentials. Depending how far
 you take that, even committing encrypted credentials (or storing them anywhere
-not intended for managing secrets) should be discouraged.</p><p>One reason is building up muscle memory and inviting accidental commits of
+not intended for managing secrets) should be discouraged.</p>
+<p>One reason is building up muscle memory and inviting accidental commits of
 unencrypted secrets (use something like
-<a href=https://github.com/zricethezav/gitleaks>gitleaks</a>
+<a href="https://github.com/zricethezav/gitleaks">gitleaks</a>
 to prevent that). The bigger reason in my mind is consistent handling of
 credentials makes it easier to develop tools and process around audit,
-rotation, etc. Depending how you handle encryption, having &ldquo;blobs&rdquo; in your VCS
-may also turn into a philosophical argument.</p><p>That said, we all use a lot of credentials, and often need them for local
+rotation, etc. Depending how you handle encryption, having “blobs” in your VCS
+may also turn into a philosophical argument.</p>
+<p>That said, we all use a lot of credentials, and often need them for local
 scripts vs only in pipelines or cloud services where injecting credentials
 securely is easy. We can combine <code>aws-vault</code>, our secure secret storage
 backend of choice
-(<a href=https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html>Parameter Store</a>,
-<a href=https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html>Secrets Manager</a>,
-<a href=https://www.hashicorp.com/products/vault>Vault</a>) and
-<a href=https://direnv.net>direnv</a>
-to get a convenient local workflow that doesn&rsquo;t add risk.</p><blockquote><p><strong>NOTE:</strong> This example uses Paramter Store, the same can work for Secrets Manager,
-Vault or your backend of choice with a little refactoring.</p></blockquote><p>The first thing to understand is that <code>.envrc</code> can do more than export
-variables. It can run typical shell commands. With that in mind, let&rsquo;s provide
-context and describe the goal:</p><ul><li>We have a script that follows <a href=https://12factor.net>12-factor</a> conventions (reads credentials from environment)</li><li>We have credentials safely stored in Parameter Store</li><li>We want any team member with access to our AWS credentials to be able to retrieve them locally for use by our script</li><li>We want to minimize friction for new team members (less typing to get environment exported)</li><li>We do not want to commit any credentials to git</li></ul><p>First we need some glue in our <code>.envrc</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># .envrc boilerplate</span>
-</span></span><span style=display:flex><span>export AWS_REGION<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;us-east-2&#34;</span>
-</span></span><span style=display:flex><span>export AWS_PROFILE<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;dev&#34;</span>
-</span></span><span style=display:flex><span>export VAULT<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;aws-vault exec </span><span style=color:#e6db74>${</span>AWS_PROFILE<span style=color:#e6db74>}</span><span style=color:#e6db74> --&#34;</span>
-</span></span><span style=display:flex><span> 
-</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i in <span style=color:#66d9ef>$(</span><span style=color:#e6db74>${</span>VAULT<span style=color:#e6db74>}</span> env | grep AWS<span style=color:#66d9ef>)</span>; <span style=color:#66d9ef>do</span>
-</span></span><span style=display:flex><span>  key<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span>echo $i | cut -d<span style=color:#f92672>=</span> -f1 2&gt;/dev/null<span style=color:#66d9ef>)</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>[</span> <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>key<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;AWS_VAULT&#34;</span> <span style=color:#f92672>]</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#66d9ef>continue</span>
-</span></span><span style=display:flex><span>  export $i
-</span></span><span style=display:flex><span><span style=color:#66d9ef>done</span>
-</span></span></code></pre></div><p><code>AWS_PROFILE</code> will need adjusted based on the AWS account you&rsquo;re using to store
+(<a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html">Parameter Store</a>,
+<a href="https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html">Secrets Manager</a>,
+<a href="https://www.hashicorp.com/products/vault">Vault</a>) and
+<a href="https://direnv.net">direnv</a>
+to get a convenient local workflow that doesn’t add risk.</p>
+<blockquote><p><strong>NOTE:</strong> This example uses Paramter Store, the same can work for Secrets Manager,
+Vault or your backend of choice with a little refactoring.</p>
+</blockquote>
+<p>The first thing to understand is that <code>.envrc</code> can do more than export
+variables. It can run typical shell commands. With that in mind, let’s provide
+context and describe the goal:</p>
+<ul><li>We have a script that follows <a href="https://12factor.net">12-factor</a> conventions (reads credentials from environment)</li><li>We have credentials safely stored in Parameter Store</li><li>We want any team member with access to our AWS credentials to be able to retrieve them locally for use by our script</li><li>We want to minimize friction for new team members (less typing to get environment exported)</li><li>We do not want to commit any credentials to git</li></ul>
+<p>First we need some glue in our <code>.envrc</code>:</p>
+<pre tabindex="0"><code class="language-bash"><span class="tok-c1"># .envrc boilerplate</span>
+<span class="tok-nb">export</span> <span class="tok-nv">AWS_REGION</span><span class="tok-o">=</span><span class="tok-s2">"us-east-2"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">AWS_PROFILE</span><span class="tok-o">=</span><span class="tok-s2">"dev"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">VAULT</span><span class="tok-o">=</span><span class="tok-s2">"aws-vault exec </span><span class="tok-si">${</span><span class="tok-nv">AWS_PROFILE</span><span class="tok-si">}</span><span class="tok-s2"> --"</span>
+ 
+<span class="tok-k">for</span> i <span class="tok-k">in</span> <span class="tok-k">$(</span><span class="tok-si">${</span><span class="tok-nv">VAULT</span><span class="tok-si">}</span> env <span class="tok-p">|</span> grep AWS<span class="tok-k">)</span><span class="tok-p">;</span> <span class="tok-k">do</span>
+  <span class="tok-nv">key</span><span class="tok-o">=</span><span class="tok-k">$(</span><span class="tok-nb">echo</span> <span class="tok-nv">$i</span> <span class="tok-p">|</span> cut -d<span class="tok-o">=</span> -f1 <span class="tok-m">2</span>&gt;/dev/null<span class="tok-k">)</span>
+  <span class="tok-o">[</span> <span class="tok-s2">"</span><span class="tok-si">${</span><span class="tok-nv">key</span><span class="tok-si">}</span><span class="tok-s2">"</span> <span class="tok-o">==</span> <span class="tok-s2">"AWS_VAULT"</span> <span class="tok-o">]</span> <span class="tok-o">&amp;&amp;</span> <span class="tok-k">continue</span>
+  <span class="tok-nb">export</span> <span class="tok-nv">$i</span>
+<span class="tok-k">done</span></code></pre>
+<p><code>AWS_PROFILE</code> will need adjusted based on the AWS account you’re using to store
 your secrets and your <code>~/.aws/config</code>. We simply do the usual <code>aws-vault exec</code>
 for the configured profile, and export all of the <code>AWS_</code> variables in our local
-shell. <code>AWS_VAULT</code> is excluded to avoid warnings about nesting.</p><p>Now you can define project-specific environment using the exported AWS
-credentials. For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># .envrc, below the boilerpalte</span>
-</span></span><span style=display:flex><span>export MY_API_KEY<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span>aws ssm get-parameter --name <span style=color:#e6db74>&#34;/yourproject/MY_API_KEY&#34;</span> --with-decryption <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  | jq -r <span style=color:#e6db74>&#39;.Parameter.Value&#39;</span> 2&gt;/dev/null<span style=color:#66d9ef>)</span>
-</span></span></code></pre></div><p>After configuring all of this (or when making changes) you need to type
+shell. <code>AWS_VAULT</code> is excluded to avoid warnings about nesting.</p>
+<p>Now you can define project-specific environment using the exported AWS
+credentials. For example:</p>
+<pre tabindex="0"><code class="language-bash"><span class="tok-c1"># .envrc, below the boilerpalte</span>
+<span class="tok-nb">export</span> <span class="tok-nv">MY_API_KEY</span><span class="tok-o">=</span><span class="tok-k">$(</span>aws ssm get-parameter --name <span class="tok-s2">"/yourproject/MY_API_KEY"</span> --with-decryption <span class="tok-se">\</span>
+  <span class="tok-p">|</span> jq -r <span class="tok-s1">'.Parameter.Value'</span> <span class="tok-m">2</span>&gt;/dev/null<span class="tok-k">)</span></code></pre>
+<p>After configuring all of this (or when making changes) you need to type
 <code>direnv allow</code> (this is to ensure commands checked out in random projects
-can&rsquo;t be ran without approval):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ vi .envrc # add above and save...
-</span></span><span style=display:flex><span>direnv: error /home/mrh/test/.envrc is blocked. Run `direnv allow` to approve its content
-</span></span><span style=display:flex><span> 
-</span></span><span style=display:flex><span>❯ direnv allow
-</span></span><span style=display:flex><span>direnv: loading ~/test/.envrc
-</span></span><span style=display:flex><span>direnv: export +AWS_ACCESS_KEY_ID +AWS_DEFAULT_REGION +AWS_PROFILE +AWS_REGION +AWS_SECRET_ACCESS_KEY +AWS_SECURITY_TOKEN +AWS_SESSION_EXPIRATION +AWS_SESSION_TOKEN +MY_API_KEY +VAULT
-</span></span><span style=display:flex><span> 
-</span></span><span style=display:flex><span>❯ echo $MY_API_KEY
-</span></span><span style=display:flex><span>0d6778ee-070a-4a17-9311-49da7b60a81e
-</span></span></code></pre></div><p>This is a little work to setup, but no more than a workflow to encrypt secrets
+can’t be ran without approval):</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ vi .envrc # add above and save...</span>
+<span class="tok-go">direnv: error /home/mrh/test/.envrc is blocked. Run `direnv allow` to approve its content</span>
+<span class="tok-go"> </span>
+<span class="tok-go">❯ direnv allow</span>
+<span class="tok-go">direnv: loading ~/test/.envrc</span>
+<span class="tok-go">direnv: export +AWS_ACCESS_KEY_ID +AWS_DEFAULT_REGION +AWS_PROFILE +AWS_REGION +AWS_SECRET_ACCESS_KEY +AWS_SECURITY_TOKEN +AWS_SESSION_EXPIRATION +AWS_SESSION_TOKEN +MY_API_KEY +VAULT</span>
+<span class="tok-go"> </span>
+<span class="tok-go">❯ echo $MY_API_KEY</span>
+<span class="tok-go">0d6778ee-070a-4a17-9311-49da7b60a81e</span></code></pre>
+<p>This is a little work to setup, but no more than a workflow to encrypt secrets
 you intend to commit. Since <code>.envrc</code> contains nothing sensitive, it can be
-safely committed and shared by all team members.</p><h2 id=kiss>KISS</h2><p>The boilerplate above is mostly to simplify subsequent AWS commands requiring
+safely committed and shared by all team members.</p>
+<h3 id="kiss">KISS</h3>
+<p>The boilerplate above is mostly to simplify subsequent AWS commands requiring
 STS credentials. You could simplify by just wrapping each command with
-<code>aws-vault</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># .envrc</span>
-</span></span><span style=display:flex><span>export AWS_REGION<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;us-east-2&#34;</span>
-</span></span><span style=display:flex><span>export AWS_PROFILE<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;dev&#34;</span>
-</span></span><span style=display:flex><span>export VAULT<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;aws-vault exec </span><span style=color:#e6db74>${</span>AWS_PROFILE<span style=color:#e6db74>}</span><span style=color:#e6db74> --&#34;</span>
-</span></span><span style=display:flex><span>export FOO_KEY<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span><span style=color:#e6db74>${</span>VAULT<span style=color:#e6db74>}</span> aws ssm get-parameter --name <span style=color:#e6db74>&#34;/yourproject/FOO_KEY&#34;</span> --with-decryption | jq -r <span style=color:#e6db74>&#39;.Parameter.Value&#39;</span><span style=color:#66d9ef>)</span>
-</span></span><span style=display:flex><span>export BAR_KEY<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span><span style=color:#e6db74>${</span>VAULT<span style=color:#e6db74>}</span> aws ssm get-parameter --name <span style=color:#e6db74>&#34;/yourproject/BAR_KEY&#34;</span> --with-decryption | jq -r <span style=color:#e6db74>&#39;.Parameter.Value&#39;</span><span style=color:#66d9ef>)</span>
-</span></span><span style=display:flex><span>export BAZ_KEY<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span><span style=color:#e6db74>${</span>VAULT<span style=color:#e6db74>}</span> aws ssm get-parameter --name <span style=color:#e6db74>&#34;/yourproject/BAZ_KEY&#34;</span> --with-decryption | jq -r <span style=color:#e6db74>&#39;.Parameter.Value&#39;</span><span style=color:#66d9ef>)</span>
-</span></span></code></pre></div><h2 id=caveats>Caveats</h2><p>If you don&rsquo;t have cached credentials (e.g. they timeout overnight), the first
+<code>aws-vault</code>:</p>
+<pre tabindex="0"><code class="language-bash"><span class="tok-c1"># .envrc</span>
+<span class="tok-nb">export</span> <span class="tok-nv">AWS_REGION</span><span class="tok-o">=</span><span class="tok-s2">"us-east-2"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">AWS_PROFILE</span><span class="tok-o">=</span><span class="tok-s2">"dev"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">VAULT</span><span class="tok-o">=</span><span class="tok-s2">"aws-vault exec </span><span class="tok-si">${</span><span class="tok-nv">AWS_PROFILE</span><span class="tok-si">}</span><span class="tok-s2"> --"</span>
+<span class="tok-nb">export</span> <span class="tok-nv">FOO_KEY</span><span class="tok-o">=</span><span class="tok-k">$(</span><span class="tok-si">${</span><span class="tok-nv">VAULT</span><span class="tok-si">}</span> aws ssm get-parameter --name <span class="tok-s2">"/yourproject/FOO_KEY"</span> --with-decryption <span class="tok-p">|</span> jq -r <span class="tok-s1">'.Parameter.Value'</span><span class="tok-k">)</span>
+<span class="tok-nb">export</span> <span class="tok-nv">BAR_KEY</span><span class="tok-o">=</span><span class="tok-k">$(</span><span class="tok-si">${</span><span class="tok-nv">VAULT</span><span class="tok-si">}</span> aws ssm get-parameter --name <span class="tok-s2">"/yourproject/BAR_KEY"</span> --with-decryption <span class="tok-p">|</span> jq -r <span class="tok-s1">'.Parameter.Value'</span><span class="tok-k">)</span>
+<span class="tok-nb">export</span> <span class="tok-nv">BAZ_KEY</span><span class="tok-o">=</span><span class="tok-k">$(</span><span class="tok-si">${</span><span class="tok-nv">VAULT</span><span class="tok-si">}</span> aws ssm get-parameter --name <span class="tok-s2">"/yourproject/BAZ_KEY"</span> --with-decryption <span class="tok-p">|</span> jq -r <span class="tok-s1">'.Parameter.Value'</span><span class="tok-k">)</span></code></pre>
+<h3 id="caveats">Caveats</h3>
+<p>If you don’t have cached credentials (e.g. they timeout overnight), the first
 <code>aws-vault</code> call will prompt for MFA which may break commands or
-look a little weird. It mostly works as expected if you are a fast typer. ;-)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>❯ aws-vault clear dev
-</span></span><span style=display:flex><span>Cleared 1 sessions.
-</span></span><span style=display:flex><span> 
-</span></span><span style=display:flex><span>❯ cd ~/test
-</span></span><span style=display:flex><span>direnv: loading ~/test/.envrc
-</span></span><span style=display:flex><span>Enter MFA code for arn:aws:iam::012345678901:mfa/foo.bar: direnv: ([/usr/bin/direnv export zsh]) is taking a while to execute. Use CTRL-C to give up.
-</span></span><span style=display:flex><span>123456
-</span></span><span style=display:flex><span>direnv: export +AWS_ACCESS_KEY_ID +AWS_DEFAULT_REGION +AWS_PROFILE +AWS_REGION +AWS_SECRET_ACCESS_KEY +AWS_SECURITY_TOKEN +AWS_SESSION_EXPIRATION +AWS_SESSION_TOKEN +MY_API_KEY +VAULT
-</span></span></code></pre></div></div></section></body></html>
+look a little weird. It mostly works as expected if you are a fast typer. ;-)</p>
+<pre tabindex="0"><code class="language-console"><span class="tok-go">❯ aws-vault clear dev</span>
+<span class="tok-go">Cleared 1 sessions.</span>
+<span class="tok-go"> </span>
+<span class="tok-go">❯ cd ~/test</span>
+<span class="tok-go">direnv: loading ~/test/.envrc</span>
+<span class="tok-go">Enter MFA code for arn:aws:iam::012345678901:mfa/foo.bar: direnv: ([/usr/bin/direnv export zsh]) is taking a while to execute. Use CTRL-C to give up.</span>
+<span class="tok-go">123456</span>
+<span class="tok-go">direnv: export +AWS_ACCESS_KEY_ID +AWS_DEFAULT_REGION +AWS_PROFILE +AWS_REGION +AWS_SECRET_ACCESS_KEY +AWS_SECURITY_TOKEN +AWS_SESSION_EXPIRATION +AWS_SESSION_TOKEN +MY_API_KEY +VAULT</span></code></pre>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/security/">security(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/aws-sdk-role-assumption/">AWS SDK Role Assumption</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/on-psychological-safety/">On Psychological Safety</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">March 10, 2022</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>

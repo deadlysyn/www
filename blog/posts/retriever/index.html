@@ -1,51 +1,124 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Automation, CI/CD, cloud, culture, DevOps, engineering, full stack development, infrastructure, Linux, observability, SRE, UNIX, OSS"><title>Introducing Retriever</title><style>html body{font-family:source code pro,monospace;background-color:#fff}:root{--accent:#fe8019}.highlight{--accent:#fbf1c7;padding-bottom:20px}</style><link rel=stylesheet href=https://deadlysyn.com/blog/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Source%20Code%20Pro"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/base16/gruvbox-dark-hard.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css integrity="sha512-IgmDkwzs96t4SrChW29No3NXBIBv8baW490zk5aXvhCD8vuZM3yUSkbyTBcXohkySecyzIrUwiF/qV0cuPcL3Q==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin=anonymous referrerpolicy=no-referrer><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js></script><script>hljs.highlightAll()</script><meta name=generator content="Hugo 0.124.1"></head><body><section class=section><div class="container has-text-centered"><span class=icon><a class="button is-medium is-white" href=https://deadlysyn.com><i class="fa-solid fa-house"></i>
-</a><a class="button is-medium is-white" href=https://deadlysyn.com/blog><i class="fa-solid fa-book-open"></i>
-</a><a class="button is-medium is-white" href=https://github.com/deadlysyn><i class="fa-brands fa-github"></i>
-</a><a class="button is-medium is-white" href=https://www.linkedin.com/in/deadlysyn><i class="fa-brands fa-linkedin"></i></a></span></div></section><section class=section><div class="container is-max-desktop has-text-centered"><h3 class="title is-3">Introducing Retriever</h3><h5 class="title is-5"></h5><span class=tag><a href=https://deadlysyn.com/blog/tags/aws>aws</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/dev>dev</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/go>go</a></span>
-<span class=tag><a href=https://deadlysyn.com/blog/tags/oss>oss</a></span></div></section><section class=section><div class="container is-max-desktop content"><p>The AWS SDK is great. Writing boilerplate for simple tasks is&mldr; Well, you
-have better things to do.</p><p>Whether creating CLIs or services, one task I routinely encounter is secrets
-management. With AWS, I might use <a href=https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html>Secrets Manager</a>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The AWS SDK is great. Writing boilerplate for simple tasks is… Well, you have better things to do.">
+    <meta name="date" content="2021-12-04">
+    <meta name="keywords" content="aws, dev, go, oss">
+    <meta name="theme-color" content="#15130f">
+    <title>Introducing Retriever — deadlysyn</title>
+    <link rel="canonical" href="https://deadlysyn.com/blog/posts/retriever/">
+    <link rel="alternate" type="application/rss+xml" title="deadlysyn: Yelling at Clouds" href="/blog/index.xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="page">
+      <header class="running-head">
+        <a class="running-head__link" href="/">DEADLYSYN(1)</a>
+        <span class="running-head__center">Yelling at Clouds</span>
+        <a class="running-head__link" href="/blog/">BLOG(7)</a>
+      </header>
+
+      <main>
+        <section class="entry" aria-labelledby="name">
+          <h2 id="name" class="entry__label">NAME</h2>
+          <div class="entry__body">
+            <h1 class="name">Introducing Retriever</h1>
+            <p class="meta"><time datetime="2021-12-04">December 4, 2021</time></p>
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="description">
+          <h2 id="description" class="entry__label">DESCRIPTION</h2>
+          <div class="entry__body prose post">
+<!-- post:start -->
+<p>The AWS SDK is great. Writing boilerplate for simple tasks is… Well, you
+have better things to do.</p>
+<p>Whether creating CLIs or services, one task I routinely encounter is secrets
+management. With AWS, I might use <a href="https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html">Secrets Manager</a>
 (advanced features such as versioning simplify programmatic rotation)
-or <a href=https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html>Parameter Store</a>
-(cost savings at scale, works great for injecting container environment).</p><p>I find myself repeating boilerplate (load configuration, create client,
-retrieve secret):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>ctx</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>TODO</span>()
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>cfg</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>LoadDefaultConfig</span>(<span style=color:#a6e22e>ctx</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Errorf</span>(<span style=color:#e6db74>&#34;ERROR: unable to load AWS configuration: %v&#34;</span>, <span style=color:#a6e22e>err</span>.<span style=color:#a6e22e>Error</span>())
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>client</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ssm</span>.<span style=color:#a6e22e>NewFromConfig</span>(<span style=color:#a6e22e>cfg</span>)
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getParam</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>client</span>, <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;%s/%s&#34;</span>, <span style=color:#a6e22e>p</span>, <span style=color:#a6e22e>v</span>))
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Errorf</span>(<span style=color:#e6db74>&#34;ERROR: unable to retrieve %v/%v (%v)&#34;</span>, <span style=color:#a6e22e>p</span>, <span style=color:#a6e22e>v</span>, <span style=color:#a6e22e>err</span>.<span style=color:#a6e22e>Error</span>())
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// ...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>getParam</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>c</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>ssm</span>.<span style=color:#a6e22e>Client</span>, <span style=color:#a6e22e>p</span> <span style=color:#66d9ef>string</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>ssm</span>.<span style=color:#a6e22e>GetParameterOutput</span>, <span style=color:#66d9ef>error</span>) {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ssm</span>.<span style=color:#a6e22e>GetParameterInput</span>{
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>:           <span style=color:#a6e22e>aws</span>.<span style=color:#a6e22e>String</span>(<span style=color:#a6e22e>p</span>),
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>WithDecryption</span>: <span style=color:#66d9ef>true</span>,
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>out</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>c</span>.<span style=color:#a6e22e>GetParameter</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>i</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>err</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>out</span>, <span style=color:#66d9ef>nil</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><a href=https://github.com/deadlysyn/retriever>Retriever</a>
+or <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html">Parameter Store</a>
+(cost savings at scale, works great for injecting container environment).</p>
+<p>I find myself repeating boilerplate (load configuration, create client,
+retrieve secret):</p>
+<pre tabindex="0"><code class="language-go"><span class="tok-kd">func</span> <span class="tok-nx">main</span><span class="tok-p">()</span> <span class="tok-p">{</span>
+  <span class="tok-nx">ctx</span> <span class="tok-o">:=</span> <span class="tok-nx">context</span><span class="tok-p">.</span><span class="tok-nx">TODO</span><span class="tok-p">()</span>
+
+  <span class="tok-nx">cfg</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">config</span><span class="tok-p">.</span><span class="tok-nx">LoadDefaultConfig</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">)</span>
+  <span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+    <span class="tok-k">return</span> <span class="tok-kc">nil</span><span class="tok-p">,</span> <span class="tok-nx">fmt</span><span class="tok-p">.</span><span class="tok-nx">Errorf</span><span class="tok-p">(</span><span class="tok-s">"ERROR: unable to load AWS configuration: %v"</span><span class="tok-p">,</span> <span class="tok-nx">err</span><span class="tok-p">.</span><span class="tok-nx">Error</span><span class="tok-p">())</span>
+  <span class="tok-p">}</span>
+
+  <span class="tok-nx">client</span> <span class="tok-o">:=</span> <span class="tok-nx">ssm</span><span class="tok-p">.</span><span class="tok-nx">NewFromConfig</span><span class="tok-p">(</span><span class="tok-nx">cfg</span><span class="tok-p">)</span>
+  <span class="tok-nx">res</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">getParam</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">,</span> <span class="tok-nx">client</span><span class="tok-p">,</span> <span class="tok-nx">fmt</span><span class="tok-p">.</span><span class="tok-nx">Sprintf</span><span class="tok-p">(</span><span class="tok-s">"%s/%s"</span><span class="tok-p">,</span> <span class="tok-nx">p</span><span class="tok-p">,</span> <span class="tok-nx">v</span><span class="tok-p">))</span>
+  <span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+    <span class="tok-k">return</span> <span class="tok-kc">nil</span><span class="tok-p">,</span> <span class="tok-nx">fmt</span><span class="tok-p">.</span><span class="tok-nx">Errorf</span><span class="tok-p">(</span><span class="tok-s">"ERROR: unable to retrieve %v/%v (%v)"</span><span class="tok-p">,</span> <span class="tok-nx">p</span><span class="tok-p">,</span> <span class="tok-nx">v</span><span class="tok-p">,</span> <span class="tok-nx">err</span><span class="tok-p">.</span><span class="tok-nx">Error</span><span class="tok-p">())</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// ...</span>
+
+<span class="tok-kd">func</span> <span class="tok-nx">getParam</span><span class="tok-p">(</span><span class="tok-nx">ctx</span> <span class="tok-nx">context</span><span class="tok-p">.</span><span class="tok-nx">Context</span><span class="tok-p">,</span> <span class="tok-nx">c</span> <span class="tok-o">*</span><span class="tok-nx">ssm</span><span class="tok-p">.</span><span class="tok-nx">Client</span><span class="tok-p">,</span> <span class="tok-nx">p</span> <span class="tok-kt">string</span><span class="tok-p">)</span> <span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-nx">ssm</span><span class="tok-p">.</span><span class="tok-nx">GetParameterOutput</span><span class="tok-p">,</span> <span class="tok-kt">error</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+	<span class="tok-nx">i</span> <span class="tok-o">:=</span> <span class="tok-nx">ssm</span><span class="tok-p">.</span><span class="tok-nx">GetParameterInput</span><span class="tok-p">{</span>
+		<span class="tok-nx">Name</span><span class="tok-p">:</span>           <span class="tok-nx">aws</span><span class="tok-p">.</span><span class="tok-nx">String</span><span class="tok-p">(</span><span class="tok-nx">p</span><span class="tok-p">),</span>
+		<span class="tok-nx">WithDecryption</span><span class="tok-p">:</span> <span class="tok-kc">true</span><span class="tok-p">,</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-nx">out</span><span class="tok-p">,</span> <span class="tok-nx">err</span> <span class="tok-o">:=</span> <span class="tok-nx">c</span><span class="tok-p">.</span><span class="tok-nx">GetParameter</span><span class="tok-p">(</span><span class="tok-nx">ctx</span><span class="tok-p">,</span> <span class="tok-o">&amp;</span><span class="tok-nx">i</span><span class="tok-p">)</span>
+	<span class="tok-k">if</span> <span class="tok-nx">err</span> <span class="tok-o">!=</span> <span class="tok-kc">nil</span> <span class="tok-p">{</span>
+		<span class="tok-k">return</span> <span class="tok-kc">nil</span><span class="tok-p">,</span> <span class="tok-nx">err</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-k">return</span> <span class="tok-nx">out</span><span class="tok-p">,</span> <span class="tok-kc">nil</span>
+<span class="tok-p">}</span></code></pre>
+<p><a href="https://github.com/deadlysyn/retriever">Retriever</a>
 abstracts secret management. Regardless of backend, simply specify required
-secrets as configuration (YAML or environment):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>type</span>: <span style=color:#ae81ff>parameter</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>prefix</span>: <span style=color:#ae81ff>/foo</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>credentials</span>:
-</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>BAR</span>
-</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>BAZ_QUX</span>
-</span></span></code></pre></div><p>If this sounds useful, <a href=https://github.com/deadlysyn/retriever>browse the project repo</a>
-for more detail. Feel free to open issues or submit PRs for bugs or feature requests.</p></div></section></body></html>
+secrets as configuration (YAML or environment):</p>
+<pre tabindex="0"><code class="language-yaml"><span class="tok-nt">type</span><span class="tok-p">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">parameter</span>
+<span class="tok-nt">prefix</span><span class="tok-p">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">/foo</span>
+<span class="tok-nt">credentials</span><span class="tok-p">:</span>
+  <span class="tok-p tok-p-Indicator">-</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">BAR</span>
+  <span class="tok-p tok-p-Indicator">-</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">BAZ_QUX</span></code></pre>
+<p>If this sounds useful, <a href="https://github.com/deadlysyn/retriever">browse the project repo</a>
+for more detail. Feel free to open issues or submit PRs for bugs or feature requests.</p>
+<!-- post:end -->
+          </div>
+        </section>
+        <section class="entry" aria-labelledby="see-also">
+          <h2 id="see-also" class="entry__label">SEE ALSO</h2>
+          <nav class="entry__body see-also see-also--stacked">
+            <div class="see-also__row">
+              <span class="see-also__key">tags</span>
+              <a href="/blog/tags/aws/">aws(7)</a>
+              <a href="/blog/tags/dev/">dev(7)</a>
+              <a href="/blog/tags/go/">go(7)</a>
+              <a href="/blog/tags/oss/">oss(7)</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">older</span>
+              <a href="/blog/posts/go-datadog-cli/">Go Datadog CLI</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">newer</span>
+              <a href="/blog/posts/aws-waf-module/">AWS WAF Module</a>
+            </div>
+            <div class="see-also__row">
+              <span class="see-also__key">index</span>
+              <a href="/blog/">blog(7)</a>
+            </div>
+          </nav>
+        </section>
+
+      </main>
+
+      <footer class="running-foot">
+        <span>deadlysyn.com</span>
+        <span class="running-foot__center">December 4, 2021</span>
+        <span>BLOG(7)</span>
+      </footer>
+    </div>
+  </body>
+</html>
