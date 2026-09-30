@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>3 · Main Street 1955 (Classic Barbershop)</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lobster&amp;family=Josefin+Sans:wght@400;600;700&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="container-type: inline-size; width: 100%; min-height: 100vh; display: flex; flex-direction: column; background: #F5EEDF; color: #2B2B2E; font-family: 'Josefin Sans', 'Century Gothic', sans-serif">
+
+<div style="height: 16px; background: repeating-linear-gradient(135deg, {{red}} 0 16px, #F5EEDF 16px 32px, #2A9FD8 32px 48px, #F5EEDF 48px 64px)"></div>
+
+<nav style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 28px; padding: 12px clamp(20px, 5cqi, 64px); background: #5A2217; background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 9px, rgba(0,0,0,0.08) 9px 11px, transparent 11px 23px); border-bottom: 4px solid #C49A55; color: #F5EEDF">
+<a href="#top" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #F5EEDF">
+<img src="./assets/c5746622252fed74ad2956f354b93d0d.png" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 2px solid #C49A55">
+<span style="font-family: 'Lobster', Georgia, serif; font-size: 30px">Tonic Room</span>
+</a>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 26px; font-size: 15px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase">
+<a href="#services" style="color: #F5EEDF; text-decoration: none; padding: 12px 0">Services</a>
+<a href="#crew" style="color: #F5EEDF; text-decoration: none; padding: 12px 0">Barbers</a>
+<a href="#visit" style="color: #F5EEDF; text-decoration: none; padding: 12px 0">Visit</a>
+<a href="tel:+16068645918" style="background: {{red}}; color: #FFFFFF; text-decoration: none; padding: 13px 20px; border-radius: 999px">Call</a>
+</div>
+</nav>
+
+<section style="position: relative; overflow: hidden; background: #2B2B2E; color: #F5EEDF; padding: clamp(80px, 12cqi, 168px) clamp(20px, 5cqi, 64px); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px">
+<img src="./assets/ae05bfcc8718b74a2a5514648f5f8f31.jpg" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 55%; filter: saturate({{photoSat}}) sepia(0.25) brightness({{photoBright}}); opacity: {{photoOpacity}}">
+<div style="position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(43,43,46,0.35) 0%, rgba(43,43,46,0.8) 70%), linear-gradient(180deg, rgba(43,43,46,0.2) 0%, rgba(43,43,46,0.95) 100%)"></div>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: #C49A55"><span style="width: 40px; height: 2px; background: #C49A55"></span>Est. 2014 · London, KY<span style="width: 40px; height: 2px; background: #C49A55"></span></div>
+<h1 style="margin: 0; font-family: 'Lobster', Georgia, serif; font-weight: 400; font-size: clamp(64px, 12cqi, 160px); line-height: 0.95; color: #FFFFFF; text-shadow: 0 4px 24px rgba(0,0,0,0.6)">Tonic Room</h1>
+<div style="font-size: clamp(15px, 2cqi, 22px); font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: #F5EEDF">Barber Shop <span style="color: {{red}}">&amp;</span> Shave Parlor</div>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; max-width: 580px; color: #E4DDCD">Classic cuts and hot-towel straight-razor shaves on Main Street. Sit back, lean in for the steam towel, and leave looking sharp.</p>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 6px">
+<a href="tel:+16068645918" style="background: {{red}}; color: #FFFFFF; text-decoration: none; padding: 16px 30px; border-radius: 999px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; font-size: 15px">Call the Shop</a>
+<a href="#visit" style="border: 2px solid #F5EEDF; color: #F5EEDF; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; font-size: 15px">Walk In Tue–Fri</a>
+</div>
+</div>
+</section>
+<div style="height: clamp(36px, 5cqi, 56px); background: conic-gradient(#2B2B2E 25%, #F5EEDF 0 50%, #2B2B2E 0 75%, #F5EEDF 0) 0 0 / clamp(36px, 5cqi, 56px) clamp(36px, 5cqi, 56px)"></div>
+
+<section id="services" style="padding: clamp(48px, 8cqi, 104px) clamp(20px, 5cqi, 64px); display: flex; flex-direction: column; align-items: center; gap: 24px">
+<h2 style="margin: 0; font-family: 'Lobster', Georgia, serif; font-weight: 400; font-size: clamp(44px, 6cqi, 72px); color: {{red}}">The Menu</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.6; text-align: center; max-width: 560px">Every haircut comes with a steam towel, neck shave, tonic head massage and a splash of aftershave.</p>
+<div style="width: min(100%, 820px); box-sizing: border-box; background: #1C1C1C; background-image: repeating-linear-gradient(180deg, #232323 0 4px, #161616 4px 8px); border: 18px solid #5A2217; border-radius: 8px; box-shadow: inset 0 0 0 3px #C49A55, 0 0 0 2px #3B150E, 0 10px 0 #3B150E; padding: clamp(20px, 4cqi, 44px); color: #F4F4F0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em">
+<sc-for list="{{services}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 0">
+<span style="font-size: clamp(16px, 2cqi, 22px)">{{s.name}}</span>
+<span style="flex-grow: 1; border-bottom: 3px dotted #6B6B6B; transform: translateY(-5px)"></span>
+<span style="font-size: clamp(18px, 2.2cqi, 24px); color: #FF8A8C">{{s.price}}</span>
+</div>
+</sc-for>
+<div style="margin-top: 16px; text-align: center; font-size: 14px; color: #BDBDB5">Cash · Cards · Apple Pay · Military discount</div>
+</div>
+</section>
+
+<section id="crew" style="background: #4A1C13; background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.35) 0 3px, transparent 3px 120px), repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 13px); border-top: 6px solid #C49A55; border-bottom: 6px solid #C49A55; color: #F5EEDF; padding: clamp(48px, 8cqi, 104px) clamp(20px, 5cqi, 64px); display: flex; flex-direction: column; align-items: center; gap: clamp(32px, 5cqi, 56px)">
+<div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; max-width: 640px">
+<h2 style="margin: 0; font-family: 'Lobster', Georgia, serif; font-weight: 400; font-size: clamp(40px, 5cqi, 64px)">Your Barbers</h2>
+<div style="width: 80px; height: 4px; background: {{red}}"></div>
+<p style="margin: 0; font-size: 18px; line-height: 1.7; color: #E6D6C4">The Tonic Room was started by barbers who wanted to give the service you got at the height of the barbershop — not a seven-minute haircut.</p>
+</div>
+<div style="width: min(100%, 1080px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: clamp(20px, 3cqi, 32px)">
+<sc-for list="{{barbers}}" as="b" hint-placeholder-count="3">
+<div style="background: #F5EEDF; color: #2B2B2E; padding: 14px 14px 22px; border-radius: 6px; box-shadow: inset 0 0 0 2px #C49A55, 0 8px 0 rgba(0,0,0,0.3)">
+<div style="aspect-ratio: 1 / 1; background: #2B2B2E; border-radius: 50%; border: 4px solid #C49A55; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D8D2C2">Headshot</div>
+<div style="text-align: center; margin-top: 16px"><div style="font-family: 'Lobster', Georgia, serif; font-size: 30px; color: {{red}}">{{b.name}}</div><div style="font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px">{{b.role}}</div></div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section id="visit" style="padding: clamp(48px, 8cqi, 104px) clamp(20px, 5cqi, 64px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 32px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-family: 'Lobster', Georgia, serif; font-weight: 400; font-size: clamp(40px, 5cqi, 60px); color: {{red}}">Come On In</h2>
+<p style="margin: 0; font-size: 20px; line-height: 1.6">220 N. Main Street<br>London, KY 40741</p>
+<a href="tel:+16068645918" style="color: #2B2B2E; font-size: 22px; font-weight: 700">(606) 864-5918</a>
+<a href="mailto:tonicroombarbershop@gmail.com" style="color: #2B2B2E; font-size: 16px">tonicroombarbershop@gmail.com</a>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center">
+<div style="width: 3px; height: 36px; background: #C49A55"></div>
+<div style="width: 100%; max-width: 360px; box-sizing: border-box; background: #5A2217; background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 11px); border-radius: 12px; padding: 10px; box-shadow: inset 0 0 0 3px #C49A55, 6px 6px 0 #2B2B2E">
+<div style="background: #F5EEDF; border-radius: 6px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-family: 'Lobster', Georgia, serif; font-size: 32px; text-align: center; color: {{red}}">We're Open</div>
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="3">
+<div style="display: flex; justify-content: space-between; font-size: 17px; font-weight: 600; border-bottom: 1px solid #E1D6BF; padding-bottom: 8px"><span>{{h.day}}</span><span>{{h.time}}</span></div>
+</sc-for>
+<div style="font-size: 14px; line-height: 1.5; text-align: center; color: #55504A">Walk-ins. Schedule changes post to Facebook first.</div>
+</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="min-height: 220px; background: #2B2B2E; border: 6px solid #5A2217; border-radius: 12px; box-shadow: inset 0 0 0 2px #C49A55; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D8D2C2">Map</div>
+<a href="https://facebook.com/tonicroombarbershop/" style="background: #2B2B2E; color: #F5EEDF; text-decoration: none; padding: 14px; border-radius: 999px; text-align: center; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; font-size: 14px">Facebook · Today's Updates</a>
+</div>
+</section>
+
+<footer style="flex-grow: 1; display: flex; flex-direction: column">
+<div style="height: 16px; background: repeating-linear-gradient(135deg, {{red}} 0 16px, #F5EEDF 16px 32px, #2A9FD8 32px 48px, #F5EEDF 48px 64px)"></div>
+<div style="flex-grow: 1; background: #2B2B2E; color: #F5EEDF; padding: 28px clamp(20px, 5cqi, 64px); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase">
+<span style="font-family: 'Lobster', Georgia, serif; font-size: 26px; letter-spacing: 0; text-transform: none">Tonic Room <span style="font-family: 'Josefin Sans', sans-serif; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: #2A9FD8">Est. 2014</span></span>
+<a href="https://www.instagram.com/tonicroombarbershop/" style="color: #F5EEDF">Instagram @tonicroombarbershop</a>
+</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"red":{"editor":"color","default":"#B8202A","options":["#B8202A","#D92B2F","#8E1B22"]},"photo":{"editor":"enum","default":"Medium","options":["Subtle","Medium","Bold"]},"$preview":{"width":1280,"height":3400}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+red: this.props.red ?? '#B8202A',
+...({ Subtle: { photoOpacity: 0.4, photoBright: 0.5, photoSat: 0.35 }, Medium: { photoOpacity: 0.6, photoBright: 0.6, photoSat: 0.55 }, Bold: { photoOpacity: 0.85, photoBright: 0.72, photoSat: 0.8 } })[this.props.photo ?? 'Medium'],
+barbers: [
+{ name: 'Barber Name', role: 'Owner & Barber' },
+{ name: 'Barber Name', role: 'Barber' },
+{ name: 'Barber Name', role: 'Barber' }
+],
+services: [
+{ name: "Classic Men's Haircut", price: '$18' },
+{ name: 'Hot Lather Spa Shave', price: '$35' },
+{ name: 'Straight Razor Head Shave', price: '$25' },
+{ name: 'Scalp Treatment', price: '$20' },
+{ name: 'Partial Face Shave', price: '$15' },
+{ name: 'Beard Trim', price: '$5–10' }
+],
+hours: [
+{ day: 'Tue – Fri', time: '9am – 3pm' },
+{ day: 'Saturday', time: 'Closed' },
+{ day: 'Sun – Mon', time: 'Closed' }
+]
+};
+}
+}
+</script>
+</body>
+</html>
